@@ -229,3 +229,23 @@ subprocess regression tests also verify passing exit 0 and malformed-log exit 1.
 GitHub-hosted workflow execution has not been performed for this change.
 JSON now includes `acceptance_cases` with complete suite/priority/method/status
 metadata, including cases whose methods did not execute.
+
+## Integration fixture repair
+
+The GitHub run `43571937946` executed 113 methods and exposed 32 errors
+from `test_integration.py` using the application database without tables or seed
+data. Its missing-restaurant analysis check also returned 500 because that
+request reached the same uninitialized database.
+
+Integration tests now reuse `BackendTestCase`: a fresh temporary SQLite database,
+request-scoped sessions, managed TestClient lifespan, credential isolation and
+network guards. Each test creates its own restaurant, review and sync target;
+cleanup uses that same session factory. Review creation payloads include the
+required body `restaurant_id`, including the missing-parent test so it reaches
+404 handling rather than failing request validation. Nonempty fixture assertions
+prevent conditional checks from silently passing without testing any data.
+
+Validation: affected integration suite **48/48 passed**; full discovery
+**113 methods: 99 passed, 14 failed, 0 errors/skips**. All 21 reporting checks
+pass. Acceptance remains **16/17 P0, 3/8 P1**. Existing behavior gaps are retained
+as failures; runner and reporter both exit 1. No production API files changed.
