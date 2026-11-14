@@ -59,13 +59,23 @@ class TestBackendAcceptance(BackendTestCase):
         for query in ({"skip": -1}, {"limit": 0}, {"limit": 101}):
             with self.subTest(query=query):
                 self.assertEqual(self.client.get("/restaurants", params=query).status_code, 422)
-        for index in range(3):
-            self.restaurant(google_place_id=f"place-{index}")
-        for limit in (1, 100):
-            with self.subTest(limit=limit):
-                self.assertEqual(self.client.get("/restaurants", params={"skip": 0, "limit": limit}).status_code, 200)
-        self.assertEqual(len(self.client.get("/restaurants?skip=1&limit=1").json()), 1)
-        self.assertEqual(self.client.get("/restaurants?skip=3").json(), [])
+        created = [self.restaurant(google_place_id=f"place-{index}", name=name)
+                   for index, name in enumerate(("Zebra Cafe", "Apple Cafe", "Maple Cafe"))]
+        response = self.client.get("/restaurants", params={"skip": 0, "limit": 100})
+        self.assertEqual(response.status_code, 200)
+        ordered_ids = [row["id"] for row in response.json()]
+        self.assertCountEqual(ordered_ids, [row["id"] for row in created])
+        # No sort field/order is documented: pages must preserve full-list order.
+        pages = {}
+        for skip, limit in ((0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2), (3, 1)):
+            with self.subTest(skip=skip, limit=limit):
+                response = self.client.get("/restaurants", params={"skip": skip, "limit": limit})
+                self.assertEqual(response.status_code, 200)
+                pages[skip, limit] = [row["id"] for row in response.json()]
+                self.assertEqual(pages[skip, limit], ordered_ids[skip:skip + limit])
+        self.assertTrue(set(pages[0, 1]).isdisjoint(pages[1, 1]))
+        self.assertTrue(set(pages[1, 1]).isdisjoint(pages[2, 1]))
+        self.assertTrue(set(pages[0, 2]).isdisjoint(pages[2, 2]))
 
     def test_be_05_p0_detail_reviews_latest_analysis_and_not_found(self) -> None:
         restaurant = self.restaurant()
@@ -299,39 +309,52 @@ class TestBackendAcceptance(BackendTestCase):
         self.assertIsNone(self.db.query(Restaurant).filter_by(google_place_id="inactive-target").first())
         self.assertEqual(self.client.post("/sync/run?target_id=999999").status_code, 404)
 
-    def test_be_25_p1_provider_failures_persist_failed_status(self) -> None:
+    def _assert_failed_sync(self, provider_result: dict | Exception) -> None:
         target = self.target()
-        cases = {
-            "timeout": httpx.ReadTimeout("simulated Google timeout"),
-            "provider error": {"status": "REQUEST_DENIED", "error_message": "internal-provider-detail"},
-            "missing result": {"status": "OK"},
-            "invalid review": {"status": "OK", "result": {"place_id": "bad-place", "name": "Bad provider",
-                                "reviews": [{"time": 1577836800, "rating": "not-a-rating"}]}},
-        }
-        for label, result in cases.items():
-            with self.subTest(case=label), patch.object(settings, "GOOGLE_PLACES_API_KEY", "test-only-google-key"), patch("app.services.sync.httpx.get") as provider:
-                if isinstance(result, Exception):
-                    provider.side_effect = result
-                else:
-                    provider.return_value = httpx.Response(200, json=result, request=httpx.Request("GET", "https://provider.invalid"))
-                before = (self.db.query(Restaurant).count(), self.db.query(Review).count())
-                response = self.client.post("/sync/run", params={"target_id": target["id"]})
-                self.assertEqual(response.status_code, 200)
-                run = response.json()
-                provider.assert_called_once()
-                with self.subTest(check="failed status"):
-                    self.assertEqual(run["status"], "FAILED")
-                with self.subTest(check="error is recorded"):
-                    self.assertTrue(run["error_message"])
-                with self.subTest(check="no partial imports"):
-                    self.assertEqual((self.db.query(Restaurant).count(), self.db.query(Review).count()), before)
-                self.db.expire_all()
-                with self.subTest(check="failed target is not marked synced"):
-                    self.assertIsNone(self.db.get(SyncTarget, target["id"]).last_synced_at)
-                stored = self.db.get(SyncRun, run["id"])
-                self.assertEqual(stored.status, run["status"])
-                self.assertIsNotNone(stored.finished_at)
-                self.assertEqual((run["restaurants_upserted"], run["reviews_upserted"]), (0, 0))
+        previous_last_synced = datetime(2020, 1, 1)
+        self.db.get(SyncTarget, target["id"]).last_synced_at = previous_last_synced
+        self.db.commit()
+        before = (self.db.query(Restaurant).count(), self.db.query(Review).count())
+        self.assertEqual(before, (0, 0), "Each provider scenario requires an empty database")
+        with patch.object(settings, "GOOGLE_PLACES_API_KEY", "test-only-google-key"), patch("app.services.sync.httpx.get") as provider:
+            if isinstance(provider_result, Exception):
+                provider.side_effect = provider_result
+            else:
+                provider.return_value = httpx.Response(200, json=provider_result, request=httpx.Request("GET", "https://provider.invalid"))
+            response = self.client.post("/sync/run", params={"target_id": target["id"]})
+            provider.assert_called_once()
+        self.assertEqual(response.status_code, 200)
+        run = response.json()
+        self.db.expire_all()
+        stored = self.db.get(SyncRun, run["id"])
+        with self.subTest(check="failed response status"):
+            self.assertEqual(run["status"], "FAILED")
+        with self.subTest(check="persisted failed status"):
+            self.assertEqual(stored.status, "FAILED")
+        with self.subTest(check="error persistence"):
+            self.assertTrue(run["error_message"])
+            self.assertEqual(stored.error_message, run["error_message"])
+        with self.subTest(check="no partial imports"):
+            self.assertEqual((self.db.query(Restaurant).count(), self.db.query(Review).count()), before)
+        with self.subTest(check="last_synced_at is unchanged"):
+            self.assertEqual(self.db.get(SyncTarget, target["id"]).last_synced_at, previous_last_synced)
+        with self.subTest(check="import counters"):
+            self.assertEqual((run["restaurants_upserted"], run["reviews_upserted"]), (0, 0))
+            self.assertEqual((stored.restaurants_upserted, stored.reviews_upserted), (0, 0))
+        self.assertIsNotNone(stored.finished_at)
+
+    def test_be_25_p1_provider_timeout_persists_failed_status(self) -> None:
+        self._assert_failed_sync(httpx.ReadTimeout("simulated Google timeout"))
+
+    def test_be_25_p1_provider_denial_persists_failed_status(self) -> None:
+        self._assert_failed_sync({"status": "REQUEST_DENIED", "error_message": "internal-provider-detail"})
+
+    def test_be_25_p1_missing_result_persists_failed_status(self) -> None:
+        self._assert_failed_sync({"status": "OK"})
+
+    def test_be_25_p1_invalid_review_has_no_partial_import(self) -> None:
+        self._assert_failed_sync({"status": "OK", "result": {"place_id": "bad-place", "name": "Bad provider",
+                                "reviews": [{"time": 1577836800, "rating": "not-a-rating"}]}})
 
 
 class TestHeuristicAnalysis(unittest.TestCase):
@@ -433,18 +456,19 @@ class TestIntegrationSupport(BackendTestCase):
         detail = self.client.get(f'/restaurants/{restaurant["id"]}', headers=headers).json()
         self.assertEqual(detail["latest_analysis"]["id"], response.json()["id"])
 
-    def test_review_body_restaurant_id_is_optional_or_matches_url(self) -> None:
+    def test_review_body_restaurant_id_must_match_url(self) -> None:
+        restaurant = self.restaurant()
+        other = self.restaurant(google_place_id="other-place")
+        response = self.client.post(f'/restaurants/{restaurant["id"]}/reviews', json=self.review_payload(other["id"]))
+        self.assertEqual(response.status_code, 422, "A mismatched URL/body ID must be rejected")
+
+    def test_review_creation_without_body_restaurant_id(self) -> None:
         restaurant = self.restaurant()
         payload = self.review_payload(restaurant["id"])
         payload.pop("restaurant_id")
         response = self.client.post(f'/restaurants/{restaurant["id"]}/reviews', json=payload)
-        if response.status_code == 422:
-            # Required IDs are allowed only if equality with the URL is enforced.
-            response = self.client.post(f'/restaurants/{restaurant["id"]}/reviews', json=self.review_payload(999999))
-            self.assertEqual(response.status_code, 422, "A mismatched URL/body ID must be rejected")
-        else:
-            self.assertEqual(response.status_code, 201)
-            self.assertEqual(response.json()["restaurant_id"], restaurant["id"])
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()["restaurant_id"], restaurant["id"])
 
     def test_analysis_errors_do_not_expose_internal_details(self) -> None:
         restaurant = self.restaurant()

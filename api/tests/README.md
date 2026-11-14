@@ -42,8 +42,14 @@ python -m unittest discover -s tests -v 2>&1 | tee reports/unittest.log
 python tests/report_results.py reports/unittest.log --output reports
 ```
 
-Reports are ignored by Git. JSON and JUnit count each test method once even if
-several of its subtests fail. The reporter rejects incomplete logs.
+Reports are ignored by Git. JSON test records and JUnit retain each test method
+even if several of its subtests fail. P0/P1 summaries and the checklist table
+aggregate logical acceptance cases; Supplemental/All summaries count methods.
+BE-25 has four independent scenario methods but remains one acceptance case,
+using the worst scenario outcome (error, failed, skipped, passed). The reporter
+checks footer failure/error/skip event counts against detail blocks and skip
+lines, and rejects incomplete or inconsistent logs. Artifact field schemas are
+unchanged.
 
 ## Manual GitHub Actions workflow
 
@@ -122,9 +128,24 @@ from the existing `requirements.txt`; CI records resolved versions on every run.
 | BE-24 | P1 | Bulk sync skips inactive targets; missing target | Pass |
 | BE-25 | P1 | Provider failures, accurate status, atomic imports | Fail |
 
-Acceptance: **19/25 pass** (**16/17 P0**, **3/8 P1**). All tests:
+Initial PR baseline: **19/25 acceptance cases pass** (**16/17 P0**, **3/8 P1**). All tests:
 **33/44 pass**, **11 failing test methods**, zero errors or skips. Standard
 unittest also counts individual failing subtests in its failure total.
+
+After the PR #9 review fixes: **40/55 methods pass**, with **15 failing methods**,
+zero errors or skips, and the same **19/25** acceptance result. The four additional
+failing methods come from splitting BE-25 into four isolated scenarios (+3) and
+testing omission of body `restaurant_id` separately (+1; currently HTTP 422).
+The seven new reporter regression tests pass (**11/11 reporter tests** total).
+Previously passing checks remain passing. P1 selection runs 11 methods for
+eight logical cases; BE-25 is counted once in aggregate summaries.
+
+The pagination test compares exact page IDs with the full-list response order
+and checks that consecutive pages do not overlap; it imposes no undocumented
+ID/name sorting contract. Each BE-25 method starts with an empty SQLite fixture
+and verifies failed status/error persistence, atomic imports, unchanged prior
+`last_synced_at`, and zero import counters. Mismatched URL/body IDs always have
+an independent HTTP 422 assertion.
 
 Observed acceptance defects for backend follow-up:
 
