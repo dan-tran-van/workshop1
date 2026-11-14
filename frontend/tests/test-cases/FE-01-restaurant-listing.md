@@ -42,6 +42,15 @@ include:
 as `review_count`. The UI should display the values according to the
 agreed design and labels.
 
+### Current frontend behavior
+
+- The frontend requests `GET /restaurants?limit=100`; it does not send
+  `skip`.
+- Search runs automatically after typing, with a 250 ms debounce, and
+  trims surrounding whitespace.
+- The list has pagination controls, but both are disabled. The UI does
+  not currently paginate restaurant results.
+
 ------------------------------------------------------------------------
 
 ## FE-01 --- Display restaurants
@@ -77,14 +86,6 @@ agreed design and labels.
     not break the page.
 -   Each restaurant is represented once.
 
-### Actual Result
-
-*To be filled during execution.*
-
-### Status
-
-Not Run
-
 ------------------------------------------------------------------------
 
 ## FE-02 --- Search restaurants by name
@@ -113,14 +114,6 @@ Not Run
 -   Restaurants whose names match the search term are displayed.
 -   Results match the API response for that query.
 -   Unrelated results are not displayed.
-
-### Actual Result
-
-*To be filled during execution.*
-
-### Status
-
-Not Run
 
 ------------------------------------------------------------------------
 
@@ -152,14 +145,6 @@ Not Run
 -   Results match the API response for that query.
 -   Unrelated results are not displayed.
 
-### Actual Result
-
-*To be filled during execution.*
-
-### Status
-
-Not Run
-
 ------------------------------------------------------------------------
 
 ## FE-04 --- Display empty state when no restaurants match
@@ -187,14 +172,6 @@ Not Run
 -   Results from a previous search are not incorrectly presented as
     matches for the new query.
 -   The application remains usable and does not show an unhandled error.
-
-### Actual Result
-
-*To be filled during execution.*
-
-### Status
-
-Not Run
 
 ------------------------------------------------------------------------
 
@@ -231,24 +208,16 @@ Not Run
     failure.
 2.  Open or refresh the restaurant listing page.
 3.  Observe the error state.
-4.  Select **Retry**.
-5.  Restore a successful API response and observe the result.
+4.  Select the page-level **Refresh** action to retry the requests.
+5.  Return the mock to a successful response and observe the result.
 
 ### Expected Results --- Error and Retry
 
 -   A clear error message is displayed.
--   A **Retry** action is available.
--   Selecting Retry triggers another request.
+-   The page-level **Refresh** action is available as the retry action.
+-   Selecting Refresh triggers another restaurant request.
 -   If the retry succeeds, the restaurant list is displayed.
 -   The API failure does not crash the application.
-
-### Actual Result
-
-*To be filled during execution.*
-
-### Status
-
-Not Run
 
 ------------------------------------------------------------------------
 
@@ -258,23 +227,11 @@ Not Run
 **Type:** Positive / Edge case\
 **API:** `GET /restaurants?skip={skip}&limit={limit}`
 
-### Preconditions
+### Current UI behavior
 
--   Frontend application is running.
--   The API contains more restaurant records than the selected page
-    size.
--   Pagination controls or an equivalent load-more interaction are
-    available.
-
-### Test Steps
-
-1.  Open the restaurant listing page.
-2.  Record the restaurant IDs displayed on the first page.
-3.  Navigate to the next page or select **Load more**.
-4.  Inspect the request parameters and record the newly displayed
-    restaurant IDs.
-5.  Continue through the available pages.
-6.  Compare the IDs across pages.
+The frontend currently requests up to 100 restaurants and renders
+disabled pagination controls. It does not expose a page-size selector or
+load-more action, so this behavior cannot currently be exercised.
 
 ### Expected Results
 
@@ -288,37 +245,12 @@ Not Run
 -   Pagination behaves correctly when fewer than `limit` records remain.
 -   An empty final response does not crash the application.
 
-### Actual Result
-
-*To be filled during execution.*
-
-### Status
-
-Not Run
-
 ------------------------------------------------------------------------
 
-## Execution Summary
+## Notes
 
-  Test Case                           Priority   Status    Notes
-  ----------------------------------- ---------- --------- -------
-  FE-01 --- Display restaurants       P0         Not Run   
-  FE-02 --- Search by name            P0         Not Run   
-  FE-03 --- Search by address         P0         Not Run   
-  FE-04 --- No matching restaurants   P0         Not Run   
-  FE-05 --- Loading and API error     P0         Not Run   
-  FE-06 --- Pagination                P1         Not Run   
-
-## Items to Confirm with the Frontend Developer
-
-1.  Which UI labels should be used for `google_rating`,
-    `user_rating_count`, and `review_count`?
-2.  What should the UI do when the search field is cleared or contains
-    only whitespace?
-3.  Is search triggered by Enter, a search button, or automatically
-    while typing?
-4.  Is pagination implemented as numbered pages, infinite scroll, or a
-    Load more button?
-5.  Should pagination reset to the first page when a new search term is
-    entered?
-6.  What exact loading and error UI should be shown?
+- Search is automatic; clearing the field loads the unfiltered list.
+- Restaurant rows display Google rating and stored review count. The
+  detail view labels the Google rating and total Google ratings.
+- There is no separate retry button in the error banner; use the page
+  **Refresh** action.

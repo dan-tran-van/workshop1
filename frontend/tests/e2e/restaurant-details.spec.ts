@@ -41,8 +41,8 @@ test.describe("FE-02 restaurant details and reviews", () => {
     await expect(page.getByRole("button", { name: "Next reviews page" })).toBeEnabled();
   });
 
-  test.fixme("FE-11 renders a Not Found view for an invalid restaurant URL", async ({ page }) => {
-    // Restaurant selection is state-based; the app has no restaurant detail URL route yet.
+  test.fixme("FE-11 handles an invalid restaurant detail URL", async ({ page }) => {
+    // Deferred until the app has URL-routed restaurant details.
     await page.goto("/restaurants/9999");
     await expect(page.getByText(/not found/i)).toBeVisible();
   });

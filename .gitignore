@@ -46,6 +46,8 @@ api/reports/
 # Node / Frontend
 node_modules/
 dist/
+frontend/reports/
+frontend/test-results/
 .next/
 .out/
 

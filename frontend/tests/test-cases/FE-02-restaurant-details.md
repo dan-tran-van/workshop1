@@ -2,9 +2,11 @@
 
 **Scope:** Frontend functional testing  
 **Priority:** P0/P1  
-**Related APIs:** `GET /restaurants/{id}`, `GET /restaurants/{id}/reviews`
+**Related API used by the frontend:** `GET /restaurants/{id}`
 
-> These test cases verify the UI and its interaction with the API. They do not validate backend implementation details. Confirm exact field names, pagination parameters, and UI behavior against the implemented frontend/API contract before execution.
+> The frontend loads restaurant details and the restaurant's embedded `reviews` array from `GET /restaurants/{id}`. Although the backend also exposes `GET /restaurants/{id}/reviews`, the current frontend does not call it.
+
+The selected restaurant appears in a detail panel on the overview/listing view; it is not a separate URL-routed detail page.
 
 ## FE-07 [P0] — Open restaurant detail using selected restaurant ID
 
@@ -18,19 +20,13 @@
 ### Test Steps
 1. Open the restaurant listing page.
 2. Select a restaurant from the list.
-3. Wait for the detail page or detail view to load.
+3. Wait for the detail panel to load.
 
 ### Expected Results
 - The application opens the detail view for the selected restaurant.
 - The request uses the selected restaurant's ID.
 - The displayed restaurant information belongs to that restaurant.
 - The page does not display information from a previously selected restaurant.
-
-### Actual Results
-Pending
-
-### Status
-Not Run
 
 ---
 
@@ -49,15 +45,10 @@ Not Run
 
 ### Expected Results
 - Reviews are displayed for the selected restaurant.
-- Each review displays its author, rating, content, and published date.
+- Each review displays its author, rating, content, and a relative date
+  (or a formatted date for older reviews).
 - Each displayed value matches the corresponding API response.
 - Long review content remains readable and does not overlap or break the page layout.
-
-### Actual Results
-Pending
-
-### Status
-Not Run
 
 ---
 
@@ -78,29 +69,17 @@ Not Run
 - No broken review cards or placeholder records are displayed.
 - The rest of the restaurant detail page remains usable.
 
-### Actual Results
-Pending
-
-### Status
-Not Run
-
 ---
 
 ## FE-10 [P1] — Support review pagination without duplicate records
 
 **Type:** Positive / Pagination
 
-### Preconditions
-- A restaurant has enough reviews to require more than one page.
-- The frontend exposes a pagination or load-more interaction.
-- The API supports the pagination parameters defined by its contract.
+### Current UI behavior
 
-### Test Steps
-1. Open the restaurant detail page.
-2. Record the reviews displayed on the first page.
-3. Navigate to the next page or activate the load-more control.
-4. Compare the newly displayed reviews with the first page.
-5. Continue to another page if available.
+The frontend receives reviews as part of the restaurant detail response
+and displays up to four recent reviews. It has no review pagination or
+load-more control.
 
 ### Expected Results
 - The next set of reviews is loaded.
@@ -109,20 +88,14 @@ Not Run
 - The application handles the final page without showing duplicate or nonexistent records.
 - The displayed reviews belong to the selected restaurant.
 
-### Actual Results
-Pending
-
-### Status
-Not Run
-
 ---
 
-## FE-11 [P1] — Handle an invalid restaurant ID with a Not Found page
+## FE-11 [P1] — Handle an invalid restaurant URL
 
 **Type:** Negative
 
 ### Preconditions
-- The application is running.
+- The application has a URL-routed restaurant detail view.
 - A restaurant ID that does not exist is available for testing.
 
 ### Test Steps
@@ -135,11 +108,11 @@ Not Run
 - The application does not crash.
 - The user has a clear way to return to the restaurant listing, if provided by the design.
 
-### Actual Results
-Pending
+### Implementation note
 
-### Status
-Not Run
+The current frontend does not route restaurant IDs from the URL. When a
+URL-based detail route is available, verify how the UI handles the API's
+404 response.
 
 ---
 
@@ -152,13 +125,3 @@ These checks support the required cases above and can be recorded as observation
 - An API failure while loading details or reviews displays an understandable error state.
 - A retry action, if provided, requests the data again.
 - Refreshing a valid detail URL continues to show the correct restaurant.
-
-## Execution Summary
-
-| Test Case | Priority | Status | Notes |
-|---|---|---|---|
-| FE-07 | P0 | Not Run | |
-| FE-08 | P0 | Not Run | |
-| FE-09 | P0 | Not Run | |
-| FE-10 | P1 | Not Run | |
-| FE-11 | P1 | Not Run | |
