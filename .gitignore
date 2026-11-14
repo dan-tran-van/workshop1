@@ -40,6 +40,7 @@ data.db
 .pytest_cache/
 .coverage
 htmlcov/
+api/reports/
 .mypy_cache/
 
 # Node / Frontend

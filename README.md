@@ -2,6 +2,8 @@
 
 A collaborative project workspace containing backend (`api`) and frontend (`frontend`) services for **Restaurant Review Insights** — turning Google Maps reviews into actionable restaurant improvement suggestions.
 
+Backend test automation: [25-case coverage, local commands, and manual GitHub Actions runs](api/tests/README.md).
+
 ---
 
 ## Table of Contents
