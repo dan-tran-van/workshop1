@@ -484,7 +484,7 @@ function App() {
 
 function NavItem({ active, onClick, icon, label, count }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string; count?: number }) {
   return (
-    <button type="button" className={`nav-item${active ? " active" : ""}`} onClick={onClick}>
+    <button type="button" aria-label={label} className={`nav-item${active ? " active" : ""}`} onClick={onClick}>
       {icon}<span>{label}</span>{count !== undefined && <span className="nav-count">{count}</span>}
     </button>
   );

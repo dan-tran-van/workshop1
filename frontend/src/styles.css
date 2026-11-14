@@ -100,6 +100,7 @@ a { color: inherit; text-decoration: none; }
 .restaurant-tools { display: flex; gap: 7px; padding: 0 14px 11px; }
 .search-field { display: flex; height: 33px; flex: 1; align-items: center; gap: 7px; padding: 0 9px; color: #969e99; background: #fbfcfb; border: 1px solid #edf0ed; border-radius: 6px; }
 .search-field input { width: 100%; min-width: 0; color: #3b443e; background: transparent; border: 0; outline: 0; font-size: 10px; }
+.search-field input:focus-visible { outline: 3px solid #a9c8b7; outline-offset: 2px; }
 .search-field input::placeholder { color: #a5aca7; }
 .search-field button { padding: 0 2px; color: #7c8580; background: none; border: 0; font-size: 17px; }
 .filter-button { display: inline-flex; height: 33px; align-items: center; gap: 5px; padding: 0 8px; color: #717a74; background: #fff; border: 1px solid #edf0ed; border-radius: 6px; font-size: 9px; white-space: nowrap; }
