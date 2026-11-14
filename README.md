@@ -68,10 +68,11 @@ Get started with zero local Python dependency configuration:
    ```
    *Note: If `OPENAI_API_KEY` is not provided, the API automatically falls back to an intelligent heuristic mock analyzer so you can develop completely offline without costs.*
 
-3. **Start the API service with hot-reloading:**
+3. **Start the API & Frontend services with hot-reloading:**
    ```bash
    docker compose up --build
    ```
+   - Frontend UI: [http://localhost:5173](http://localhost:5173)
    - API Base URL: [http://localhost:8000](http://localhost:8000)
    - Interactive Swagger Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
    - Alternative Docs (ReDoc): [http://localhost:8000/redoc](http://localhost:8000/redoc)

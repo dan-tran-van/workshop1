@@ -71,21 +71,22 @@ services:
     profiles:
       - tools
 
-  # Frontend Service (Placeholder for upcoming client UI in frontend/)
-  # Uncomment when frontend project is scaffolded:
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile
-  #   container_name: workshop1-frontend
-  #   restart: unless-stopped
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - VITE_API_BASE_URL=http://localhost:8000
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
-  #   depends_on:
-  #     api:
-  #       condition: service_healthy
+  # Frontend Service (React + Vite Client UI)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: workshop1-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    volumes:
+      # Bind mount frontend source for live hot-reloading
+      - ./frontend:/app
+      # Anonymous volume prevents host node_modules from conflicting with container
+      - /app/node_modules
+    depends_on:
+      api:
+        condition: service_healthy
