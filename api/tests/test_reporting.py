@@ -1,6 +1,8 @@
 """Verify CI reporting does not hide subtest failures or incomplete runs."""
 
 import json
+import html
+import io
 from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
@@ -8,7 +10,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from tests.report_results import counts, parse_results, write_reports
+from tests.report_results import counts, parse_results, write_reports, render_summary, failure_fields
 
 
 class TestReporting(unittest.TestCase):
@@ -84,7 +86,8 @@ OK (skipped=2)
                 self.assertEqual(report["summary"]["P1"][case_status], 1)
                 self.assertEqual(report["summary"]["All"]["total"], 4)
                 self.assertEqual(report["tests"], records)
-                self.assertEqual((Path(folder) / "summary.md").read_text(encoding="utf-8").count("| BE-25 |"), 1)
+                expected_groups = int(case_status in {"failed", "error"})
+                self.assertEqual(html.unescape((Path(folder) / "summary.md").read_text(encoding="utf-8")).count("### BE-25 (P1)"), expected_groups)
                 root = ET.parse(Path(folder) / "junit.xml").getroot()
                 self.assertEqual(root.attrib["tests"], "4")
                 self.assertEqual(len(root.findall("testcase")), 4)
@@ -113,3 +116,109 @@ OK (skipped=2)
             self.assertIsNotNone(root.find("testcase/error"))
             self.assertTrue((Path(folder) / "results.json").is_file())
             self.assertTrue((Path(folder) / "summary.md").is_file())
+
+    def run_fixture(self, fixture: type) -> tuple[str, list[dict]]:
+        stream = io.StringIO()
+        unittest.TextTestRunner(stream=stream, verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(fixture))
+        log = stream.getvalue()
+        return log, parse_results(log)
+
+    def test_one_failure_has_values_message_and_source(self) -> None:
+        class Fixture(unittest.TestCase):
+            def test_be_01_p0_health(self):
+                actual = 201
+                self.assertEqual(actual, 200)
+
+        log, records = self.run_fixture(Fixture)
+        summary = html.unescape(render_summary(records))
+        for text in ("P0 acceptance", "BE-01 (P0)", records[0]["id"], "**Expected:** 200", "**Actual:** 201",
+                     "AssertionError: 201 != 200", "test_reporting.py:", "| 1 | 0 | 1 | 0 | 0 |"):
+            self.assertIn(text, summary)
+        self.assertNotIn("Ran 1 test", summary)
+        with TemporaryDirectory() as folder:
+            write_reports(records, Path(folder))
+            report = json.loads((Path(folder) / "results.json").read_text())
+            self.assertEqual(report["tests"], records)
+            self.assertIn("AssertionError", ET.parse(Path(folder) / "junit.xml").findtext("testcase/failure"))
+
+    def test_failed_subtests_appear_under_one_parent(self) -> None:
+        records = parse_results(self.subtest_failure_log())
+        summary = html.unescape(render_summary(records))
+        self.assertEqual(summary.count("#### " + records[0]["id"]), 1)
+        for parameter in ("(a=1)", "(a=2)"):
+            self.assertIn(parameter, summary)
+        self.assertEqual(summary.count("**Message:**"), 2)
+        self.assertIn("| 1 | 0 | 1 | 0 | 0 |", summary)
+
+    def test_case_grouping_priority_order_and_only_failures(self) -> None:
+        class Fixture(unittest.TestCase):
+            def test_be_25_p1_first(self):
+                self.fail("first")
+
+            def test_be_25_p1_second(self):
+                self.fail("second")
+
+            def test_be_01_p0_health(self):
+                self.fail("health")
+
+            def test_supplemental(self):
+                self.fail("extra")
+
+            def test_be_02_p0_pass(self):
+                pass
+
+        _, records = self.run_fixture(Fixture)
+        summary = html.unescape(render_summary(list(reversed(records))))
+        self.assertEqual(summary.count("### BE-25 (P1)"), 1)
+        self.assertLess(summary.index("P0 acceptance"), summary.index("P1 acceptance"))
+        self.assertLess(summary.index("P1 acceptance"), summary.index("Supplemental tests"))
+        for row in records:
+            self.assertEqual(summary.count("#### " + row["id"]), int(row["status"] == "failed"))
+        self.assertNotIn("BE-02", summary)
+
+    def test_error_and_skip_summary_retains_full_diagnostics(self) -> None:
+        class Fixture(unittest.TestCase):
+            def test_error(self):
+                raise RuntimeError("bad | `value`\n</pre><script>alert(1)</script>\n# injected\n```\n&entity;")
+
+            @unittest.skip("skip reason")
+            def test_skip(self):
+                pass
+
+        log, records = self.run_fixture(Fixture)
+        summary = render_summary(records)
+        self.assertIn("| 2 | 0 | 0 | 1 | 1 |", summary)
+        self.assertNotIn("test_skip", summary)
+        for injection in ("<script>", "</pre>", "```", "\n# injected", "&entity;", "bad |"):
+            self.assertNotIn(injection, summary)
+        self.assertIn("<br>", summary)
+        self.assertIn("RuntimeError: bad | `value`", html.unescape(summary))
+        with TemporaryDirectory() as folder:
+            write_reports(records, Path(folder))
+            self.assertIn("<script>", json.loads((Path(folder) / "results.json").read_text())["tests"][0]["details"][0])
+            self.assertIn("<script>", ET.parse(Path(folder) / "junit.xml").findtext("testcase/error"))
+
+    def test_fully_passing_summary_is_compact(self) -> None:
+        class Fixture(unittest.TestCase):
+            def test_be_01_p0_pass(self):
+                pass
+
+        _, records = self.run_fixture(Fixture)
+        summary = render_summary(records)
+        self.assertIn("| 1 | 1 | 0 | 0 | 0 |", summary)
+        self.assertIn("All tests passed", summary)
+        self.assertNotIn("## ", summary)
+        self.assertNotIn("test_be_01", summary)
+
+    def test_malformed_logs_are_rejected(self) -> None:
+        valid = self.subtest_failure_log()
+        for log in (valid.replace("Ran 1 test", "Ran 2 tests"), valid.replace("FAILED (failures=2)", "OK"),
+                    valid + "trailing output", valid.replace("failures=2", "failures=2, failures=2")):
+            with self.subTest(log=log), self.assertRaises(ValueError):
+                parse_results(log)
+
+    def test_unrecoverable_values_are_explicit(self) -> None:
+        fields = failure_fields("ERROR: test_x (tests.Example.test_x)\nRuntimeError: unavailable")
+        self.assertEqual(fields["Expected"], "Not available in unittest output")
+        self.assertEqual(fields["Actual"], "Not available in unittest output")
+        self.assertEqual(fields["Message"], "RuntimeError: unavailable")
