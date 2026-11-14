@@ -18,11 +18,10 @@ def parse_results(log: str) -> list[dict]:
     starts = re.findall(r"^test_\w+ \(([^)]+)\) \.\.\.([^\n]*)", log, re.MULTILINE)
     records = {}
     for test_id, _tail in starts:
-        match = re.search(r"\.test_be_(\d+)_(p[01])_", test_id)
         records[test_id] = {
             "id": test_id,
-            "case": f"BE-{match[1]}" if match else None,
-            "priority": match[2].upper() if match else None,
+            "case": None,
+            "priority": None,
             "status": "passed",
             "details": [],
         }
@@ -63,24 +62,54 @@ def parse_results(log: str) -> list[dict]:
     has_failures = any(row["status"] in {"failed", "error"} for row in records.values())
     if (outcome[1] == "FAILED") != has_failures:
         raise ValueError("Unittest outcome does not match parsed failure details")
+    manifest = load_manifest()
+    for row in records.values():
+        mapped = mappings(row, manifest)
+        row["cases"] = [c["case"] for c in mapped]
+        row["case"] = mapped[0]["case"] if mapped else None
+        row["priority"] = min((c["priority"] for c in mapped), default=None)
     return list(records.values())
 
 
 def counts(records: list[dict]) -> dict:
     outcomes = Counter(row["status"] for row in records)
-    return {"total": len(records), **{key: outcomes[key] for key in ("passed", "failed", "error", "skipped")}}
+    return {"total": len(records), **{key: outcomes[key] for key in ("passed", "failed", "error", "skipped", "not_executed")}}
 
 
-def acceptance_cases(records: list[dict]) -> list[dict]:
-    """A case passes only when all its scenario methods pass."""
-    severity = {"passed": 0, "skipped": 1, "failed": 2, "error": 3}
-    cases = {}
-    for row in records:
-        if row["case"]:
-            case = cases.setdefault(row["case"], {"case": row["case"], "priority": row["priority"], "status": "passed"})
-            if severity[row["status"]] > severity[case["status"]]:
-                case["status"] = row["status"]
-    return list(cases.values())
+SUITES = ("Restaurant API", "Reviews API", "AI Analysis & Cache", "Google Places Sync")
+
+
+def load_manifest(path=None):
+    cases = json.loads(Path(path or Path(__file__).with_name("acceptance_cases.json")).read_text(encoding="utf-8"))
+    seen = set()
+    for c in cases:
+        if c["case"] not in {f"BE-{i:02}" for i in range(1, 26)}:
+            raise ValueError("Unknown case ID")
+        if c["case"] in seen:
+            raise ValueError("Duplicate case ID")
+        seen.add(c["case"])
+        if c["suite"] not in SUITES or c["priority"] not in {"P0", "P1"}:
+            raise ValueError("Invalid suite/priority")
+        if len(c["methods"]) != len(set(c["methods"])):
+            raise ValueError("Duplicate method mapping")
+    if len(seen) != 25:
+        raise ValueError("Manifest must define all 25 cases")
+    return cases
+
+
+def method_key(name):
+    return name.removeprefix("tests.")
+
+
+def mappings(row, manifest):
+    return [c for c in manifest if method_key(row["id"]) in {method_key(m) for m in c["methods"]}]
+
+
+def acceptance_cases(records, manifest=None):
+    manifest = load_manifest() if manifest is None else manifest
+    methods = {method_key(r["id"]): r for r in records}
+    severity = {"passed": 0, "not_executed": 1, "skipped": 2, "failed": 3, "error": 4}
+    return [{**c, "status": max([methods.get(method_key(m), {}).get("status", "not_executed") for m in c["methods"]] or ["not_executed"], key=severity.get)} for c in manifest]
 
 
 def summary_text(value: str) -> str:
@@ -131,28 +160,47 @@ def failure_fields(detail: str) -> dict:
             "Source": f"{frame[0]}:{frame[1]}" if frame else "Not available in unittest output"}
 
 
-def render_summary(records: list[dict]) -> str:
+def render_summary(records: list[dict], manifest=None) -> str:
+    manifest = load_manifest() if manifest is None else manifest
     values = counts(records)
     lines = ["# Backend automation results", "",
              "| Total test methods | Passed methods | Failed methods | Errors | Skipped |",
              "| ---: | ---: | ---: | ---: | ---: |",
-             f"| {values['total']} | {values['passed']} | {values['failed']} | {values['error']} | {values['skipped']} |", ""]
-    failures = [row for row in records if row["status"] in {"failed", "error"}]
-    if not failures:
-        lines += ["All tests passed." if not values["skipped"] else "No test failures; some tests were skipped.", ""]
-    for priority, title in (("P0", "P0 acceptance"), ("P1", "P1 acceptance"), (None, "Supplemental tests")):
-        grouped = {}
-        for row in failures:
-            if (row["priority"] if row["case"] else None) == priority:
-                grouped.setdefault(row["case"], []).append(row)
-        if not grouped:
+             f"| {values['total']} | {values['passed']} | {values['failed']} | {values['error']} | {values['skipped']} |", "",
+             "## Acceptance coverage by test suite", "",
+             "| Test Suite | P0 Passed/Total | P1 Passed/Total |", "| --- | ---: | ---: |"]
+    cases = acceptance_cases(records, manifest)
+    for suite in (*SUITES, "Total"):
+        cells = []
+        for priority in ("P0", "P1"):
+            selected = [c for c in cases if c["priority"] == priority and (suite == "Total" or c["suite"] == suite)]
+            cells.append(f"{sum(c['status'] == 'passed' for c in selected)}/{len(selected)}")
+        lines.append(f"| {suite} | {' | '.join(cells)} |")
+    lines.append("")
+    if not records:
+        lines += ["No test methods executed.", ""]
+    for priority, title in (("P0", "P0 Acceptance Failures"), ("P1", "P1 Acceptance Failures"), (None, "Supplemental Test Failures")):
+        groups = {}
+        for row in records:
+            if row["status"] not in {"failed", "error"}:
+                continue
+            mapped = mappings(row, manifest)
+            highest = min((c["priority"] for c in mapped), default=None)
+            if highest != priority:
+                continue
+            suite = next((c["suite"] for c in mapped if c["priority"] == highest), "Supplemental")
+            groups.setdefault(suite, []).append((row, mapped))
+        if not groups:
             continue
         lines += [f"## {title}", ""]
-        for case_id, methods in grouped.items():
-            if case_id:
-                lines += [f"### {summary_text(case_id)} ({priority})", ""]
-            for row in methods:
-                lines += [f"#### {summary_text(row['id'])}", "", f"Status: {row['status']}", ""]
+        for suite in (*SUITES, "Supplemental"):
+            if suite not in groups:
+                continue
+            lines += [f"### {summary_text(suite)}", ""]
+            for row, mapped in groups[suite]:
+                if mapped:
+                    lines += ["Acceptance cases: " + ", ".join(summary_text(c["case"] + " — " + c["name"] + " (" + c["priority"] + "; " + c["suite"] + ")") for c in mapped), ""]
+                lines += [f"#### {summary_text(row['id'])}", "", f"Status: {row['status'].upper()}", ""]
                 for index, detail in enumerate(row["details"], 1):
                     lines += [f"Diagnostic {index}:", ""]
                     for label, value in failure_fields(detail).items():
@@ -168,7 +216,7 @@ def write_reports(records: list[dict], output: Path) -> None:
               "P1": [row for row in cases if row["priority"] == "P1"],
               "Supplemental": [row for row in records if row["case"] is None]}
     summary = {name: counts(rows) for name, rows in {**groups, "All": records}.items()}
-    (output / "results.json").write_text(json.dumps({"summary": summary, "tests": records}, indent=2), encoding="utf-8")
+    (output / "results.json").write_text(json.dumps({"summary": summary, "tests": records, "acceptance_cases": cases}, indent=2), encoding="utf-8")
     root = ET.Element("testsuite", name="Backend automation", tests=str(len(records)),
                       failures=str(summary["All"]["failed"]), errors=str(summary["All"]["error"]),
                       skipped=str(summary["All"]["skipped"]))
@@ -188,7 +236,10 @@ def main() -> None:
     parser.add_argument("log", type=Path)
     parser.add_argument("--output", type=Path, default=Path("reports"))
     args = parser.parse_args()
-    write_reports(parse_results(args.log.read_text(encoding="utf-8-sig")), args.output)
+    records = parse_results(args.log.read_text(encoding="utf-8-sig"))
+    write_reports(records, args.output)
+    if any(r["status"] in {"failed", "error"} for r in records):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

@@ -1,19 +1,152 @@
-"""Verify CI reporting does not hide subtest failures or incomplete runs."""
-
-import json
+"""Regression checks for traceability, diagnostic evidence, and CI exit status."""
+from copy import deepcopy
 import html
 import io
+import json
 from pathlib import Path
+import subprocess
 import sys
 from tempfile import TemporaryDirectory
 import unittest
 import xml.etree.ElementTree as ET
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from tests import report_results as report
 from tests.report_results import counts, parse_results, write_reports, render_summary, failure_fields
 
 
 class TestReporting(unittest.TestCase):
+    def setUp(self):
+        self.manifest = report.load_manifest()
+        self.method = self.manifest[0]['methods'][0]
+
+    def row(self, method=None, status='passed', details=None):
+        return dict(id=method or self.method, case=None, priority=None,
+                    status=status, details=details or [])
+
+    def fixture(self, error=None, skip=False, subtests=False):
+        class Fixture(unittest.TestCase):
+            def test_example(self):
+                if error:
+                    raise error
+                if subtests:
+                    for actual in (201, 202):
+                        with self.subTest(actual=actual):
+                            self.assertEqual(actual, 200)
+        if skip:
+            Fixture.test_example = unittest.skip('reason')(Fixture.test_example)
+        stream = io.StringIO()
+        unittest.TextTestRunner(stream=stream, verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(Fixture))
+        return stream.getvalue()
+
+    def test_all_pass_compact_and_four_suites(self):
+        rows = [self.row(m) for c in self.manifest for m in c['methods']]
+        summary = report.render_summary(rows)
+        self.assertIn('| Total | 17/17 | 8/8 |', summary)
+        for suite in report.SUITES:
+            self.assertIn(suite, summary)
+        self.assertNotIn('Failures', summary)
+        self.assertNotIn(self.method, summary)
+
+    def test_many_to_many_and_missing_execution(self):
+        manifest = deepcopy(self.manifest)
+        manifest[0]['methods'].append('test_api.Extra.test_extra')
+        manifest[1]['methods'] = [self.method]
+        cases = report.acceptance_cases([self.row()], manifest)
+        self.assertEqual(cases[0]['status'], 'not_executed')
+        self.assertEqual(cases[1]['status'], 'passed')
+        for status in ('failed', 'error', 'skipped'):
+            with self.subTest(status=status):
+                self.assertEqual(report.acceptance_cases([self.row(status=status)], manifest)[1]['status'], status)
+        manifest[0]['methods'] = []
+        self.assertEqual(report.acceptance_cases([], manifest)[0]['status'], 'not_executed')
+
+    def test_failure_order_grouping_and_multiple_ids_once(self):
+        manifest = deepcopy(self.manifest)
+        manifest[3]['methods'].append(self.method)
+        rows = [self.row('extra.test_x', 'failed'), self.row(manifest[3]['methods'][0], 'error'), self.row(status='failed')]
+        summary = html.unescape(report.render_summary(rows, manifest))
+        self.assertLess(summary.index('P0 Acceptance Failures'), summary.index('P1 Acceptance Failures'))
+        self.assertLess(summary.index('P1 Acceptance Failures'), summary.index('Supplemental Test Failures'))
+        self.assertEqual(summary.count('#### '+self.method), 1)
+        self.assertIn('BE-01', summary)
+        self.assertIn('BE-04', summary)
+        self.assertIn('### Restaurant API', summary)
+
+    def test_subtests_unique_parent_and_values_source(self):
+        records = report.parse_results(self.fixture(subtests=True))
+        self.assertEqual(report.counts(records)['failed'], 1)
+        self.assertEqual(len(records[0]['details']), 2)
+        summary = html.unescape(report.render_summary(records))
+        self.assertEqual(summary.count('#### '), 1)
+        for value in ('actual=201', 'actual=202', '**Expected:** 200', '**Actual:** 201', 'test_reporting.py:', 'AssertionError'):
+            self.assertIn(value, summary)
+
+    def test_assertion_vs_exception_and_skip(self):
+        for error, status in ((AssertionError('bad'), 'failed'), (RuntimeError('bad'), 'error'), (None, 'passed')):
+            self.assertEqual(report.parse_results(self.fixture(error))[0]['status'], status)
+        skipped = report.parse_results(self.fixture(skip=True))
+        self.assertEqual(skipped[0]['status'], 'skipped')
+        rows = report.parse_results(self.fixture()) + report.parse_results(self.fixture(RuntimeError('bad'))) + skipped
+        # Use distinct names to represent three methods.
+        for i, r in enumerate(rows):
+            r['id'] += str(i)
+        self.assertEqual(report.counts(rows), dict(total=3, passed=1, failed=0, error=1, skipped=1, not_executed=0))
+        self.assertNotIn('#### '+skipped[0]['id'], report.render_summary(rows))
+
+    def test_unknown_duplicate_and_invalid_manifest(self):
+        for kind in ('unknown', 'duplicate', 'method', 'suite', 'missing'):
+            cases = deepcopy(self.manifest)
+            if kind == 'unknown': cases[0]['case'] = 'BE-99'
+            if kind == 'duplicate': cases.append(cases[0])
+            if kind == 'method': cases[0]['methods'] *= 2
+            if kind == 'suite': cases[0]['suite'] = 'unknown'
+            if kind == 'missing': cases.pop()
+            with self.subTest(kind=kind), TemporaryDirectory() as folder:
+                path = Path(folder)/'manifest.json'
+                path.write_text(json.dumps(cases))
+                with self.assertRaises(ValueError): report.load_manifest(path)
+
+    def test_zero_incomplete_and_inconsistent_logs(self):
+        valid = self.fixture(subtests=True)
+        for log in ('Ran 0 tests in 0.001s\nOK\n', '', valid.replace('failures=2', 'failures=1'), valid.replace('Ran 1 test', 'Ran 2 tests'), valid+'trailing', valid.replace('FAILED (failures=2)', 'OK')):
+            with self.subTest(log=log), self.assertRaises(ValueError): report.parse_results(log)
+        self.assertIn('No test methods executed', report.render_summary([]))
+        self.assertNotIn('All tests passed', report.render_summary([]))
+
+    def test_markdown_escaping_and_unavailable_values(self):
+        summary = report.render_summary(report.parse_results(self.fixture(RuntimeError('<script> | `x`\n# injected'))))
+        self.assertNotIn('<script>', summary)
+        self.assertNotIn('\n# injected', summary)
+        self.assertIn('<script> | `x`', html.unescape(summary))
+        fields = report.failure_fields('ERROR: test_x (test.Example.test_x)\nRuntimeError: bad')
+        self.assertEqual(fields['Expected'], 'Not available in unittest output')
+        self.assertEqual(fields['Actual'], 'Not available in unittest output')
+
+    def test_cli_exit_and_artifacts(self):
+        for log, expected in ((self.fixture(), 0), (self.fixture(subtests=True), 1), ('invalid', 1)):
+            with self.subTest(expected=expected), TemporaryDirectory() as folder:
+                path = Path(folder)
+                (path/'log').write_text(log)
+                result = subprocess.run([sys.executable, report.__file__, str(path/'log'), '--output', str(path/'reports')], capture_output=True)
+                self.assertEqual(result.returncode, expected)
+                if log != 'invalid':
+                    for artifact in ('results.json', 'junit.xml', 'summary.md'):
+                        self.assertTrue((path/'reports'/artifact).is_file())
+
+    def test_manifest_methods_exist_and_counts(self):
+        import ast
+        tree = ast.parse(Path(__file__).with_name('test_api.py').read_text())
+        methods = {'test_api.'+cls.name+'.'+m.name for cls in tree.body if isinstance(cls, ast.ClassDef) for m in cls.body if isinstance(m, ast.FunctionDef)}
+        self.assertEqual(len(self.manifest), 25)
+        self.assertEqual(sum(c['priority'] == 'P0' for c in self.manifest), 17)
+        for c in self.manifest:
+            self.assertTrue(set(c['methods']) <= methods)
+
+
+class TestParserRegressions(unittest.TestCase):
+
     def subtest_failure_log(self, blocks: int = 2, footer: str = "FAILED (failures=2)") -> str:
         progress = """test_be_01_p0_health (test_api.Acceptance.test_be_01_p0_health) ...
   test_be_01_p0_health (test_api.Acceptance.test_be_01_p0_health) (a=1) ... FAIL
@@ -22,13 +155,6 @@ class TestReporting(unittest.TestCase):
         details = "".join(f"{'=' * 70}\nFAIL: test_be_01_p0_health (test_api.Acceptance.test_be_01_p0_health) (a={index})\nAssertionError: failure {index}\n"
                           for index in range(1, blocks + 1))
         return f"{progress}{details}Ran 1 test in 0.001s\n{footer}\n"
-
-    def test_multiple_subtest_failures_count_as_one_failed_case(self) -> None:
-        records = parse_results(self.subtest_failure_log())
-        self.assertEqual(counts(records)["failed"], 1)
-        self.assertEqual(records[0]["case"], "BE-01")
-        self.assertEqual(records[0]["priority"], "P0")
-        self.assertEqual(len(records[0]["details"]), 2)
 
     def test_missing_failure_blocks_are_rejected(self) -> None:
         for blocks in (0, 1):
@@ -69,32 +195,6 @@ OK (skipped=2)
         self.assertEqual(counts(records)["passed"], 0)
         self.assertEqual(counts(records)["skipped"], 1)
 
-    def test_be_25_scenarios_are_one_case_without_changing_artifact_schema(self) -> None:
-        for statuses, case_status in ((["passed"] * 4, "passed"),
-                                      (["passed", "failed", "failed", "skipped"], "failed"),
-                                      (["passed", "skipped", "passed", "passed"], "skipped"),
-                                      (["failed", "error", "skipped", "passed"], "error")):
-            with self.subTest(statuses=statuses), TemporaryDirectory() as folder:
-                records = [{"id": f"test_api.Acceptance.test_be_25_p1_scenario_{index}", "case": "BE-25",
-                            "priority": "P1", "status": status, "details": []}
-                           for index, status in enumerate(statuses)]
-                write_reports(records, Path(folder))
-                report = json.loads((Path(folder) / "results.json").read_text(encoding="utf-8"))
-                self.assertEqual(set(report), {"summary", "tests"})
-                self.assertEqual(set(report["summary"]), {"P0", "P1", "Supplemental", "All"})
-                self.assertEqual(report["summary"]["P1"]["total"], 1)
-                self.assertEqual(report["summary"]["P1"][case_status], 1)
-                self.assertEqual(report["summary"]["All"]["total"], 4)
-                self.assertEqual(report["tests"], records)
-                expected_groups = int(case_status in {"failed", "error"})
-                self.assertEqual(html.unescape((Path(folder) / "summary.md").read_text(encoding="utf-8")).count("### BE-25 (P1)"), expected_groups)
-                root = ET.parse(Path(folder) / "junit.xml").getroot()
-                self.assertEqual(root.attrib["tests"], "4")
-                self.assertEqual(len(root.findall("testcase")), 4)
-                self.assertEqual(root.attrib["failures"], str(statuses.count("failed")))
-                self.assertEqual(root.attrib["errors"], str(statuses.count("error")))
-                self.assertEqual(root.attrib["skipped"], str(statuses.count("skipped")))
-
     def test_incomplete_run_is_rejected(self) -> None:
         for log in ("test_example (test_api.Example.test_example) ... ",
                     "test_example (test_api.Example.test_example) ... FAIL\nRan 1 test in 0.001s\nFAILED (failures=1)\n",
@@ -116,99 +216,6 @@ OK (skipped=2)
             self.assertIsNotNone(root.find("testcase/error"))
             self.assertTrue((Path(folder) / "results.json").is_file())
             self.assertTrue((Path(folder) / "summary.md").is_file())
-
-    def run_fixture(self, fixture: type) -> tuple[str, list[dict]]:
-        stream = io.StringIO()
-        unittest.TextTestRunner(stream=stream, verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(fixture))
-        log = stream.getvalue()
-        return log, parse_results(log)
-
-    def test_one_failure_has_values_message_and_source(self) -> None:
-        class Fixture(unittest.TestCase):
-            def test_be_01_p0_health(self):
-                actual = 201
-                self.assertEqual(actual, 200)
-
-        log, records = self.run_fixture(Fixture)
-        summary = html.unescape(render_summary(records))
-        for text in ("P0 acceptance", "BE-01 (P0)", records[0]["id"], "**Expected:** 200", "**Actual:** 201",
-                     "AssertionError: 201 != 200", "test_reporting.py:", "| 1 | 0 | 1 | 0 | 0 |"):
-            self.assertIn(text, summary)
-        self.assertNotIn("Ran 1 test", summary)
-        with TemporaryDirectory() as folder:
-            write_reports(records, Path(folder))
-            report = json.loads((Path(folder) / "results.json").read_text())
-            self.assertEqual(report["tests"], records)
-            self.assertIn("AssertionError", ET.parse(Path(folder) / "junit.xml").findtext("testcase/failure"))
-
-    def test_failed_subtests_appear_under_one_parent(self) -> None:
-        records = parse_results(self.subtest_failure_log())
-        summary = html.unescape(render_summary(records))
-        self.assertEqual(summary.count("#### " + records[0]["id"]), 1)
-        for parameter in ("(a=1)", "(a=2)"):
-            self.assertIn(parameter, summary)
-        self.assertEqual(summary.count("**Message:**"), 2)
-        self.assertIn("| 1 | 0 | 1 | 0 | 0 |", summary)
-
-    def test_case_grouping_priority_order_and_only_failures(self) -> None:
-        class Fixture(unittest.TestCase):
-            def test_be_25_p1_first(self):
-                self.fail("first")
-
-            def test_be_25_p1_second(self):
-                self.fail("second")
-
-            def test_be_01_p0_health(self):
-                self.fail("health")
-
-            def test_supplemental(self):
-                self.fail("extra")
-
-            def test_be_02_p0_pass(self):
-                pass
-
-        _, records = self.run_fixture(Fixture)
-        summary = html.unescape(render_summary(list(reversed(records))))
-        self.assertEqual(summary.count("### BE-25 (P1)"), 1)
-        self.assertLess(summary.index("P0 acceptance"), summary.index("P1 acceptance"))
-        self.assertLess(summary.index("P1 acceptance"), summary.index("Supplemental tests"))
-        for row in records:
-            self.assertEqual(summary.count("#### " + row["id"]), int(row["status"] == "failed"))
-        self.assertNotIn("BE-02", summary)
-
-    def test_error_and_skip_summary_retains_full_diagnostics(self) -> None:
-        class Fixture(unittest.TestCase):
-            def test_error(self):
-                raise RuntimeError("bad | `value`\n</pre><script>alert(1)</script>\n# injected\n```\n&entity;")
-
-            @unittest.skip("skip reason")
-            def test_skip(self):
-                pass
-
-        log, records = self.run_fixture(Fixture)
-        summary = render_summary(records)
-        self.assertIn("| 2 | 0 | 0 | 1 | 1 |", summary)
-        self.assertNotIn("test_skip", summary)
-        for injection in ("<script>", "</pre>", "```", "\n# injected", "&entity;", "bad |"):
-            self.assertNotIn(injection, summary)
-        self.assertIn("<br>", summary)
-        self.assertIn("RuntimeError: bad | `value`", html.unescape(summary))
-        with TemporaryDirectory() as folder:
-            write_reports(records, Path(folder))
-            self.assertIn("<script>", json.loads((Path(folder) / "results.json").read_text())["tests"][0]["details"][0])
-            self.assertIn("<script>", ET.parse(Path(folder) / "junit.xml").findtext("testcase/error"))
-
-    def test_fully_passing_summary_is_compact(self) -> None:
-        class Fixture(unittest.TestCase):
-            def test_be_01_p0_pass(self):
-                pass
-
-        _, records = self.run_fixture(Fixture)
-        summary = render_summary(records)
-        self.assertIn("| 1 | 1 | 0 | 0 | 0 |", summary)
-        self.assertIn("All tests passed", summary)
-        self.assertNotIn("## ", summary)
-        self.assertNotIn("test_be_01", summary)
 
     def test_malformed_logs_are_rejected(self) -> None:
         valid = self.subtest_failure_log()

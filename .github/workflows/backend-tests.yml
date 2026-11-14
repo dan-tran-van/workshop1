@@ -75,10 +75,15 @@ jobs:
         if: always()
         run: |
           if [[ -f reports/unittest.log ]]; then
-            python tests/report_results.py reports/unittest.log --output reports
-            cat reports/summary.md >> "$GITHUB_STEP_SUMMARY"
+            report_status=0
+            python tests/report_results.py reports/unittest.log --output reports || report_status=$?
+            if [[ -f reports/summary.md ]]; then
+              cat reports/summary.md >> "$GITHUB_STEP_SUMMARY"
+            fi
+            exit "$report_status"
           else
             echo "Backend tests did not start. Check the setup steps." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi
 
       - name: Upload test evidence
