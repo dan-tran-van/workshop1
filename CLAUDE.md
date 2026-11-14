@@ -5,16 +5,22 @@ Repository guidelines and commands for Claude Code agents.
 ## Quick Commands
 
 ```bash
-# Run unit tests
+# Docker local development (Recommended)
+docker compose up --build
+docker compose run --rm seed
+docker compose run --rm test
+docker compose down
+
+# Run unit tests locally
 ./api/.venv/bin/python -m unittest api/tests/test_api.py
 
-# Run development server
+# Run development server locally
 cd api && ./venv/bin/uvicorn app.main:app --reload --port 8000
 
-# Seed SQLite database
+# Seed SQLite database locally
 ./api/.venv/bin/python api/seed.py
 
-# Install dependencies
+# Install dependencies locally
 cd api && pip install -r requirements.txt
 ```
 

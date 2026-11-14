@@ -36,7 +36,24 @@ Sync Tables:
 
 ## Getting Started
 
-### 1. Set Up Virtual Environment
+### Using Docker Compose (Quickest)
+
+From the project root:
+
+```bash
+# 1. Start backend with live hot-reloading
+docker compose up --build
+
+# 2. In another terminal, seed initial data
+docker compose run --rm seed
+
+# 3. Run test suite
+docker compose run --rm test
+```
+
+### Local Virtual Environment
+
+#### 1. Set Up Virtual Environment
 
 ```bash
 cd api
@@ -45,7 +62,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Environment Configuration
+#### 2. Environment Configuration
 
 Copy `.env.example` to `.env` and set your API keys (optional for initial local dev):
 
@@ -59,7 +76,7 @@ Key variables:
 - `OPENAI_MODEL`: `gpt-4o-mini`
 - `GOOGLE_PLACES_API_KEY`: Google Places API Key (optional)
 
-### 3. Seed Sample Data
+#### 3. Seed Sample Data
 
 Populate the database with sample restaurants and reviews:
 
@@ -67,7 +84,7 @@ Populate the database with sample restaurants and reviews:
 python seed.py
 ```
 
-### 4. Run the Development Server
+#### 4. Run the Development Server
 
 ```bash
 uvicorn app.main:app --reload --port 8000
@@ -84,7 +101,14 @@ uvicorn app.main:app --reload --port 8000
 Run the test suite:
 
 ```bash
-python -m unittest api/tests/test_api.py
+# Using Docker from repo root:
+docker compose run --rm test
+
+# Or using local Python venv from api directory:
+python -m unittest tests/test_api.py
+
+# Or from repository root:
+./api/.venv/bin/python -m unittest api/tests/test_api.py
 ```
 
 ---
