@@ -4,7 +4,7 @@
 **Priority:** P1  
 **Related checklist item:** FE-20
 
-> The checklist defines one formal test case (FE-20). The viewport and accessibility checks below are sub-checks under that case, not additional FE IDs.
+> The checklist defines one formal test case (FE-20). The viewport and accessibility checks below are sub-checks under that case, not additional FE IDs. In the current UI, restaurant details are shown in a panel and analysis is opened from the workspace navigation.
 
 ## FE-20 [P1] — Verify responsive layouts, keyboard navigation, and accessible labels
 
@@ -20,22 +20,22 @@
 #### A. Desktop layout — 1440px
 1. Set the viewport width to 1440px.
 2. Open the restaurant listing page.
-3. Open a restaurant detail page.
+3. Select a restaurant and inspect its detail panel.
 4. Open the AI analysis dashboard.
 5. Inspect the layout and visible controls.
 
 #### B. Tablet layout — 768px
 1. Set the viewport width to 768px.
-2. Repeat the checks on listing, detail, and analysis views.
+2. Repeat the checks on the listing, selected restaurant detail panel, and analysis view.
 3. Inspect navigation, cards, columns, and action controls.
 
 #### C. Mobile layout — 375px
 1. Set the viewport width to 375px.
-2. Repeat the checks on listing, detail, and analysis views.
+2. Repeat the checks on the listing, selected restaurant detail panel, and analysis view.
 3. Inspect text, cards, buttons, and any horizontally arranged content.
 
 #### D. Long review content
-1. Open a restaurant containing a long review.
+1. Select a restaurant containing a long review.
 2. Inspect the review at 375px, 768px, and 1440px.
 3. Check whether the text can be read without breaking the layout.
 
@@ -62,12 +62,6 @@
 - Text and controls remain readable and operable at all tested viewport sizes.
 - No responsive layout or accessibility issue prevents completion of the main user flow.
 
-### Actual Results
-Pending
-
-### Status
-Not Run
-
 ---
 
 ## Additional exploratory checks
@@ -80,16 +74,10 @@ These checks are useful during the pre-demo review but remain part of FE-20 unle
 - Check that buttons are not clipped or too difficult to activate on mobile.
 - Check that browser zoom does not make essential controls inaccessible.
 
-## Execution Matrix
+## Viewports
 
-| View | Width | Listing | Details | Analysis |
-|---|---:|---|---|---|
-| Mobile | 375px | Not Run | Not Run | Not Run |
-| Tablet | 768px | Not Run | Not Run | Not Run |
-| Desktop | 1440px | Not Run | Not Run | Not Run |
-
-## Execution Summary
-
-| Test Case | Priority | Status | Notes |
-|---|---|---|---|
-| FE-20 | P1 | Not Run | |
+| View | Width | Views to check |
+|---|---:|---|
+| Mobile | 375px | Listing, details panel, analysis |
+| Tablet | 768px | Listing, details panel, analysis |
+| Desktop | 1440px | Listing, details panel, analysis |

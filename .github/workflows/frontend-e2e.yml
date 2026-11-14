@@ -3,9 +3,13 @@ name: Frontend E2E
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: frontend
@@ -29,5 +33,23 @@ jobs:
       - name: Build frontend
         run: npm run build
 
+      - name: Prepare E2E report directory
+        run: mkdir -p reports
+
       - name: Run Playwright E2E tests
         run: npm run test:e2e
+
+      - name: Publish Playwright summary
+        if: always()
+        run: node scripts/write-e2e-summary.mjs reports/playwright-results.json reports/summary.md
+
+      - name: Upload E2E evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: frontend-e2e-${{ github.run_id }}
+          path: |
+            frontend/reports/
+            frontend/test-results/
+          if-no-files-found: warn
+          retention-days: 14

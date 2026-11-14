@@ -40,4 +40,4 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The suite covers listing/search, restaurant details and reviews, AI analysis, and responsive/accessibility checks. FE-06, FE-10, FE-11, and FE-19 are marked as pending in Playwright because the current UI does not yet provide restaurant pagination, review pagination, restaurant detail URLs, or analysis history.
+The suite covers listing/search, restaurant details and reviews, AI analysis, and responsive/accessibility checks. FE-06, FE-10, and FE-19 are skipped in Playwright because the current UI does not provide restaurant pagination, review pagination, or analysis history. FE-11 is also skipped and remains deferred until the frontend supports URL-routed restaurant details.

@@ -10,11 +10,11 @@ test("FE-20 keeps listing, details, and insights usable at supported viewport si
     await expect(page.getByRole("heading", { name: /Good morning/ })).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
-    await page.getByRole("button", { name: /Lotus Garden/ }).click();
-    await expect(page.getByRole("heading", { name: "Lotus Garden", level: 2 })).toBeVisible();
+    await page.getByRole("button", { name: /Hearth & Honey/ }).click();
+    await expect(page.getByRole("heading", { name: "Hearth & Honey", level: 2 })).toBeVisible();
+    await expect(page.getByText(/The meal was lovely\./)).toBeVisible();
     await expectNoHorizontalOverflow(page);
 
-    await page.getByRole("button", { name: /Hearth & Honey/ }).click();
     await expect(page.getByText(analysis.result_json.summary)).toBeVisible();
     await page.getByRole("button", { name: "Review insights" }).click();
     await expect(page.getByRole("heading", { name: "Review insights" })).toBeVisible();
@@ -30,17 +30,46 @@ test("FE-20 keeps long reviews readable and interactive controls keyboard access
   await page.goto("/");
 
   await expect(page.getByText(/The meal was lovely\./)).toBeVisible();
-  const unnamedButtons = await page.locator("button").evaluateAll((buttons) =>
-    buttons
-      .filter((button) => {
-        const label = button.getAttribute("aria-label") || button.getAttribute("title") || button.textContent || "";
-        return label.trim().length === 0;
+  const unnamedControls = await page.locator("a, button, input, select, textarea").evaluateAll((controls) =>
+    controls
+      .filter((control) => {
+        const labelledBy = control.getAttribute("aria-labelledby")
+          ?.split(/\s+/)
+          .map((id) => document.getElementById(id)?.textContent ?? "")
+          .join(" ");
+        const formLabels = (control as HTMLInputElement).labels
+          ? Array.from((control as HTMLInputElement).labels ?? []).map((label) => label.textContent ?? "").join(" ")
+          : "";
+        const label = control.getAttribute("aria-label")
+          || labelledBy
+          || control.getAttribute("title")
+          || control.textContent
+          || (control as HTMLInputElement).placeholder
+          || formLabels;
+        return !label?.trim();
       })
-      .map((button) => button.outerHTML),
+      .map((control) => control.outerHTML),
   );
-  expect(unnamedButtons).toEqual([]);
+  expect(unnamedControls).toEqual([]);
+
+  let insightsFocused = false;
+  for (let index = 0; index < 20; index += 1) {
+    await page.keyboard.press("Tab");
+    if (await page.getByRole("button", { name: "Review insights" }).evaluate((button) => button === document.activeElement)) {
+      insightsFocused = true;
+      break;
+    }
+  }
+  expect(insightsFocused).toBeTruthy();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "Review insights" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Overview" }).focus();
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("heading", { name: /Good morning/ })).toBeVisible();
 
   let searchFocused = false;
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   for (let index = 0; index < 20; index += 1) {
     await page.keyboard.press("Tab");
     if (await page.getByRole("textbox", { name: "Search restaurants" }).evaluate((input) => input === document.activeElement)) {
@@ -49,11 +78,16 @@ test("FE-20 keeps long reviews readable and interactive controls keyboard access
     }
   }
   expect(searchFocused).toBeTruthy();
-  await expect(page.getByRole("textbox", { name: "Search restaurants" })).toBeFocused();
+  const search = page.getByRole("textbox", { name: "Search restaurants" });
+  await expect(search).toBeFocused();
   const outlineStyle = await page.getByRole("textbox", { name: "Search restaurants" }).evaluate((input) =>
     getComputedStyle(input).outlineStyle,
   );
   expect(outlineStyle).not.toBe("none");
+  await page.keyboard.press("Shift+Tab");
+  await expect(page.getByRole("button", { name: "View all" }).first()).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(search).toBeFocused();
 });
 
 async function expectNoHorizontalOverflow(page: import("@playwright/test").Page) {

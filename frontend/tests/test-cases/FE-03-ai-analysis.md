@@ -4,7 +4,7 @@
 **Priority:** P0/P1  
 **Related APIs:** `POST /restaurants/{id}/analyze`, `GET /restaurants/{id}/analyses`
 
-> These cases verify how the frontend triggers analysis and presents the API response. AI-generated wording and sentiment values should be compared with the actual response, not with invented fixed text, unless the team provides an approved deterministic test fixture.
+> These cases verify how the frontend triggers analysis and presents the API response. E2E tests use deterministic mocked responses. The latest analysis is included in the restaurant detail response; the current frontend does not display analysis history.
 
 ## FE-12 [P0] — Trigger restaurant analysis and render the response
 
@@ -27,12 +27,6 @@
 - The displayed result belongs to the selected restaurant.
 - The application does not display an unrelated or stale analysis as the new result.
 
-### Actual Results
-Pending
-
-### Status
-Not Run
-
 ---
 
 ## FE-13 [P0] — Disable Analyze while processing to prevent duplicate requests
@@ -54,12 +48,6 @@ Not Run
 - A loading indicator or equivalent progress feedback is visible.
 - The control becomes available again after the request completes or fails, according to the UI design.
 
-### Actual Results
-Pending
-
-### Status
-Not Run
-
 ---
 
 ## FE-14 [P0] — Display overall sentiment, summary, and estimated rating trend
@@ -80,12 +68,6 @@ Not Run
 - Estimated rating trend is displayed.
 - Values shown in the UI correspond to the API response.
 - Missing or null values, if permitted by the API contract, do not cause the page to crash.
-
-### Actual Results
-Pending
-
-### Status
-Not Run
 
 ---
 
@@ -109,19 +91,14 @@ Not Run
   - `hygiene`
   - `ambience`
   - `price`
-- Each displayed aspect shows the fields available in the response and defined by the UI, such as sentiment, score, summary, or highlights.
+- Each displayed aspect shows its label, sentiment, score, and summary.
+- Aspect highlights are present in the response fixture but are not rendered by the current UI.
 - Aspect labels are understandable to users.
 - Data is associated with the correct aspect; values are not mixed between aspects.
 
-### Actual Results
-Pending
-
-### Status
-Not Run
-
 ---
 
-## FE-16 [P0] — Display prioritized improvements and strengths
+## FE-16 [P0] — Display improvement suggestions and strength aspects
 
 **Type:** Positive
 
@@ -131,23 +108,18 @@ Not Run
 ### Test Steps
 1. Open the analysis dashboard.
 2. Locate the prioritized improvements section.
-3. Inspect the priority, issue, recommended action, and expected impact for improvement items.
+3. Inspect the priority, issue, and recommended action for improvement items.
 4. Locate the strengths section.
-5. Inspect the strength and marketing tip for strength items.
+5. Inspect the aspect labels shown for strengths.
 
 ### Expected Results
 - Prioritized improvements are displayed.
-- Each improvement displays the available relevant fields, including recommended action.
+- Up to two improvement items are shown with priority, aspect, issue, and recommended action.
+- Expected impact is not currently rendered.
 - Priority ordering matches the API response or the explicitly agreed UI sorting rule.
 - Strengths are displayed.
-- Each strength displays its marketing tip when provided.
+- Strengths are currently represented by aspect chips; the strength text and marketing tip are not rendered.
 - Improvement items and strengths are not interchanged or mislabelled.
-
-### Actual Results
-Pending
-
-### Status
-Not Run
 
 ---
 
@@ -169,12 +141,6 @@ Not Run
 - Empty improvement, strength, or highlight arrays do not cause rendering errors.
 - Empty sections are handled consistently with the agreed UI design (for example, an explanatory empty state or an omitted section).
 - The page remains usable and does not display fabricated insights.
-
-### Actual Results
-Pending
-
-### Status
-Not Run
 
 ---
 
@@ -200,12 +166,6 @@ Not Run
 - The displayed result is updated from the response.
 - The previous result is not incorrectly presented as the newly generated result after the request succeeds.
 
-### Actual Results
-Pending
-
-### Status
-Not Run
-
 ---
 
 ## FE-19 [P1] — Display analysis history from newest to oldest
@@ -215,6 +175,7 @@ Not Run
 ### Preconditions
 - The restaurant has multiple analysis records with distinguishable creation timestamps.
 - `GET /restaurants/{id}/analyses` returns those records.
+- The frontend provides an analysis history view.
 
 ### Test Steps
 1. Open the restaurant detail page or analysis history view.
@@ -227,11 +188,11 @@ Not Run
 - The displayed order matches the agreed sorting rule and API data.
 - Empty history is handled without a rendering error.
 
-### Actual Results
-Pending
+### Implementation note
 
-### Status
-Not Run
+The current frontend displays only `latest_analysis` from the restaurant
+detail response. When analysis history is added, verify the displayed
+records are ordered newest to oldest.
 
 ---
 
@@ -242,16 +203,3 @@ Not Run
 - Refreshing the page after analysis does not corrupt or misassociate the displayed result.
 - Missing optional response fields are handled gracefully.
 - A response for one restaurant is never displayed on another restaurant's page.
-
-## Execution Summary
-
-| Test Case | Priority | Status | Notes |
-|---|---|---|---|
-| FE-12 | P0 | Not Run | |
-| FE-13 | P0 | Not Run | |
-| FE-14 | P0 | Not Run | |
-| FE-15 | P0 | Not Run | |
-| FE-16 | P0 | Not Run | |
-| FE-17 | P1 | Not Run | |
-| FE-18 | P1 | Not Run | |
-| FE-19 | P1 | Not Run | |
