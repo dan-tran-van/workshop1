@@ -69,7 +69,22 @@ jobs:
           if [[ "$TEST_SUITE" != "all" ]]; then
             args+=(-k "_${TEST_SUITE}_")
           fi
+          # Capture both pipeline statuses before Bash's errexit can stop us.
+          set +e
           python "${args[@]}" 2>&1 | tee reports/unittest.log
+          statuses=("${PIPESTATUS[@]}")
+          set -e
+          if (( statuses[0] != 0 )); then
+            exit "${statuses[0]}"
+          fi
+          if (( statuses[1] != 0 )); then
+            exit "${statuses[1]}"
+          fi
+          # unittest exits zero for an empty selection; CI must reject it.
+          if grep -Eq '^Ran 0 tests? in ' reports/unittest.log; then
+            echo "No backend test methods executed."
+            exit 1
+          fi
 
       - name: Publish per-case summary
         if: always()

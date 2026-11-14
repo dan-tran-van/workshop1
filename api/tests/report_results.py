@@ -238,8 +238,8 @@ def main() -> None:
     args = parser.parse_args()
     records = parse_results(args.log.read_text(encoding="utf-8-sig"))
     write_reports(records, args.output)
-    if any(r["status"] in {"failed", "error"} for r in records):
-        raise SystemExit(1)
+    # Test outcomes belong in the artifacts. Reaching here means reporting
+    # succeeded; input, parsing, and output exceptions still fail this process.
 
 
 if __name__ == "__main__":
