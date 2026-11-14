@@ -1,6 +1,6 @@
 # workshop1
 
-A collaborative project workspace containing backend (`api`) and frontend (`frontend`) services.
+A collaborative project workspace containing backend (`api`) and frontend (`frontend`) services. It's about restaurants.
 
 ---
 
