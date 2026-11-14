@@ -125,15 +125,58 @@ class TestReporting(unittest.TestCase):
         self.assertEqual(fields['Actual'], 'Not available in unittest output')
 
     def test_cli_exit_and_artifacts(self):
-        for log, expected in ((self.fixture(), 0), (self.fixture(subtests=True), 1), ('invalid', 1)):
-            with self.subTest(expected=expected), TemporaryDirectory() as folder:
+        for log, status in ((self.fixture(), 'passed'),
+                            (self.fixture(subtests=True), 'failed'),
+                            (self.fixture(RuntimeError('bad')), 'error'),
+                            (self.fixture(skip=True), 'skipped')):
+            with self.subTest(status=status), TemporaryDirectory() as folder:
                 path = Path(folder)
                 (path/'log').write_text(log)
                 result = subprocess.run([sys.executable, report.__file__, str(path/'log'), '--output', str(path/'reports')], capture_output=True)
-                self.assertEqual(result.returncode, expected)
-                if log != 'invalid':
-                    for artifact in ('results.json', 'junit.xml', 'summary.md'):
-                        self.assertTrue((path/'reports'/artifact).is_file())
+                self.assertEqual(result.returncode, 0, result.stderr)
+                for artifact in ('results.json', 'junit.xml', 'summary.md'):
+                    self.assertTrue((path/'reports'/artifact).is_file())
+                results = json.loads((path/'reports'/'results.json').read_text())
+                self.assertEqual(results['tests'][0]['status'], status)
+                self.assertEqual(results['summary']['All'][status], 1)
+                self.assertEqual(results['summary']['All']['total'], 1)
+                root = ET.parse(path/'reports'/'junit.xml').getroot()
+                self.assertEqual(root.attrib['tests'], '1')
+                tag = {'failed': 'failure', 'error': 'error', 'skipped': 'skipped'}.get(status)
+                if tag:
+                    self.assertIsNotNone(root.find('testcase/'+tag))
+                summary = (path/'reports'/'summary.md').read_text(encoding='utf-8')
+                self.assertEqual(summary.count('#### '), int(status in ('failed', 'error')))
+
+    def test_cli_rejects_invalid_missing_and_empty_logs(self):
+        for log in ('invalid', '', 'Ran 0 tests in 0.001s\nOK\n',
+                    self.fixture(subtests=True).replace('failures=2', 'failures=1'), None):
+            with self.subTest(log=log), TemporaryDirectory() as folder:
+                path = Path(folder)
+                if log is not None:
+                    (path/'log').write_text(log)
+                result = subprocess.run([sys.executable, report.__file__, str(path/'log'), '--output', str(path/'reports')], capture_output=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertTrue(result.stderr)
+                self.assertFalse((path/'reports'/'summary.md').exists())
+
+    def test_cli_output_failure_is_nonzero(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder)
+            (path/'log').write_text(self.fixture())
+            (path/'reports').write_text('A file cannot be an output directory')
+            result = subprocess.run([sys.executable, report.__file__, str(path/'log'), '--output', str(path/'reports')], capture_output=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertTrue(result.stderr)
+
+    def test_unexpected_reporter_exception_is_not_suppressed(self):
+        with TemporaryDirectory() as folder:
+            path = Path(folder)/'log'
+            path.write_text(self.fixture())
+            with patch.object(sys, 'argv', [report.__file__, str(path)]), \
+                    patch.object(report, 'write_reports', side_effect=RuntimeError('reporter bug')):
+                with self.assertRaisesRegex(RuntimeError, 'reporter bug'):
+                    report.main()
 
     def test_manifest_methods_exist_and_counts(self):
         import ast
