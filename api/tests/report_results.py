@@ -5,6 +5,7 @@ instead of implying that unexecuted cases passed. No application import occurs.
 """
 
 import argparse
+import ast
 from collections import Counter
 import json
 from pathlib import Path
@@ -82,6 +83,84 @@ def acceptance_cases(records: list[dict]) -> list[dict]:
     return list(cases.values())
 
 
+def summary_text(value: str) -> str:
+    """Encode all punctuation and line breaks as inert HTML text."""
+    return "<br>".join("".join(char if char.isalnum() or char == " " else f"&#{ord(char)};"
+                              for char in line) for line in str(value).splitlines())
+
+
+def failure_fields(detail: str) -> dict:
+    """Extract evidence without evaluating test code or guessing operand order."""
+    body = re.split(r"\n-{20,}\nRan \d+ tests? in |\nRan \d+ tests? in ", detail)[0]
+    header = re.search(r"^(?:FAIL|ERROR): test_\w+ \([^)]+\)([^\n]*)", body, re.MULTILINE)
+    frames = re.findall(r'^  File "([^"]+)", line (\d+)[^\n]*\n(?:    ([^\n]+))?', body, re.MULTILINE)
+    # The test frame identifies the assertion call; the last frame may be library code.
+    frame = next((item for item in reversed(frames) if Path(item[0]).name.startswith("test")), frames[-1] if frames else None)
+    diagnostic = body[header.end():].lstrip("\n") if header else body
+    exception = re.search(r"^[\w.]+(?:Error|Exception|Interrupt|Exit|Failure)(?::|$)[^\n]*(?:\n[\s\S]*)?", diagnostic, re.MULTILINE)
+    if exception is None:
+        exception = re.search(r"^[\w.]+: .*(?:\n[\s\S]*)?", diagnostic, re.MULTILINE)
+    message = exception[0].strip() if exception else diagnostic.strip()
+    expected = actual = "Not available in unittest output"
+    comparison = re.match(r"AssertionError: (.+?) != (.+?)(?: : .*|\n|$)", message)
+    if frame and frame[2]:
+        try:
+            call = ast.parse(frame[2].strip()).body[0].value
+            if isinstance(call, ast.Call) and isinstance(call.func, ast.Attribute):
+                if call.func.attr in {"assertEqual", "assertEquals"} and len(call.args) >= 2:
+                    # unittest has no expected/actual convention. Only label the
+                    # operands when the source gives one literal reference value.
+                    left, right = call.args[:2]
+                    if isinstance(right, ast.Constant) and not isinstance(left, ast.Constant):
+                        expected = ast.unparse(right)
+                        if comparison:
+                            actual = comparison[1]
+                    elif isinstance(left, ast.Constant) and not isinstance(right, ast.Constant):
+                        expected = ast.unparse(left)
+                        if comparison:
+                            actual = comparison[2]
+                elif call.func.attr in {"assertTrue", "assertFalse"}:
+                    expected = "True" if call.func.attr == "assertTrue" else "False"
+                    match = re.match(r"AssertionError: (.+?) is not (?:true|false)", message)
+                    if match:
+                        actual = match[1]
+        except (SyntaxError, AttributeError, IndexError):
+            pass
+    return {"Subtest parameters": header[1].strip() if header and header[1].strip() else "Not applicable",
+            "Expected": expected, "Actual": actual, "Message": message,
+            "Source": f"{frame[0]}:{frame[1]}" if frame else "Not available in unittest output"}
+
+
+def render_summary(records: list[dict]) -> str:
+    values = counts(records)
+    lines = ["# Backend automation results", "",
+             "| Total test methods | Passed methods | Failed methods | Errors | Skipped |",
+             "| ---: | ---: | ---: | ---: | ---: |",
+             f"| {values['total']} | {values['passed']} | {values['failed']} | {values['error']} | {values['skipped']} |", ""]
+    failures = [row for row in records if row["status"] in {"failed", "error"}]
+    if not failures:
+        lines += ["All tests passed." if not values["skipped"] else "No test failures; some tests were skipped.", ""]
+    for priority, title in (("P0", "P0 acceptance"), ("P1", "P1 acceptance"), (None, "Supplemental tests")):
+        grouped = {}
+        for row in failures:
+            if (row["priority"] if row["case"] else None) == priority:
+                grouped.setdefault(row["case"], []).append(row)
+        if not grouped:
+            continue
+        lines += [f"## {title}", ""]
+        for case_id, methods in grouped.items():
+            if case_id:
+                lines += [f"### {summary_text(case_id)} ({priority})", ""]
+            for row in methods:
+                lines += [f"#### {summary_text(row['id'])}", "", f"Status: {row['status']}", ""]
+                for index, detail in enumerate(row["details"], 1):
+                    lines += [f"Diagnostic {index}:", ""]
+                    for label, value in failure_fields(detail).items():
+                        lines.append(f"- **{label}:** {summary_text(value)}")
+                    lines.append("")
+    return "\n".join(lines)
+
+
 def write_reports(records: list[dict], output: Path) -> None:
     output.mkdir(parents=True, exist_ok=True)
     cases = acceptance_cases(records)
@@ -101,17 +180,7 @@ def write_reports(records: list[dict], output: Path) -> None:
             ET.SubElement(case, tag).text = "\n\n".join(row["details"])
     ET.indent(root)
     ET.ElementTree(root).write(output / "junit.xml", encoding="utf-8", xml_declaration=True)
-    lines = ["# Backend automation results", "", "| Group | Total | Passed | Failed | Errors | Skipped |",
-             "| --- | ---: | ---: | ---: | ---: | ---: |"]
-    for name, values in summary.items():
-        lines.append(f"| {name} | {values['total']} | {values['passed']} | {values['failed']} | {values['error']} | {values['skipped']} |")
-    lines += ["", "P0/P1 count logical acceptance cases; Supplemental/All count test methods.",
-              "Subtest failures count once per method; multi-method cases use their worst outcome.", "",
-              "| Checklist case | Priority | Result |", "| --- | --- | --- |"]
-    for row in cases:
-        lines.append(f"| {row['case']} | {row['priority']} | {row['status']} |")
-    lines += ["", "See `unittest.log` and `junit.xml` for assertion details.", ""]
-    (output / "summary.md").write_text("\n".join(lines), encoding="utf-8")
+    (output / "summary.md").write_text(render_summary(records), encoding="utf-8")
 
 
 def main() -> None:

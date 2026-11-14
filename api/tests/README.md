@@ -43,13 +43,19 @@ python tests/report_results.py reports/unittest.log --output reports
 ```
 
 Reports are ignored by Git. JSON test records and JUnit retain each test method
-even if several of its subtests fail. P0/P1 summaries and the checklist table
-aggregate logical acceptance cases; Supplemental/All summaries count methods.
-BE-25 has four independent scenario methods but remains one acceptance case,
-using the worst scenario outcome (error, failed, skipped, passed). The reporter
-checks footer failure/error/skip event counts against detail blocks and skip
-lines, and rejects incomplete or inconsistent logs. Artifact field schemas are
-unchanged.
+even if several of its subtests fail. JSON P0/P1 summaries aggregate logical
+acceptance cases; Supplemental/All summaries count methods. BE-25 has four
+independent scenario methods but remains one acceptance case, using the worst
+scenario outcome (error, failed, skipped, passed).
+
+`summary.md` starts with method totals and lists only failures and errors,
+grouped by P0 acceptance, P1 acceptance, and supplemental tests. Each diagnostic
+includes subtest parameters, expected/actual values when recoverable, the error
+message, and the test source location. Unavailable values are explicit, and
+diagnostic text is escaped for safe display. Passing runs use a compact success
+message. The reporter checks footer failure/error/skip event counts against
+detail blocks and skip lines, and rejects incomplete or inconsistent logs.
+JSON and JUnit artifact schemas are unchanged.
 
 ## Manual GitHub Actions workflow
 
