@@ -43,45 +43,47 @@ def run_sync_for_target(db: Session, target: SyncTarget, sync_run: SyncRun):
 
     if settings.GOOGLE_PLACES_API_KEY and target.target_type == "place_id":
         place_data = fetch_from_google_places(target.value, settings.GOOGLE_PLACES_API_KEY, target.language_code)
-        if place_data:
-            restaurant = db.query(Restaurant).filter(Restaurant.google_place_id == place_data.get("place_id")).first()
-            now = datetime.now(timezone.utc)
-            if not restaurant:
-                restaurant = Restaurant(
-                    google_place_id=place_data.get("place_id"),
-                    name=place_data.get("name", "Unknown Restaurant"),
-                    address=place_data.get("formatted_address"),
-                    google_rating=place_data.get("rating"),
-                    user_rating_count=place_data.get("user_ratings_total"),
-                    last_synced_at=now
-                )
-                db.add(restaurant)
-                db.flush()
-                restaurants_count += 1
-            else:
-                restaurant.name = place_data.get("name", restaurant.name)
-                restaurant.address = place_data.get("formatted_address", restaurant.address)
-                restaurant.google_rating = place_data.get("rating", restaurant.google_rating)
-                restaurant.user_rating_count = place_data.get("user_ratings_total", restaurant.user_rating_count)
-                restaurant.last_synced_at = now
-                restaurants_count += 1
+        if not place_data or not place_data.get("place_id"):
+            raise RuntimeError(f"Failed to fetch place details for target {target.id}")
 
-            for rev in place_data.get("reviews", []):
-                external_id = f"{restaurant.google_place_id}_{rev.get('time')}"
-                existing_rev = db.query(Review).filter(Review.external_review_id == external_id).first()
-                if not existing_rev:
-                    pub_time = datetime.fromtimestamp(rev.get("time", int(now.timestamp())), tz=timezone.utc)
-                    new_rev = Review(
-                        restaurant_id=restaurant.id,
-                        external_review_id=external_id,
-                        author_name=rev.get("author_name", "Anonymous"),
-                        author_uri=rev.get("author_url"),
-                        rating=float(rev.get("rating", 5.0)),
-                        text=rev.get("text", ""),
-                        published_at=pub_time
-                    )
-                    db.add(new_rev)
-                    reviews_count += 1
+        restaurant = db.query(Restaurant).filter(Restaurant.google_place_id == place_data.get("place_id")).first()
+        now = datetime.now(timezone.utc)
+        if not restaurant:
+            restaurant = Restaurant(
+                google_place_id=place_data.get("place_id"),
+                name=place_data.get("name", "Unknown Restaurant"),
+                address=place_data.get("formatted_address"),
+                google_rating=place_data.get("rating"),
+                user_rating_count=place_data.get("user_ratings_total"),
+                last_synced_at=now
+            )
+            db.add(restaurant)
+            db.flush()
+            restaurants_count += 1
+        else:
+            restaurant.name = place_data.get("name", restaurant.name)
+            restaurant.address = place_data.get("formatted_address", restaurant.address)
+            restaurant.google_rating = place_data.get("rating", restaurant.google_rating)
+            restaurant.user_rating_count = place_data.get("user_ratings_total", restaurant.user_rating_count)
+            restaurant.last_synced_at = now
+            restaurants_count += 1
+
+        for rev in place_data.get("reviews", []):
+            external_id = f"{restaurant.google_place_id}_{rev.get('time')}"
+            existing_rev = db.query(Review).filter(Review.external_review_id == external_id).first()
+            if not existing_rev:
+                pub_time = datetime.fromtimestamp(rev.get("time", int(now.timestamp())), tz=timezone.utc)
+                new_rev = Review(
+                    restaurant_id=restaurant.id,
+                    external_review_id=external_id,
+                    author_name=rev.get("author_name", "Anonymous"),
+                    author_uri=rev.get("author_url"),
+                    rating=float(rev.get("rating", 5.0)),
+                    text=rev.get("text", ""),
+                    published_at=pub_time
+                )
+                db.add(new_rev)
+                reviews_count += 1
     else:
         # Simulated sync for demonstration & local development
         now = datetime.now(timezone.utc)
@@ -164,11 +166,15 @@ def execute_sync_job(db: Session, target_id: Optional[int] = None) -> SyncRun:
         sync_run.finished_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(sync_run)
-    except Exception as e:
+    except Exception:
         logger.exception("Sync job encountered an error")
+        db.rollback()
+        sync_run = db.merge(sync_run)
         sync_run.status = "FAILED"
         sync_run.finished_at = datetime.now(timezone.utc)
-        sync_run.error_message = str(e)
+        sync_run.error_message = "Sync job failed due to provider error or invalid payload"
+        sync_run.restaurants_upserted = 0
+        sync_run.reviews_upserted = 0
         db.commit()
         db.refresh(sync_run)
 

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Any, Dict, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -8,14 +8,14 @@ from pydantic import BaseModel, ConfigDict, Field
 # --------------------------------------------------------
 class AspectBreakdown(BaseModel):
     aspect: str  # food, service, wait_time, hygiene, ambience, price
-    sentiment: str  # POSITIVE, NEGATIVE, NEUTRAL, MIXED
+    sentiment: Literal["POSITIVE", "NEGATIVE", "NEUTRAL", "MIXED"]
     score: Optional[float] = None  # e.g., 1 to 5 scale
     summary: str
     highlights: List[str] = Field(default_factory=list)
 
 
 class ImprovementSuggestion(BaseModel):
-    priority: str  # HIGH, MEDIUM, LOW
+    priority: Literal["HIGH", "MEDIUM", "LOW"]
     aspect: str
     issue: str
     recommended_action: str
@@ -29,9 +29,9 @@ class StrengthItem(BaseModel):
 
 
 class AnalysisResultPayload(BaseModel):
-    overall_sentiment: str
+    overall_sentiment: Literal["POSITIVE", "NEGATIVE", "NEUTRAL", "MIXED"]
     summary: str
-    estimated_rating_trend: str  # IMPROVING, STABLE, DECLINING
+    estimated_rating_trend: Literal["IMPROVING", "STABLE", "DECLINING"]
     aspect_breakdown: List[AspectBreakdown] = Field(default_factory=list)
     prioritized_improvements: List[ImprovementSuggestion] = Field(default_factory=list)
     strengths_to_keep: List[StrengthItem] = Field(default_factory=list)
@@ -43,7 +43,7 @@ class AnalysisResultPayload(BaseModel):
 class ReviewBase(BaseModel):
     author_name: str
     author_uri: Optional[str] = None
-    rating: float
+    rating: float = Field(..., ge=1.0, le=5.0)
     text: str
     published_at: datetime
     external_review_id: Optional[str] = None
@@ -95,8 +95,8 @@ class RestaurantBase(BaseModel):
     google_place_id: str
     name: str
     address: Optional[str] = None
-    google_rating: Optional[float] = None
-    user_rating_count: Optional[int] = None
+    google_rating: Optional[float] = Field(default=None, ge=1.0, le=5.0)
+    user_rating_count: Optional[int] = Field(default=None, ge=0)
 
 
 class RestaurantCreate(RestaurantBase):

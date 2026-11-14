@@ -37,9 +37,23 @@ def create_review_for_restaurant(
     payload: ReviewCreate,
     db: Session = Depends(get_db)
 ):
+    if payload.restaurant_id is not None and payload.restaurant_id != restaurant_id:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Body restaurant_id does not match URL path parameter."
+        )
+
     restaurant = db.query(Restaurant).filter(Restaurant.id == restaurant_id).first()
     if not restaurant:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Restaurant not found")
+
+    if payload.external_review_id:
+        existing = db.query(Review).filter(Review.external_review_id == payload.external_review_id).first()
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Review with external ID '{payload.external_review_id}' already exists."
+            )
 
     review_data = payload.model_dump()
     review_data["restaurant_id"] = restaurant_id
