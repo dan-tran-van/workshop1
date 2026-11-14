@@ -1,0 +1,230 @@
+[
+  {
+    "case": "BE-01",
+    "name": "Health Check",
+    "priority": "P0",
+    "suite": "Restaurant API",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_01_p0_health"
+    ]
+  },
+  {
+    "case": "BE-02",
+    "name": "Restaurant Listing",
+    "priority": "P0",
+    "suite": "Restaurant API",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_02_p0_restaurant_list_schema_and_counts"
+    ]
+  },
+  {
+    "case": "BE-03",
+    "name": "Search Name / Address",
+    "priority": "P0",
+    "suite": "Restaurant API",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_03_p0_case_insensitive_name_and_address_search"
+    ]
+  },
+  {
+    "case": "BE-04",
+    "name": "Pagination Validation",
+    "priority": "P1",
+    "suite": "Restaurant API",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_04_p1_pagination_bounds"
+    ]
+  },
+  {
+    "case": "BE-05",
+    "name": "Restaurant Detail",
+    "priority": "P0",
+    "suite": "Restaurant API",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_05_p0_detail_reviews_latest_analysis_and_not_found"
+    ]
+  },
+  {
+    "case": "BE-06",
+    "name": "Create Restaurant",
+    "priority": "P0",
+    "suite": "Restaurant API",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_06_p0_create_restaurant_and_duplicate"
+    ]
+  },
+  {
+    "case": "BE-07",
+    "name": "Invalid Restaurant Data",
+    "priority": "P1",
+    "suite": "Restaurant API",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_07_p1_restaurant_required_fields_and_ratings"
+    ]
+  },
+  {
+    "case": "BE-08",
+    "name": "Create Review",
+    "priority": "P0",
+    "suite": "Reviews API",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_08_p0_review_creation_persists"
+    ]
+  },
+  {
+    "case": "BE-09",
+    "name": "Get Reviews",
+    "priority": "P0",
+    "suite": "Reviews API",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_09_p0_reviews_newest_published_first"
+    ]
+  },
+  {
+    "case": "BE-10",
+    "name": "Invalid Reviews",
+    "priority": "P1",
+    "suite": "Reviews API",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_10_p1_review_missing_restaurant_and_invalid_rating"
+    ]
+  },
+  {
+    "case": "BE-11",
+    "name": "Duplicate External Review",
+    "priority": "P1",
+    "suite": "Reviews API",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_11_p1_duplicate_external_review_is_client_error"
+    ]
+  },
+  {
+    "case": "BE-12",
+    "name": "Analysis Output",
+    "priority": "P0",
+    "suite": "AI Analysis & Cache",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_12_p0_structured_analysis_response"
+    ]
+  },
+  {
+    "case": "BE-13",
+    "name": "No Reviews",
+    "priority": "P0",
+    "suite": "AI Analysis & Cache",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_13_p0_no_reviews_neutral_stable_empty_insights"
+    ]
+  },
+  {
+    "case": "BE-14",
+    "name": "Offline Fallback",
+    "priority": "P0",
+    "suite": "AI Analysis & Cache",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_14_p0_missing_key_uses_heuristic_without_request"
+    ]
+  },
+  {
+    "case": "BE-15",
+    "name": "OpenAI Failure Fallback",
+    "priority": "P0",
+    "suite": "AI Analysis & Cache",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_15_p0_openai_timeout_and_exception_fallback"
+    ]
+  },
+  {
+    "case": "BE-16",
+    "name": "Cache Hit",
+    "priority": "P0",
+    "suite": "AI Analysis & Cache",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_16_p0_valid_cache_does_not_call_llm_again"
+    ]
+  },
+  {
+    "case": "BE-17",
+    "name": "Force Refresh",
+    "priority": "P0",
+    "suite": "AI Analysis & Cache",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_17_p0_force_refresh_bypasses_cache"
+    ]
+  },
+  {
+    "case": "BE-18",
+    "name": "Cache Invalidation",
+    "priority": "P0",
+    "suite": "AI Analysis & Cache",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_18_p0_backdated_review_invalidates_analysis_and_count"
+    ]
+  },
+  {
+    "case": "BE-19",
+    "name": "Analysis History",
+    "priority": "P1",
+    "suite": "AI Analysis & Cache",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_19_p1_analysis_history_newest_first_and_not_found"
+    ]
+  },
+  {
+    "case": "BE-20",
+    "name": "Structured AI Validation",
+    "priority": "P1",
+    "suite": "AI Analysis & Cache",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_20_p1_malformed_llm_output_is_not_persisted"
+    ]
+  },
+  {
+    "case": "BE-21",
+    "name": "Create / List Sync Targets",
+    "priority": "P0",
+    "suite": "Google Places Sync",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_21_p0_create_list_persisted_sync_targets"
+    ]
+  },
+  {
+    "case": "BE-22",
+    "name": "Mock Sync",
+    "priority": "P0",
+    "suite": "Google Places Sync",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_22_p0_mock_sync_without_credentials"
+    ]
+  },
+  {
+    "case": "BE-23",
+    "name": "Idempotent Sync",
+    "priority": "P0",
+    "suite": "Google Places Sync",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_23_p0_repeated_sync_is_idempotent"
+    ]
+  },
+  {
+    "case": "BE-24",
+    "name": "Inactive / Invalid Target",
+    "priority": "P1",
+    "suite": "Google Places Sync",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_24_p1_skip_inactive_and_missing_target"
+    ]
+  },
+  {
+    "case": "BE-25",
+    "name": "External Sync Failure",
+    "priority": "P1",
+    "suite": "Google Places Sync",
+    "methods": [
+      "test_api.TestBackendAcceptance.test_be_25_p1_provider_timeout_persists_failed_status",
+      "test_api.TestBackendAcceptance.test_be_25_p1_provider_denial_persists_failed_status",
+      "test_api.TestBackendAcceptance.test_be_25_p1_missing_result_persists_failed_status",
+      "test_api.TestBackendAcceptance.test_be_25_p1_invalid_review_has_no_partial_import"
+    ]
+  }
+]

@@ -42,20 +42,34 @@ python -m unittest discover -s tests -v 2>&1 | tee reports/unittest.log
 python tests/report_results.py reports/unittest.log --output reports
 ```
 
-Reports are ignored by Git. JSON test records and JUnit retain each test method
-even if several of its subtests fail. JSON P0/P1 summaries aggregate logical
-acceptance cases; Supplemental/All summaries count methods. BE-25 has four
-independent scenario methods but remains one acceptance case, using the worst
-scenario outcome (error, failed, skipped, passed).
+Reports are ignored by Git. The [backend test plan](../../docs/testing/backend-test-plan.md)
+contains all 25 execution checklists grouped into four functional suites.
 
-`summary.md` starts with method totals and lists only failures and errors,
-grouped by P0 acceptance, P1 acceptance, and supplemental tests. Each diagnostic
-includes subtest parameters, expected/actual values when recoverable, the error
-message, and the test source location. Unavailable values are explicit, and
-diagnostic text is escaped for safe display. Passing runs use a compact success
-message. The reporter checks footer failure/error/skip event counts against
-detail blocks and skip lines, and rejects incomplete or inconsistent logs.
-JSON and JUnit artifact schemas are unchanged.
+### Registering automated coverage
+
+Edit `acceptance_cases.json`, the central manifest of case IDs, names, suites,
+priorities, and required full method IDs. Add a real method to `methods` only
+when its assertions implement that acceptance case. List several methods when
+all are required; the same method may appear in several cases. Use canonical
+`test_api.Class.method` IDs (`tests.` prefixes from module invocation are normalized).
+An empty methods list means **Not automated**. Missing execution is
+`not_executed`, never passed. The manifest validator rejects unknown/duplicate
+case IDs and duplicate methods within a case. New unmapped methods are Supplemental.
+The manifest regression check verifies registered methods exist in source.
+
+JSON P0/P1 totals include all 25 cases, including missing execution. Statuses
+are `passed`, `failed`, `error`, `skipped`, and `not_executed`. A case passes only
+when every required method executes and passes. JUnit and execution totals count
+unique methods; failing subtests are aggregated under their parent.
+
+The Markdown summary contains execution totals, suite coverage, and only failed
+or errored method details, ordered P0, P1, Supplemental. A method mapped to several
+cases appears once at its highest priority, showing all associated case IDs.
+Diagnostics include parameters, expected/actual values when recoverable, exception
+messages and source locations. Unavailable operands are explicit rather than guessed.
+The reporter rejects incomplete/zero-test logs and returns nonzero on test failures.
+CI publishes the summary even when the reporter reports failures, then preserves
+that status. Original logs, JSON, JUnit and Markdown remain debugging artifacts.
 
 ## Manual GitHub Actions workflow
 
@@ -64,8 +78,8 @@ Its only trigger is `workflow_dispatch`; it has no schedule, push, or PR trigger
 It uses Python 3.12, a virtual environment, and `pip install -r requirements.txt`
 from `api/`. Only package installation needs network access.
 
-After the workflow is available on the default branch, choose **Actions →
-Backend checklist tests → Run workflow**, select a branch and `all`, `p0`, or
+After the workflow is available on the default branch, choose **Actions â†’
+Backend checklist tests â†’ Run workflow**, select a branch and `all`, `p0`, or
 `p1`, then run it. The equivalent CLI command is:
 
 ```bash
@@ -155,7 +169,7 @@ an independent HTTP 422 assertion.
 
 Observed acceptance defects for backend follow-up:
 
-- BE-07/BE-10: ratings outside 1–5 are accepted with HTTP 201.
+- BE-07/BE-10: ratings outside 1â€“5 are accepted with HTTP 201.
 - BE-11: an existing external review ID causes HTTP 500 instead of a client error.
 - BE-18: a newly inserted backdated review reuses stale analysis and its old count.
 - BE-20: parseable but incomplete or invalid-enum LLM output is persisted.
@@ -168,7 +182,7 @@ reanalysis of unchanged future-dated reviews, mismatched URL/body restaurant
 IDs, and internal exception details in analysis/sync responses. These remain
 visible failures for the backend owner. No application fixes are included.
 
-The automated integration flow exercises Search → Reviews → Analysis →
+The automated integration flow exercises Search â†’ Reviews â†’ Analysis â†’
 Recommendations with the configured frontend Origin header. CORS preflight,
 allowed/disallowed origins, and required `/docs` operations are checked. This
 is API-contract coverage; an interactive frontend browser review and peer code
@@ -203,3 +217,15 @@ An analysis response wraps it as follows (IDs and timestamps vary):
 Restaurant lists expose `review_count`; details add `reviews` and
 `latest_analysis`. Valid responses are checked with models from `app/schemas.py`;
 BE-20 separately tests the stricter enum/output expectations in the checklist.
+
+## Suite-reporting validation (2026-11-14)
+
+On main `2a8cb5a` plus this change: **65 methods, 50 passed, 15 failed,
+0 errors/skips**. All **21 reporting tests pass**. Acceptance coverage remains
+**16/17 P0, 3/8 P1**, with all 25 cases automated. Known failing acceptance
+cases: BE-07, BE-10, BE-11, BE-18, BE-20, BE-25. Existing supplemental
+failures remain visible. Test runner and reporter both exit 1 on this run;
+subprocess regression tests also verify passing exit 0 and malformed-log exit 1.
+GitHub-hosted workflow execution has not been performed for this change.
+JSON now includes `acceptance_cases` with complete suite/priority/method/status
+metadata, including cases whose methods did not execute.
