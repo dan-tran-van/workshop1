@@ -1,0 +1,91 @@
+name: Backend checklist tests
+run-name: Backend ${{ inputs.suite }} checks by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Cases to execute
+        type: choice
+        required: true
+        default: all
+        options:
+          - all
+          - p0
+          - p1
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-tests-${{ github.ref }}-${{ inputs.suite }}
+  cancel-in-progress: false
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: api
+        shell: bash
+    env:
+      OPENAI_API_KEY: ""
+      GOOGLE_PLACES_API_KEY: ""
+      DATABASE_URL: "sqlite://"
+      CORS_ORIGINS: '["http://localhost:5173"]'
+      PYTHONUNBUFFERED: "1"
+      TEST_SUITE: ${{ inputs.suite }}
+    steps:
+      - name: Check out selected branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: api/requirements.txt
+
+      - name: Create virtual environment
+        run: |
+          python -m venv .venv
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+
+      - name: Install dependencies and configure test environment
+        run: |
+          pip install -r requirements.txt
+          cp ../.env.example .env
+          mkdir -p reports
+          python --version > reports/python-version.txt
+          pip freeze > reports/dependencies.txt
+
+      - name: Run isolated backend tests
+        run: |
+          set -o pipefail
+          args=(-m unittest discover -s tests -v)
+          if [[ "$TEST_SUITE" != "all" ]]; then
+            args+=(-k "_${TEST_SUITE}_")
+          fi
+          python "${args[@]}" 2>&1 | tee reports/unittest.log
+
+      - name: Publish per-case summary
+        if: always()
+        run: |
+          if [[ -f reports/unittest.log ]]; then
+            python tests/report_results.py reports/unittest.log --output reports
+            cat reports/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Backend tests did not start. Check the setup steps." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: backend-tests-${{ inputs.suite }}-${{ github.run_id }}
+          path: api/reports/
+          if-no-files-found: warn
+          retention-days: 14

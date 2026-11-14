@@ -57,7 +57,7 @@ docker compose run --rm test
 
 ```bash
 cd api
-python3 -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -67,7 +67,7 @@ pip install -r requirements.txt
 Copy `.env.example` to `.env` and set your API keys (optional for initial local dev):
 
 ```bash
-cp .env.example .env
+cp ../.env.example .env
 ```
 
 Key variables:
@@ -98,18 +98,30 @@ uvicorn app.main:app --reload --port 8000
 
 ## Running Tests
 
-Run the test suite:
+The tests create their own temporary SQLite databases, override the FastAPI
+database dependency, and mock external providers. No seed data, internet access,
+or API credentials are needed to execute tests after installing dependencies.
 
 ```bash
 # Using Docker from repo root:
 docker compose run --rm test
 
 # Or using local Python venv from api directory:
-python -m unittest tests/test_api.py
+python -m unittest discover -s tests -v
 
 # Or from repository root:
 ./api/.venv/bin/python -m unittest api/tests/test_api.py
 ```
+
+Use Python 3.12 or later. On Windows, activate with `.venv\Scripts\Activate.ps1`.
+Failures report existing backend defects; this automation change does not fix
+application code or mark known failures as expected successes.
+
+The **Backend checklist tests** GitHub Actions workflow runs manually using
+`workflow_dispatch`, with `all`, `p0`, and `p1` suite choices. It publishes the
+test log, JUnit XML, JSON results, a per-case summary, and installed dependency
+versions, including on test failure. See [test coverage, baseline results, and
+manual-run instructions](tests/README.md).
 
 ---
 
