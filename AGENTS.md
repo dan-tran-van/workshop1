@@ -118,9 +118,18 @@ uvicorn app.main:app --reload --port 8000
 
 ## 6. Git & Commit Expectations
 
+- **Collaboration Model**: Direct repository collaborator (no forks needed). Always work on a feature branch and open a PR into `main`.
 - **Branch naming**: `feat/<name>`, `fix/<name>`, `docs/<name>`, `test/<name>`, `refactor/<name>`.
 - **Commit style**: Conventional Commits (e.g., `feat(api): add export endpoint for analysis`).
 - **Pre-commit checklist**:
   - [ ] All tests pass: `python -m unittest api/tests/test_api.py`.
   - [ ] New endpoints have corresponding test coverage.
   - [ ] No temporary files or SQLite databases staged.
+- **Workflow**:
+  1. `git checkout main && git pull origin main`
+  2. `git checkout -b feat/<name>`
+  3. Work & test: `./api/.venv/bin/python -m unittest api/tests/test_api.py`
+  4. `git add . && git commit -m "feat(api): ..."`
+  5. `git fetch origin && git rebase origin/main`
+  6. `git push -u origin feat/<name>`
+  7. Open PR on GitHub: `feat/<name>` -> `main`
