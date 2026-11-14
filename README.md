@@ -14,13 +14,12 @@ A collaborative project workspace containing backend (`api`) and frontend (`fron
 - [Agentic & AI-Assisted Coding](#agentic--ai-assisted-coding)
 - [Collaboration Guide](#collaboration-guide)
   - [Code of Conduct](#code-of-conduct)
-  - [How Can I Contribute?](#how-can-i-contribute)
-  - [Git Workflow](#git-workflow)
+  - [Git Collaboration Flow (For Invited Collaborators)](#git-collaboration-flow-for-invited-collaborators)
   - [Branching Strategy](#branching-strategy)
   - [Commit Message Conventions](#commit-message-conventions)
-  - [Keeping Your Branch Updated](#keeping-your-branch-updated)
-  - [Submitting a Pull Request](#submitting-a-pull-request)
-  - [Code Review Process](#code-review-process)
+  - [Syncing & Rebasing](#syncing--rebasing)
+  - [Submitting & Reviewing Pull Requests](#submitting--reviewing-pull-requests)
+  - [External Contributors (Fork & PR)](#external-contributors-fork--pr)
 - [Getting Help](#getting-help)
 
 ---
@@ -117,111 +116,142 @@ We welcome contributions of all levels! To ensure a smooth development process a
 
 We are committed to providing a welcoming, inclusive, and harassment-free environment for everyone. Please treat all contributors and maintainers with respect, patience, and kindness.
 
-### How Can I Contribute?
-
-- **Report Bugs**: Search existing [Issues](https://github.com/dan-tran-van/workshop1/issues) first. If it is new, open an issue including reproduction steps, expected vs. actual behavior, and environment details.
-- **Suggest Features**: Open an issue describing the feature, why it is needed, and any implementation ideas or alternatives.
-- **Work on Issues**: Find an open issue, comment to let everyone know you are working on it, and ask to be assigned.
-
 ---
 
-### Git Workflow
+### Git Collaboration Flow (For Invited Collaborators)
 
-1. **Fork the repo** to your GitHub account: `https://github.com/dan-tran-van/workshop1`.
-2. **Clone your fork locally**:
+If you have been invited as a collaborator with direct push access to `dan-tran-van/workshop1`, **you do not need to fork**. Work directly on feature branches within the shared repository:
+
+```mermaid
+gitGraph
+    commit id: "initial"
+    commit id: "main setup"
+    branch feat/new-feature
+    checkout feat/new-feature
+    commit id: "feat: add endpoint"
+    commit id: "test: add unit tests"
+    checkout main
+    merge feat/new-feature id: "PR #1 (Squash & Merge)"
+    branch fix/bug-fix
+    checkout fix/bug-fix
+    commit id: "fix: query filter"
+    checkout main
+    merge fix/bug-fix id: "PR #2 (Squash & Merge)"
+```
+
+#### Step-by-Step Collaborator Workflow:
+
+1. **Clone the repository directly:**
    ```bash
-   git clone https://github.com/<your-username>/workshop1.git
+   git clone https://github.com/dan-tran-van/workshop1.git
    cd workshop1
    ```
-3. **Add the upstream repository** to keep in sync:
+
+2. **Always start from the latest `main`:**
    ```bash
-   git remote add upstream https://github.com/dan-tran-van/workshop1.git
-   git fetch upstream
+   git checkout main
+   git pull origin main
    ```
+
+3. **Create a dedicated feature branch:**
+   ```bash
+   git checkout -b feat/your-feature-name
+   ```
+   *(Never commit directly to `main`)*
+
+4. **Develop and run tests:**
+   ```bash
+   # Run tests to ensure nothing breaks
+   ./api/.venv/bin/python -m unittest api/tests/test_api.py
+   ```
+
+5. **Commit using Conventional Commits:**
+   ```bash
+   git add .
+   git commit -m "feat(api): add export endpoint for analysis"
+   ```
+
+6. **Rebase on `origin/main` before pushing:**
+   To maintain a clean, linear Git history, rebase your branch on the latest `main`:
+   ```bash
+   git fetch origin
+   git rebase origin/main
+   ```
+   *(If there are merge conflicts, resolve them and run `git rebase --continue`)*
+
+7. **Push your branch directly to the repository:**
+   ```bash
+   git push -u origin feat/your-feature-name
+   ```
+
+8. **Open a Pull Request (PR):**
+   - Go to [dan-tran-van/workshop1/pulls](https://github.com/dan-tran-van/workshop1/pulls).
+   - Click **New pull request**.
+   - Compare: `feat/your-feature-name` into `base: main`.
+   - Fill out the PR template checklist and request reviews from team members.
+
+9. **Review, Merge & Clean Up:**
+   - Once approved and tests pass, merge the PR (Squash and Merge recommended).
+   - Switch back to `main`, pull the merge, and delete your feature branch locally and remotely:
+     ```bash
+     git checkout main
+     git pull origin main
+     git branch -d feat/your-feature-name
+     git push origin --delete feat/your-feature-name
+     ```
 
 ---
 
 ### Branching Strategy
 
-Always create a new branch from the latest `main` before starting any work. Name branches using the appropriate prefix:
+Name your branches with standard prefixes describing the intent:
 
 | Prefix | Purpose | Example |
 | :--- | :--- | :--- |
-| `feat/` | New features or enhancements | `feat/user-auth` |
-| `fix/` | Bug fixes | `fix/api-cors-error` |
-| `docs/` | Documentation changes | `docs/update-readme` |
-| `refactor/` | Code improvements with no behavior change | `refactor/api-routing` |
-| `test/` | Adding or updating tests | `test/login-unit-tests` |
-| `chore/` | Tooling, dependencies, or config changes | `chore/update-dependencies` |
-
-**Creating a branch:**
-```bash
-git checkout main
-git pull upstream main
-git checkout -b feat/your-feature-name
-```
+| `feat/` | New features or endpoints | `feat/user-auth`, `feat/export-csv` |
+| `fix/` | Bug fixes and patches | `fix/db-connection-leak` |
+| `docs/` | Documentation changes | `docs/update-collab-guide` |
+| `refactor/` | Code refactoring without behavior change | `refactor/thin-router-handlers` |
+| `test/` | Adding or updating tests | `test/analysis-unit-tests` |
+| `chore/` | Dependency, build, or configuration updates | `chore/update-requirements` |
 
 ---
 
 ### Commit Message Conventions
 
-We follow [Conventional Commits](https://www.conventionalcommits.org/) to keep the git history clean and readable:
+We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```text
-<type>(<scope>): <short description in imperative present tense>
+<type>(<optional scope>): <short description in present tense>
+
+[optional bullet points or body]
 ```
 
-#### Common Types:
-- `feat`: A new feature
-- `fix`: A bug fix
-- `docs`: Documentation updates
-- `refactor`: Refactoring production code
-- `test`: Adding or refactoring tests
-- `chore`: Build tasks, package manager configs, etc.
-
-#### Examples:
-- `feat(api): add jwt authentication middleware`
-- `fix(frontend): correct button alignment on mobile viewports`
-- `docs: add collaboration guide to readme`
+**Common types:**
+- `feat`: A new feature (e.g. `feat(api): add review search filter`)
+- `fix`: A bug fix (e.g. `fix(api): handle missing place id gracefully`)
+- `docs`: Documentation updates (e.g. `docs: update setup guide in README`)
+- `refactor`: Refactoring code without functional changes
+- `test`: Adding or improving tests
+- `chore`: Tooling, dependencies, or repo config
 
 ---
 
-### Keeping Your Branch Updated
+### Submitting & Reviewing Pull Requests
 
-Before submitting your pull request, sync your branch with upstream `main` using rebase to maintain a linear commit history:
-
-```bash
-git checkout main
-git pull upstream main
-git checkout feat/your-feature-name
-git rebase main
-```
-
-If there are conflicts, resolve them, then push to your fork:
-```bash
-git push origin feat/your-feature-name --force-with-lease
-```
+- **Self-Review**: Run the test suite (`python -m unittest api/tests/test_api.py`) before opening the PR.
+- **Link Issues**: Reference related issues in the PR description (e.g., `Closes #5`).
+- **Peer Review**: At least one collaborator should review and approve before merging to `main`.
+- **Merge Strategy**: Prefer **Squash and Merge** or **Rebase and Merge** to maintain a clean linear commit history on `main`.
 
 ---
 
-### Submitting a Pull Request
+### External Contributors (Fork & PR)
 
-1. Push your branch to your GitHub fork.
-2. Open a Pull Request against the `main` branch of `dan-tran-van/workshop1`.
-3. Fill out the PR template:
-   - Provide a clear title following Conventional Commits.
-   - Describe the changes made and the motivation behind them.
-   - Link any related issue (e.g., `Closes #12`).
-   - Add screenshots or screen recordings for frontend UI changes.
-4. Ensure code passes all linting, formatting, and test suites (`python -m unittest api/tests/test_api.py`).
-
----
-
-### Code Review Process
-
-- Maintainers will review your PR and may suggest improvements or ask questions.
-- Address review comments with follow-up commits on your branch.
-- Once approved, your PR will be merged into `main`.
+If you are not an invited collaborator on GitHub and do not have direct push access:
+1. Fork the repo to your personal GitHub account.
+2. Clone your fork locally and add the upstream remote (`git remote add upstream https://github.com/dan-tran-van/workshop1.git`).
+3. Push to your fork and submit a PR from your fork's branch into `dan-tran-van/workshop1:main`.
 
 ---
 
