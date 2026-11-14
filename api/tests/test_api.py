@@ -26,14 +26,14 @@ class TestRestaurantReviewInsightsAPI(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         data = res.json()
         self.assertGreaterEqual(len(data), 2)
-        self.assertTrue(any("Golden Lotus" in r["name"] for r in data))
+        self.assertTrue(any("Kichi Kichi" in r["name"] or "Golden Lotus" in r["name"] for r in data))
 
         # Test search filter
-        search_res = client.get("/restaurants?q=Sakura")
+        search_res = client.get("/restaurants?q=Haidilao")
         self.assertEqual(search_res.status_code, 200)
         search_data = search_res.json()
         self.assertEqual(len(search_data), 1)
-        self.assertIn("Sakura", search_data[0]["name"])
+        self.assertIn("Haidilao", search_data[0]["name"])
 
     def test_get_restaurant_detail(self):
         list_res = client.get("/restaurants")
