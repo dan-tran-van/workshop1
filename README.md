@@ -8,9 +8,10 @@ A collaborative project workspace containing backend (`api`) and frontend (`fron
 
 - [Project Structure](#project-structure)
 - [Collaborator Quick Start](#collaborator-quick-start)
-  - [1. Backend Setup (`api`)](#1-backend-setup-api)
-  - [2. Running Tests](#2-running-tests)
-  - [3. Frontend Setup (`frontend`)](#3-frontend-setup-frontend)
+  - [Option A: Docker Compose (Recommended)](#option-a-docker-compose-recommended)
+  - [Option B: Local Virtual Environment](#option-b-local-virtual-environment)
+  - [Running Tests](#running-tests)
+  - [Frontend Setup (`frontend`)](#frontend-setup-frontend)
 - [Agentic & AI-Assisted Coding](#agentic--ai-assisted-coding)
 - [Collaboration Guide](#collaboration-guide)
   - [Code of Conduct](#code-of-conduct)
@@ -28,20 +29,69 @@ A collaborative project workspace containing backend (`api`) and frontend (`fron
 
 ```text
 workshop1/
-├── api/            # FastAPI backend (SQLite, SQLAlchemy, OpenAI review analytics)
-├── frontend/       # Client-side web application
-├── .github/        # GitHub PR template and workflows
-├── AGENTS.md       # AI agent development guide & system prompt context
-├── CLAUDE.md       # Claude Code CLI developer guide
-├── CONTRIBUTING.md # Contributor guidelines index
-└── README.md       # Project overview & collaboration guide
+├── api/                  # FastAPI backend (SQLite, SQLAlchemy, OpenAI review analytics)
+│   ├── app/              # Application source code
+│   ├── tests/            # API integration tests
+│   ├── Dockerfile        # Container build definition for backend service
+│   ├── .dockerignore     # Docker build exclusion rules
+│   ├── requirements.txt  # Python package dependencies
+│   ├── seed.py           # Database seeding script
+│   └── README.md         # Backend API documentation
+├── frontend/             # Client-side web application
+├── docker-compose.yml    # Multi-container local development orchestration
+├── .dockerignore         # Root Docker build exclusion rules
+├── .env.example          # Environment variable template
+├── .github/              # GitHub PR template and workflows
+├── AGENTS.md             # AI agent development guide & system prompt context
+├── CLAUDE.md             # Claude Code CLI developer guide
+├── CONTRIBUTING.md       # Contributor guidelines index
+└── README.md             # Project overview & collaboration guide
 ```
 
 ---
 
 ## Collaborator Quick Start
 
-### 1. Backend Setup (`api`)
+### Option A: Docker Compose (Recommended)
+
+Get started with zero local Python dependency configuration:
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/dan-tran-van/workshop1.git
+   cd workshop1
+   ```
+
+2. **Configure environment variables (optional):**
+   ```bash
+   cp .env.example .env
+   ```
+   *Note: If `OPENAI_API_KEY` is not provided, the API automatically falls back to an intelligent heuristic mock analyzer so you can develop completely offline without costs.*
+
+3. **Start the API service with hot-reloading:**
+   ```bash
+   docker compose up --build
+   ```
+   - API Base URL: [http://localhost:8000](http://localhost:8000)
+   - Interactive Swagger Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+   - Alternative Docs (ReDoc): [http://localhost:8000/redoc](http://localhost:8000/redoc)
+
+4. **Seed the database with sample restaurants and reviews:**
+   In another terminal (or while the container is running):
+   ```bash
+   # Using the dedicated seed tool profile:
+   docker compose run --rm seed
+
+   # Or executing inside the running api container:
+   docker compose exec api python seed.py
+   ```
+
+5. **Stop containers:**
+   ```bash
+   docker compose down
+   ```
+
+### Option B: Local Virtual Environment
 
 1. **Clone the repository:**
    ```bash
@@ -65,7 +115,6 @@ workshop1/
    ```bash
    cp .env.example .env
    ```
-   *Note: If `OPENAI_API_KEY` is not provided, the API automatically falls back to an intelligent heuristic mock analyzer so you can develop completely offline without costs.*
 
 5. **Seed the database with sample restaurants and reviews:**
    ```bash
@@ -79,10 +128,20 @@ workshop1/
    - Swagger Documentation: [http://localhost:8000/docs](http://localhost:8000/docs)
    - Alternative Docs (ReDoc): [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
-### 2. Running Tests
+### Running Tests
 
 Always verify your changes before pushing or opening a PR:
 
+**Using Docker:**
+```bash
+# Run tests inside Docker:
+docker compose run --rm test
+
+# Or within a running container:
+docker compose exec api python -m unittest tests/test_api.py
+```
+
+**Using Local Python Virtual Environment:**
 ```bash
 # From within the api directory:
 python -m unittest tests/test_api.py
@@ -91,7 +150,7 @@ python -m unittest tests/test_api.py
 ./api/.venv/bin/python -m unittest api/tests/test_api.py
 ```
 
-### 3. Frontend Setup (`frontend`)
+### Frontend Setup (`frontend`)
 
 *The frontend application workspace will be initialized in the `frontend/` directory.*
 

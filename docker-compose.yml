@@ -1,0 +1,91 @@
+services:
+  # FastAPI Backend Service
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: workshop1-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - PROJECT_NAME=${PROJECT_NAME:-Restaurant Review Insights API}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data.db}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY:-}
+      - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost:3000","http://127.0.0.1:3000","http://localhost:5173","http://127.0.0.1:5173"]}
+    volumes:
+      # Bind mount the api directory for instant code hot-reloading
+      - ./api:/app
+      # Anonymous volume prevents host .venv from clashing with container dependencies
+      - /app/.venv
+      # Anonymous volume prevents bytecode cache files from polluting host
+      - /app/__pycache__
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  # Database Seeding Utility Service (Run with: docker compose run --rm seed)
+  seed:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: workshop1-seed
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data.db}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+    volumes:
+      - ./api:/app
+      - /app/.venv
+      - /app/__pycache__
+    command: python seed.py
+    profiles:
+      - tools
+
+  # Unit Test Runner Service (Run with: docker compose run --rm test)
+  test:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: workshop1-test
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data.db}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    volumes:
+      - ./api:/app
+      - /app/.venv
+      - /app/__pycache__
+    command: python -m unittest tests/test_api.py
+    profiles:
+      - tools
+
+  # Frontend Service (Placeholder for upcoming client UI in frontend/)
+  # Uncomment when frontend project is scaffolded:
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   container_name: workshop1-frontend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - VITE_API_BASE_URL=http://localhost:8000
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   depends_on:
+  #     api:
+  #       condition: service_healthy

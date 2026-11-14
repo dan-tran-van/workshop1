@@ -47,6 +47,9 @@ workshop1/
 │   ├── .env.example          # Environment template
 │   └── README.md             # API documentation
 ├── frontend/                 # Client UI application (future expansion)
+├── docker-compose.yml        # Docker Compose configuration for local dev
+├── .dockerignore             # Docker build ignore rules
+├── .env.example              # Environment variables template
 ├── .github/
 │   └── pull_request_template.md
 ├── AGENTS.md                 # Agent coding guide (this file)
@@ -58,6 +61,21 @@ workshop1/
 ---
 
 ## 4. Key Commands for Agents
+
+### Docker (Recommended for Local Dev)
+```bash
+# Start backend server with hot-reload
+docker compose up --build
+
+# Seed initial database
+docker compose run --rm seed
+
+# Run unit tests
+docker compose run --rm test
+
+# Stop services
+docker compose down
+```
 
 ### Virtual Environment & Dependencies
 ```bash
