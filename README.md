@@ -1,13 +1,17 @@
 # workshop1
 
-A collaborative project workspace containing backend (`api`) and frontend (`frontend`) services. It's about restaurants.
+A collaborative project workspace containing backend (`api`) and frontend (`frontend`) services for **Restaurant Review Insights** — turning Google Maps reviews into actionable restaurant improvement suggestions.
 
 ---
 
 ## Table of Contents
 
 - [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
+- [Collaborator Quick Start](#collaborator-quick-start)
+  - [1. Backend Setup (`api`)](#1-backend-setup-api)
+  - [2. Running Tests](#2-running-tests)
+  - [3. Frontend Setup (`frontend`)](#3-frontend-setup-frontend)
+- [Agentic & AI-Assisted Coding](#agentic--ai-assisted-coding)
 - [Collaboration Guide](#collaboration-guide)
   - [Code of Conduct](#code-of-conduct)
   - [How Can I Contribute?](#how-can-i-contribute)
@@ -25,15 +29,20 @@ A collaborative project workspace containing backend (`api`) and frontend (`fron
 
 ```text
 workshop1/
-├── api/            # Backend API services
+├── api/            # FastAPI backend (SQLite, SQLAlchemy, OpenAI review analytics)
 ├── frontend/       # Client-side web application
-├── .github/        # GitHub configuration & PR templates
+├── .github/        # GitHub PR template and workflows
+├── AGENTS.md       # AI agent development guide & system prompt context
+├── CLAUDE.md       # Claude Code CLI developer guide
+├── CONTRIBUTING.md # Contributor guidelines index
 └── README.md       # Project overview & collaboration guide
 ```
 
 ---
 
-## Getting Started
+## Collaborator Quick Start
+
+### 1. Backend Setup (`api`)
 
 1. **Clone the repository:**
    ```bash
@@ -41,9 +50,62 @@ workshop1/
    cd workshop1
    ```
 
-2. **Navigate to the workspace you want to work on:**
-   - Backend: `cd api`
-   - Frontend: `cd frontend`
+2. **Create and activate a Python virtual environment:**
+   ```bash
+   cd api
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure environment variables (optional):**
+   ```bash
+   cp .env.example .env
+   ```
+   *Note: If `OPENAI_API_KEY` is not provided, the API automatically falls back to an intelligent heuristic mock analyzer so you can develop completely offline without costs.*
+
+5. **Seed the database with sample restaurants and reviews:**
+   ```bash
+   python seed.py
+   ```
+
+6. **Start the API server:**
+   ```bash
+   uvicorn app.main:app --reload --port 8000
+   ```
+   - Swagger Documentation: [http://localhost:8000/docs](http://localhost:8000/docs)
+   - Alternative Docs (ReDoc): [http://localhost:8000/redoc](http://localhost:8000/redoc)
+
+### 2. Running Tests
+
+Always verify your changes before pushing or opening a PR:
+
+```bash
+# From within the api directory:
+python -m unittest tests/test_api.py
+
+# Or from the repository root:
+./api/.venv/bin/python -m unittest api/tests/test_api.py
+```
+
+### 3. Frontend Setup (`frontend`)
+
+*The frontend application workspace will be initialized in the `frontend/` directory.*
+
+---
+
+## Agentic & AI-Assisted Coding
+
+This repository is optimized for collaboration with AI agents (Claude Code, Cursor, Copilot, Gemini CLI, etc.):
+
+- **[AGENTS.md](AGENTS.md)**: Universal context and constraints for AI coding agents, including database schemas, architectural patterns, and testing rules.
+- **[CLAUDE.md](CLAUDE.md)**: Tailored quick commands, style guidelines, and conventions for Anthropic's Claude Code CLI.
+
+If you are using an AI coding assistant, direct it to read `AGENTS.md` or `CLAUDE.md` before making architectural changes.
 
 ---
 
@@ -151,7 +213,7 @@ git push origin feat/your-feature-name --force-with-lease
    - Describe the changes made and the motivation behind them.
    - Link any related issue (e.g., `Closes #12`).
    - Add screenshots or screen recordings for frontend UI changes.
-4. Ensure code passes all linting, formatting, and test suites.
+4. Ensure code passes all linting, formatting, and test suites (`python -m unittest api/tests/test_api.py`).
 
 ---
 
