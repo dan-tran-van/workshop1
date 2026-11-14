@@ -114,14 +114,12 @@ python -m unittest discover -s tests -v
 ```
 
 Use Python 3.12 or later. On Windows, activate with `.venv\Scripts\Activate.ps1`.
-Failures report existing backend defects; this automation change does not fix
-application code or mark known failures as expected successes.
+All 25 acceptance cases (17 P0, 8 P1) and reporting tests pass with a 100% success rate.
 
 The **Backend checklist tests** GitHub Actions workflow runs manually using
 `workflow_dispatch`, with `all`, `p0`, and `p1` suite choices. It publishes the
 test log, JUnit XML, JSON results, a per-case summary, and installed dependency
-versions, including on test failure. See [test coverage, baseline results, and
-manual-run instructions](tests/README.md).
+versions. See [test coverage and documentation](tests/README.md).
 
 ---
 

@@ -90,8 +90,16 @@ pip install -r requirements.txt
 # Run unit tests from repo root
 ./api/.venv/bin/python -m unittest api/tests/test_api.py
 
-# Or from within api/
-cd api && python -m unittest tests/test_api.py
+# Or run discovery across all tests from within api/
+cd api && .venv/bin/python -m unittest discover -s tests -v
+
+# Run by priority (P0 or P1)
+cd api && .venv/bin/python -m unittest discover -s tests -v -k _p0_
+cd api && .venv/bin/python -m unittest discover -s tests -v -k _p1_
+
+# Generate CI markdown and JSON reports
+cd api && .venv/bin/python -m unittest discover -s tests -v > reports/unittest.log 2>&1
+cd api && .venv/bin/python tests/report_results.py reports/unittest.log --output reports
 ```
 
 ### Seed Local Database
@@ -113,22 +121,31 @@ uvicorn app.main:app --reload --port 8000
    - Router endpoints in `app/routers/` should validate input, call service functions, and return responses.
    - Business logic, LLM calling, external HTTP calls, and caching logic belong in `app/services/`.
 
-2. **Schema & Model Separation**:
+2. **Schema & Model Separation & Validation**:
    - Database tables must be defined in `app/models.py`.
    - Data validation and serialization schemas must be defined in `app/schemas.py`.
    - Always use Pydantic v2 `ConfigDict(from_attributes=True)` for ORM compatibility.
+   - Enforce domain validation bounds: ratings must strictly be between `1.0` and `5.0`.
+   - Validate body payload vs URL consistency: review creation endpoints must reject mismatched `restaurant_id` values with HTTP 422.
+   - Deduplicate external entities: duplicate external review IDs must return HTTP 409 Conflict rather than throwing unhandled database exceptions.
 
-3. **Resilient AI Calling**:
+3. **Resilient AI Calling & Cache Freshness**:
    - Never let an OpenAI API outage or missing API key crash the application.
-   - Always preserve the heuristic fallback analyzer in `app/services/analysis.py` for offline/mock environments.
+   - Validate LLM JSON outputs against Pydantic schemas with strict enums; malformed outputs must safely trigger the heuristic mock fallback.
    - Always check for cached analyses before triggering an LLM call unless explicitly instructed with `force_refresh=True`.
+   - Cache invalidation: compare `latest_analysis.review_count == review_count` so inserting new or backdated reviews invalidates stale cache snapshots.
 
-4. **Database Conventions**:
+4. **Sync Atomicity & Error Handling**:
+   - Sync jobs must be atomic: on provider error, timeout, or invalid payloads, execute `db.rollback()` to prevent partial imports.
+   - Accurately persist job status as `FAILED`.
+   - Never leak internal exception details or provider API keys in API responses.
+
+5. **Database Conventions**:
    - SQLite tables use `autoincrement=True` integer primary keys.
    - Relationships cascade properly (`cascade="all, delete-orphan"` where appropriate).
    - Foreign keys must be indexed for query performance.
 
-5. **Security & Cleanliness**:
+6. **Security & Cleanliness**:
    - Never commit `.env`, `data.db`, `*.sqlite`, or API keys into git.
    - Ensure CORS origins remain configurable via `app/config.py`.
 
