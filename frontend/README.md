@@ -4,6 +4,18 @@ React + TypeScript web UI for the Restaurant Review Insights API.
 
 ## Run locally
 
+### Option A: Docker Compose (Recommended)
+
+From the project root:
+
+```bash
+docker compose up --build
+```
+
+Then open `http://localhost:5173`.
+
+### Option B: Local Node.js
+
 1. Start the FastAPI backend at `http://localhost:8000` (see [`../api/README.md`](../api/README.md)).
 2. From this directory, install dependencies and start Vite:
 
