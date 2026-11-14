@@ -103,10 +103,12 @@ def run_restaurant_analysis(
         return analysis
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except Exception as e:
+    except HTTPException:
+        raise
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to analyze restaurant: {str(e)}"
+            detail="Failed to analyze restaurant"
         )
 
 

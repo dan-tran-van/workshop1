@@ -189,8 +189,9 @@ Please return a JSON object with this exact structure:
 
     content = response.choices[0].message.content
     parsed = json.loads(content)
-    sentiment = parsed.get("overall_sentiment", "NEUTRAL")
-    return sentiment, parsed
+    validated = AnalysisResultPayload.model_validate(parsed)
+    sentiment = validated.overall_sentiment
+    return sentiment, validated.model_dump()
 
 
 def get_or_run_restaurant_analysis(
@@ -218,10 +219,8 @@ def get_or_run_restaurant_analysis(
             .order_by(Analysis.created_at.desc())
             .first()
         )
-        if latest_analysis:
-            # If no newer reviews arrived since last analysis, reuse cached analysis
-            if not last_review_date or latest_analysis.created_at >= last_review_date:
-                return latest_analysis
+        if latest_analysis and latest_analysis.review_count == review_count:
+            return latest_analysis
 
     # Run new analysis
     model_name = requested_model or settings.OPENAI_MODEL or "gpt-4o-mini"
