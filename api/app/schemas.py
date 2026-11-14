@@ -50,7 +50,7 @@ class ReviewBase(BaseModel):
 
 
 class ReviewCreate(ReviewBase):
-    restaurant_id: int
+    restaurant_id: Optional[int] = None
 
 
 class ReviewResponse(ReviewBase):
