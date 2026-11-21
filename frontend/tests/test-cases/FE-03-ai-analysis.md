@@ -2,9 +2,9 @@
 
 **Scope:** Frontend functional and API-integration testing  
 **Priority:** P0/P1  
-**Related APIs:** `POST /restaurants/{id}/analyze`, `GET /restaurants/{id}/analyses`
+**Related APIs:** `POST /restaurants/{id}/analyze`, `GET /restaurants/{id}/analyses`, `GET /auth/me/analysis-history`
 
-> These cases verify how the frontend triggers analysis and presents the API response. E2E tests use deterministic mocked responses. The latest analysis is included in the restaurant detail response; the current frontend does not display analysis history.
+> These cases verify how the frontend triggers analysis, presents the API response, displays per-user analysis activity, and compares current 6 criteria scores against past analysis snapshots. E2E tests use deterministic mocked responses.
 
 ## FE-12 [P0] — Trigger restaurant analysis and render the response
 
@@ -190,9 +190,110 @@
 
 ### Implementation note
 
-The current frontend displays only `latest_analysis` from the restaurant
-detail response. When analysis history is added, verify the displayed
-records are ordered newest to oldest.
+`GET /restaurants/{id}/analyses` is now used to populate the baseline selector for 6-criteria comparison (`FE-21`–`FE-25`) and per-user activity is shown in **Review insights** (`FE-20`). `FE-19` remains marked `fixme` until a dedicated `Analysis history` region is added.
+
+---
+
+## FE-20 [P1] — Display per-user analysis activity newest first on Review insights
+
+**Type:** Positive / API Integration
+
+### Preconditions
+- `GET /auth/me/analysis-history` returns multiple runs triggered by the authenticated user.
+
+### Test Steps
+1. Navigate to **Review insights**.
+2. Inspect the **Your analysis activity** region.
+
+### Expected Results
+- Runs appear ordered newest first with restaurant name, requested date, sentiment, review count, model, and summary.
+
+---
+
+## FE-21 [P0] — Compare current 6 criteria against previous analysis snapshot
+
+**Type:** Positive / Analytics Comparison
+
+### Preconditions
+- The selected restaurant has `latest_analysis` and at least one older snapshot returned by `GET /restaurants/{id}/analyses`.
+
+### Test Steps
+1. Open the restaurant detail panel.
+2. Inspect the **Criteria comparison summary** strip and the six `.aspect-card` items.
+
+### Expected Results
+- The previous analysis snapshot is selected by default.
+- Summary strip accurately reports improved, declined, and unchanged counts, average score change, and review count delta.
+- Each aspect card displays its score delta (`+`, `-`, `0.0`), previous baseline score reference (`vs X.X past`), baseline marker on the progress bar, and sentiment shift when sentiment changed.
+
+---
+
+## FE-22 [P1] — Switch past baseline snapshots, toggle Cards/Chart view, and disable comparison
+
+**Type:** Positive / Interaction
+
+### Preconditions
+- The selected restaurant has at least three snapshots (current + two past snapshots).
+
+### Test Steps
+1. Change the **Compare with past analysis** dropdown to an older snapshot.
+2. Toggle the view mode from **Cards** to **Chart**, then back to **Cards**.
+3. Select **No comparison** in the dropdown.
+
+### Expected Results
+- Selecting another past snapshot immediately recalculates all 6 criteria deltas and previous scores.
+- **Chart** view renders the SVG 6-axis radar chart and 6 paired comparison bars.
+- Selecting **No comparison** hides the comparison summary strip and aspect delta badges cleanly.
+
+---
+
+## FE-23 [P1] — Handle single snapshot gracefully and activate comparison after Refresh analysis
+
+**Type:** Positive / Edge Case
+
+### Preconditions
+- The selected restaurant has only one analysis snapshot.
+
+### Test Steps
+1. Open the restaurant detail panel and inspect the comparison area.
+2. Click **Refresh analysis** (`force_refresh: true`) to generate a newer snapshot.
+
+### Expected Results
+- With only one snapshot, the UI shows single-snapshot guidance and renders no fabricated deltas.
+- After refreshing, the frontend fetches updated snapshots and automatically compares the new analysis against the previous one.
+
+---
+
+## FE-24 [P1] — Launch 6-criteria comparison from Review insights activity table
+
+**Type:** Positive / Cross-page Flow
+
+### Preconditions
+- **Your analysis activity** contains an older analysis snapshot for a restaurant that has a newer analysis.
+
+### Test Steps
+1. Navigate to **Review insights**.
+2. Click **Compare** on the older analysis row.
+
+### Expected Results
+- The app navigates to the restaurant detail view with that exact past snapshot pre-selected in the **Compare with past analysis** picker and displays the corresponding deltas.
+
+---
+
+## FE-25 [P1] — Keep comparison isolated per restaurant and responsive without overflow
+
+**Type:** Positive / Responsive & Isolation
+
+### Preconditions
+- Restaurant 1 has multiple analysis snapshots; Restaurant 2 has none.
+
+### Test Steps
+1. Verify both **Cards** and **Chart** comparison views on Restaurant 1 at `375px`, `768px`, and `1440px` viewports.
+2. Switch to Restaurant 2.
+
+### Expected Results
+- `scrollWidth <= clientWidth` (zero horizontal overflow) at all tested viewport widths in both **Cards** and **Chart** modes.
+- Switching to Restaurant 2 clears Restaurant 1's comparison state so no stale baseline or deltas appear.
 
 ---
 
