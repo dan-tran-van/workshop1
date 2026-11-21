@@ -24,6 +24,7 @@ import {
   Sparkles,
   Star,
   Store,
+  Swords,
   Users,
   ThumbsUp,
   TrendingDown,
@@ -53,6 +54,7 @@ import {
   CriteriaComparisonChart,
   type ComparisonViewMode,
 } from "./components/CriteriaComparison";
+import { MarketComparisonPage } from "./components/MarketComparison";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
@@ -102,7 +104,7 @@ type SyncRun = {
   error_message: string | null;
 };
 
-type Page = "overview" | "restaurants" | "insights" | "sync" | "users";
+type Page = "overview" | "restaurants" | "insights" | "market" | "sync" | "users";
 type UserRole = "OWNER" | "ANALYST" | "ADMIN";
 type AuthUser = {
   id: number;
@@ -557,12 +559,16 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
     if (currentUser.role !== "ADMIN" && (page === "sync" || page === "users")) {
       setPage("overview");
     }
+    if (currentUser.role === "ADMIN" && page === "market") {
+      setPage("overview");
+    }
   }, [currentUser.role, page]);
 
   const pageTitles: Record<Page, { title: string; subtitle: string }> = {
     overview: { title: "Good morning", subtitle: "Here’s what your guests are saying." },
     restaurants: { title: "Restaurants", subtitle: "Explore locations and understand every guest experience." },
     insights: { title: "Review insights", subtitle: "Turn customer feedback into your next best move." },
+    market: { title: "Market comparison", subtitle: "See where you lead or trail your competitors, and why." },
     sync: { title: "Data sync", subtitle: "Manage Google Maps review collection and sync activity." },
     users: { title: "User access", subtitle: "Manage workspace accounts and their permissions." },
   };
@@ -585,6 +591,7 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
           <NavItem active={page === "overview"} onClick={() => setPage("overview")} icon={<LayoutDashboard size={18} />} label="Overview" />
           <NavItem active={page === "restaurants"} onClick={() => setPage("restaurants")} icon={<Store size={18} />} label="Restaurants" count={restaurants.length} />
           <NavItem active={page === "insights"} onClick={() => setPage("insights")} icon={<BarChart3 size={18} />} label="Review insights" />
+          {currentUser.role !== "ADMIN" && <NavItem active={page === "market"} onClick={() => setPage("market")} icon={<Swords size={17} />} label="Market comparison" />}
           {currentUser.role === "ADMIN" && <NavItem active={page === "sync"} onClick={() => setPage("sync")} icon={<RefreshCw size={17} />} label="Data sync" />}
           {currentUser.role === "ADMIN" && <NavItem active={page === "users"} onClick={() => setPage("users")} icon={<Users size={17} />} label="User access" />}
         </nav>
@@ -677,6 +684,14 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
               onCompare={handleCompareFromHistory}
               onAnalyze={runAnalysis}
               analyzing={analyzing}
+            />
+          )}
+
+          {page === "market" && currentUser.role !== "ADMIN" && (
+            <MarketComparisonPage
+              restaurants={restaurants}
+              initialRestaurantId={selectedId}
+              request={request}
             />
           )}
 

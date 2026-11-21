@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.routers import auth, restaurants, reviews, sync, notifications
+from app.routers import auth, competitors, restaurants, reviews, sync, notifications
 
 # Configure application-wide logging level and format
 logging.basicConfig(
@@ -39,6 +39,7 @@ app.add_middleware(
 
 # Register routers
 app.include_router(restaurants.router)
+app.include_router(competitors.router)
 app.include_router(reviews.router)
 app.include_router(sync.router)
 app.include_router(notifications.router)

@@ -90,6 +90,26 @@ class AnalysisRun(Base):
     analysis = relationship("Analysis")
 
 
+class CompetitorSelection(Base):
+    """An owner's explicit choice about one competitor of one of their restaurants.
+
+    No row means the competitor is only a system suggestion. PINNED and MANUAL rows are
+    always kept in the competitive set; DISMISSED rows are never suggested again.
+    """
+    __tablename__ = "competitor_selections"
+    __table_args__ = (UniqueConstraint("restaurant_id", "competitor_id", name="uq_competitor_selection_pair"),)
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    restaurant_id = Column(Integer, ForeignKey("restaurants.id", ondelete="CASCADE"), nullable=False, index=True)
+    competitor_id = Column(Integer, ForeignKey("restaurants.id", ondelete="CASCADE"), nullable=False, index=True)
+    status = Column(String(20), nullable=False)  # PINNED, DISMISSED, MANUAL
+    created_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    competitor = relationship("Restaurant", foreign_keys=[competitor_id])
+
+
 class SyncTarget(Base):
     __tablename__ = "sync_targets"
 
