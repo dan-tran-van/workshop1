@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.models import Restaurant, Review, SyncTarget, SyncRun
+from app.services.notifications import notify_bad_reviews
 
 logger = logging.getLogger(__name__)
 
@@ -34,12 +35,14 @@ def fetch_from_google_places(place_id: str, api_key: str, language: str = "en") 
         return None
 
 
-def run_sync_for_target(db: Session, target: SyncTarget, sync_run: SyncRun):
+def run_sync_for_target(db: Session, target: SyncTarget, sync_run: SyncRun) -> List[Review]:
     """
     Execute sync for a specific target. Supports Google Places API or mock provider.
+    Returns the reviews newly imported from Google Places; mock reviews are never returned.
     """
     restaurants_count = 0
     reviews_count = 0
+    new_google_reviews: List[Review] = []
 
     if settings.GOOGLE_PLACES_API_KEY and target.target_type == "place_id":
         place_data = fetch_from_google_places(target.value, settings.GOOGLE_PLACES_API_KEY, target.language_code)
@@ -83,6 +86,7 @@ def run_sync_for_target(db: Session, target: SyncTarget, sync_run: SyncRun):
                     published_at=pub_time
                 )
                 db.add(new_rev)
+                new_google_reviews.append(new_rev)
                 reviews_count += 1
     else:
         # Simulated sync for demonstration & local development
@@ -142,25 +146,29 @@ def run_sync_for_target(db: Session, target: SyncTarget, sync_run: SyncRun):
     target.last_synced_at = datetime.now(timezone.utc)
     sync_run.restaurants_upserted += restaurants_count
     sync_run.reviews_upserted += reviews_count
+    return new_google_reviews
 
 
 def execute_sync_job(db: Session, target_id: Optional[int] = None) -> SyncRun:
     """
     Trigger a sync run across all active targets or a specific target.
+    Used by both the manual endpoint and scheduled (cron) runs; bad review
+    notifications are recorded only after a successful commit.
     """
     sync_run = SyncRun(status="RUNNING")
     db.add(sync_run)
     db.commit()
     db.refresh(sync_run)
 
+    new_reviews: List[Review] = []
     try:
         query = db.query(SyncTarget).filter(SyncTarget.is_active == True)
         if target_id:
             query = query.filter(SyncTarget.id == target_id)
-        
+
         targets = query.all()
         for target in targets:
-            run_sync_for_target(db, target, sync_run)
+            new_reviews.extend(run_sync_for_target(db, target, sync_run))
 
         sync_run.status = "COMPLETED"
         sync_run.finished_at = datetime.now(timezone.utc)
@@ -177,5 +185,8 @@ def execute_sync_job(db: Session, target_id: Optional[int] = None) -> SyncRun:
         sync_run.reviews_upserted = 0
         db.commit()
         db.refresh(sync_run)
+
+    if sync_run.status == "COMPLETED":
+        notify_bad_reviews(db, new_reviews, sync_run.id)
 
     return sync_run

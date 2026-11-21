@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     OPENAI_MODEL: str = "gpt-4o-mini"
     GOOGLE_PLACES_API_KEY: str = ""
     CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://localhost:5173"]
+    BAD_REVIEW_NOTIFICATIONS_ENABLED: bool = True
+    BAD_REVIEW_RATING_THRESHOLD: float = 2.0
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
