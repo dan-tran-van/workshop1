@@ -30,8 +30,55 @@ class TestRoleBasedAccessControl(BackendTestCase):
     def test_authentication_required_for_restaurant_and_sync_endpoints(self) -> None:
         self.client.headers.pop("Authorization")
         self.assertEqual(self.client.get("/restaurants").status_code, 401)
+        self.assertEqual(self.client.get("/auth/me/analysis-history").status_code, 401)
         self.assertEqual(self.client.get("/sync/targets").status_code, 401)
         self.assertEqual(self.client.get("/health").status_code, 200)
+
+    def test_analysis_history_is_per_user_and_records_cached_requests(self) -> None:
+        restaurant = self.restaurant()
+        self.create_account("ANALYST", "history-analyst@example.com")
+
+        first = self.client.post(f"/restaurants/{restaurant['id']}/analyze", json={})
+        second = self.client.post(f"/restaurants/{restaurant['id']}/analyze", json={})
+        self.assertEqual(first.status_code, 200, first.text)
+        self.assertEqual(second.status_code, 200, second.text)
+        self.assertEqual(first.json()["id"], second.json()["id"])
+        refreshed = self.client.post(
+            f"/restaurants/{restaurant['id']}/analyze",
+            json={"force_refresh": True},
+        )
+        self.assertEqual(refreshed.status_code, 200, refreshed.text)
+        self.assertNotEqual(refreshed.json()["id"], first.json()["id"])
+
+        admin_history = self.client.get("/auth/me/analysis-history")
+        self.assertEqual(admin_history.status_code, 200, admin_history.text)
+        self.assertEqual([run["analysis"]["id"] for run in admin_history.json()],
+                         [refreshed.json()["id"], first.json()["id"], first.json()["id"]])
+
+        self.login_as("history-analyst@example.com")
+        self.assertEqual(self.client.get("/auth/me/analysis-history").json(), [])
+        cached = self.client.post(f"/restaurants/{restaurant['id']}/analyze", json={})
+        self.assertEqual(cached.status_code, 200, cached.text)
+        self.assertIn(cached.json()["id"], {first.json()["id"], refreshed.json()["id"]})
+        analyst_history = self.client.get("/auth/me/analysis-history")
+        self.assertEqual(analyst_history.status_code, 200, analyst_history.text)
+        self.assertEqual(len(analyst_history.json()), 1)
+        self.assertEqual(analyst_history.json()[0]["analysis"]["id"], cached.json()["id"])
+
+    def test_owner_history_hides_restaurants_after_assignment_is_removed(self) -> None:
+        restaurant = self.restaurant()
+        owner = self.create_account("OWNER", "history-owner@example.com", [restaurant["id"]])
+        admin_authorization = self.client.headers["Authorization"]
+        self.login_as("history-owner@example.com")
+        analysis = self.client.post(f"/restaurants/{restaurant['id']}/analyze", json={})
+        self.assertEqual(analysis.status_code, 200, analysis.text)
+        self.assertEqual(len(self.client.get("/auth/me/analysis-history").json()), 1)
+
+        self.client.headers.update({"Authorization": admin_authorization})
+        updated = self.client.patch(f"/admin/users/{owner['id']}", json={"restaurant_ids": []})
+        self.assertEqual(updated.status_code, 200, updated.text)
+        self.login_as("history-owner@example.com")
+        self.assertEqual(self.client.get("/auth/me/analysis-history").json(), [])
 
     def test_analyst_can_read_and_analyze_but_cannot_manage_or_sync(self) -> None:
         restaurant = self.restaurant()

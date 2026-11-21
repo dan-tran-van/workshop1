@@ -31,6 +31,7 @@ Core Tables:
 - restaurants (id, google_place_id, name, address, google_rating, user_rating_count, last_synced_at, updated_at)
 - reviews     (id, restaurant_id, external_review_id, author_name, author_uri, rating, text, published_at)
 - analyses    (id, restaurant_id, overall_sentiment, result_json, review_count, last_review_at, model, created_at)
+- analysis_runs (id, user_id, analysis_id, created_at) — authenticated analysis requests, including cache hits
 
 Sync Tables:
 - sync_targets (id, target_type, value, language_code, is_active, last_synced_at)
@@ -40,6 +41,20 @@ Access Tables:
 - users (id, email, full_name, password_hash, role, is_active, created_at)
 - user_restaurants (user_id, restaurant_id) — restaurant ownership assignments
 ```
+
+### Analysis results and user history
+
+`analyses` stores generated result snapshots for a restaurant and remains the
+shared cache source. `analysis_runs` stores each authenticated user's successful
+request for an analysis: the user, the snapshot returned, and the request time.
+Despite its name, an `analysis_runs` row does not necessarily mean the AI ran;
+a cache hit also creates a row. Multiple history entries, including entries
+from different users, can therefore point to the same analysis snapshot.
+
+`GET /auth/me/analysis-history` returns the authenticated user's entries,
+newest first, as objects containing the history-entry `id`, `created_at`, and
+nested `analysis`. OWNER history only includes restaurants currently assigned
+to that owner. Failed analysis requests do not create history entries.
 
 ---
 
@@ -171,6 +186,7 @@ versions. See [test coverage and documentation](tests/README.md).
 | `POST` | `/restaurants` | Create a new restaurant |
 | `POST` | `/restaurants/{id}/analyze` | Run or retrieve cached AI review analysis |
 | `GET` | `/restaurants/{id}/analyses` | History of past analyses for restaurant |
+| `GET` | `/auth/me/analysis-history` | The authenticated user's successful analysis requests, including cache hits |
 | `GET` | `/restaurants/{id}/reviews` | List reviews for a restaurant |
 | `POST` | `/restaurants/{id}/reviews` | Add a review |
 | `GET` | `/sync/targets` | List sync targets |
