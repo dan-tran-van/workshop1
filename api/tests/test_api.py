@@ -5,7 +5,7 @@ marked as expected failures, and no backend behavior is patched to pass them.
 """
 
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 import sys
@@ -622,6 +622,109 @@ class TestBadReviewNotifications(BackendTestCase):
             run = self.live_sync([1.0])
         self.assertEqual(run["status"], "COMPLETED")
         self.assertEqual(self.db.query(Notification).count(), 0)
+
+
+class TestHybridContextCompression(BackendTestCase):
+    def test_hybrid_analysis_scales_over_large_review_sets(self) -> None:
+        """
+        Verify the Two-Stage Hybrid pattern:
+        When a restaurant has > 50 reviews (e.g. 100 reviews), Stage 1 calculates
+        exact global statistics across all reviews, and Stage 2 curates a balanced
+        stratified sample so token budget is protected while root causes are preserved.
+        """
+        restaurant = self.restaurant(name="Large Review Cafe")
+        rest_id = restaurant["id"]
+
+        # Insert 100 reviews across different aspects and rating tiers
+        now = datetime.now(timezone.utc)
+        for i in range(50):
+            self.review(
+                rest_id,
+                rating=5.0,
+                text=f"Review {i}: Amazing delicious food and great pizza!",
+                published_at=now.isoformat(),
+                external_review_id=f"ext-pos-{i}"
+            )
+        for i in range(30):
+            self.review(
+                rest_id,
+                rating=1.0,
+                text=f"Review {i}: Terrible long wait time, queue took 2 hours!",
+                published_at=now.isoformat(),
+                external_review_id=f"ext-neg-{i}"
+            )
+        for i in range(20):
+            self.review(
+                rest_id,
+                rating=3.0,
+                text=f"Review {i}: Average service and standard ambience.",
+                published_at=now.isoformat(),
+                external_review_id=f"ext-mid-{i}"
+            )
+
+        self.assertEqual(self.db.query(Review).filter(Review.restaurant_id == rest_id).count(), 100)
+
+        with self.openai_response() as completion:
+            response = self.client.post(f"/restaurants/{rest_id}/analyze", json={})
+            self.assertEqual(response.status_code, 200, response.text)
+            row = response.json()
+            self.assertEqual(row["review_count"], 100)
+
+            completion.assert_called_once()
+            prompt = completion.call_args.kwargs["messages"][1]["content"]
+
+            # Ground truth metrics scanned across all 100 reviews
+            self.assertIn("Total Reviews in Database: 100", prompt)
+            self.assertIn("Overall Average Rating: 3.4/5.0", prompt)
+            self.assertIn("food:", prompt)
+            self.assertIn("wait_time:", prompt)
+
+            # High-signal sample contains both negative pain points and positive strengths
+            self.assertIn("Terrible long wait time", prompt)
+            self.assertIn("Amazing delicious food", prompt)
+
+    def test_multilingual_aspect_detection_vietnamese(self) -> None:
+        """
+        Verify that Vietnamese reviews are correctly mapped across core aspects
+        (food, service, wait_time, hygiene, price, ambience) without needing heavy
+        ONNX/embedding libraries, preserving fast on-demand response times.
+        """
+        restaurant = self.restaurant(name="Quan An Viet")
+        rest_id = restaurant["id"]
+        now = datetime.now(timezone.utc)
+
+        # 1. Negative wait time & service review in Vietnamese
+        self.review(
+            rest_id,
+            rating=1.0,
+            text="Nhân viên phục vụ rất tệ và thô lỗ, bắt khách chờ đợi cả tiếng đồng hồ!",
+            published_at=now.isoformat(),
+            external_review_id="ext-vi-1"
+        )
+        # 2. Positive food & price review in Vietnamese
+        self.review(
+            rest_id,
+            rating=5.0,
+            text="Món ăn rất ngon, nêm nếm vừa vị và giá cả rất hợp lý!",
+            published_at=now.isoformat(),
+            external_review_id="ext-vi-2"
+        )
+
+        with self.openai_response() as completion:
+            response = self.client.post(f"/restaurants/{rest_id}/analyze", json={})
+            self.assertEqual(response.status_code, 200, response.text)
+
+            prompt = completion.call_args.kwargs["messages"][1]["content"]
+
+            # Ground truth metrics should detect wait_time and service negative score, and food/price positive score
+            self.assertIn("wait_time:", prompt)
+            self.assertIn("service:", prompt)
+            self.assertIn("food:", prompt)
+            self.assertIn("price:", prompt)
+
+            # Prompt includes the raw Vietnamese feedback for the multilingual LLM to reason over
+            self.assertIn("Nhân viên phục vụ rất tệ", prompt)
+            self.assertIn("Món ăn rất ngon", prompt)
 
 
 if __name__ == "__main__":

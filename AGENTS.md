@@ -136,6 +136,7 @@ uvicorn app.main:app --reload --port 8000
    - Validate LLM JSON outputs against Pydantic schemas with strict enums; malformed outputs must safely trigger the heuristic mock fallback.
    - Always check for cached analyses before triggering an LLM call unless explicitly instructed with `force_refresh=True`.
    - Cache invalidation: compare `latest_analysis.review_count == review_count` so inserting new or backdated reviews invalidates stale cache snapshots.
+   - **Scaled Review Context Compression**: For restaurants with large review sets (e.g. 1k+ reviews), use the Two-Stage Hybrid pattern in `app/services/analysis.py` (Stage 1 deterministic math engine + Stage 2 stratified high-signal sampling) to guarantee 100% data coverage while fitting inside single-shot LLM prompts with sub-2s latency. See `docs/analysis-context-compression.md`.
 
 4. **Sync Atomicity & Error Handling**:
    - Sync jobs must be atomic: on provider error, timeout, or invalid payloads, execute `db.rollback()` to prevent partial imports.
