@@ -187,6 +187,8 @@ Open `http://localhost:5173` and use the bootstrap key to create the first admin
    locations; locations they add are automatically assigned to them.
 4. **Review and improve:** Owners inspect their reviews and run AI analysis to
    identify service, food, wait-time, hygiene, ambience, and price issues.
+   After each sync, new low-rated Google reviews appear in their bad review
+   notifications.
    Analysts can compare and analyze all locations, but cannot change source
    data, manage accounts, or run sync jobs.
 5. **Operate the workspace:** Admins manage accounts and assignments, deactivate
