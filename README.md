@@ -14,6 +14,7 @@ Backend test automation: [25-case coverage, local commands, and manual GitHub Ac
   - [Option B: Local Virtual Environment](#option-b-local-virtual-environment)
   - [Running Tests](#running-tests)
   - [Frontend Setup (`frontend`)](#frontend-setup-frontend)
+  - [Business Workflow & Role Access](#business-workflow--role-access)
 - [Agentic & AI-Assisted Coding](#agentic--ai-assisted-coding)
 - [Collaboration Guide](#collaboration-guide)
   - [Code of Conduct](#code-of-conduct)
@@ -64,17 +65,17 @@ Get started with zero local Python dependency configuration:
    cd workshop1
    ```
 
-2. **Configure environment variables (optional):**
+2. **Configure environment variables:**
    ```bash
    cp .env.example .env
    ```
-   *Note: If `OPENAI_API_KEY` is not provided, the API automatically falls back to an intelligent heuristic mock analyzer so you can develop completely offline without costs.*
+   Set unique random values for `AUTH_SECRET_KEY` and `AUTH_BOOTSTRAP_KEY` before starting. Use the bootstrap key once to create the first Admin account. If `OPENAI_API_KEY` is not provided, the API uses its heuristic analyzer.
 
 3. **Start the API & Frontend services with hot-reloading:**
    ```bash
    docker compose up --build
    ```
-   - Frontend UI: [http://localhost:5173](http://localhost:5173)
+   - Frontend UI: [http://localhost:5173](http://localhost:5173) (create the first administrator using the bootstrap key)
    - API Base URL: [http://localhost:8000](http://localhost:8000)
    - Interactive Swagger Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
    - Alternative Docs (ReDoc): [http://localhost:8000/redoc](http://localhost:8000/redoc)
@@ -89,7 +90,16 @@ Get started with zero local Python dependency configuration:
    docker compose exec api python seed.py
    ```
 
-5. **Stop containers:**
+5. **Optionally create local demo accounts:**
+   After sample restaurants have been seeded, run:
+   ```bash
+   docker compose exec api python seed_demo_users.py
+   ```
+   The command creates one account for each role with separate random passwords
+   and prints each password once. The Owner is assigned to the first restaurant
+   by ID. These are development-only accounts; store the passwords privately.
+
+6. **Stop containers:**
    ```bash
    docker compose down
    ```
@@ -141,21 +151,52 @@ Always verify your changes before pushing or opening a PR:
 docker compose run --rm test
 
 # Or within a running container:
-docker compose exec api python -m unittest tests/test_api.py
+docker compose exec api python -m unittest discover -s tests -v
 ```
 
 **Using Local Python Virtual Environment:**
 ```bash
 # From within the api directory:
-python -m unittest tests/test_api.py
+python -m unittest discover -s tests -v
 
 # Or from the repository root:
-./api/.venv/bin/python -m unittest api/tests/test_api.py
+./api/.venv/bin/python -m unittest discover -s api/tests -v
 ```
 
 ### Frontend Setup (`frontend`)
 
-*The frontend application workspace will be initialized in the `frontend/` directory.*
+Start the API after configuring `AUTH_SECRET_KEY` and `AUTH_BOOTSTRAP_KEY` in `.env`, then run:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173` and use the bootstrap key to create the first administrator. See [`frontend/README.md`](frontend/README.md) for role-based behavior and E2E tests.
+
+## Business Workflow & Role Access
+
+1. **Set up the workspace:** The owner/operator configures `AUTH_SECRET_KEY` and
+   `AUTH_BOOTSTRAP_KEY`, starts the services, then creates the first Admin from
+   the setup screen. Remove the bootstrap key after setup.
+2. **Prepare restaurant data:** An Admin seeds or syncs restaurant locations
+   and reviews, then provisions named accounts from **User access**.
+3. **Assign restaurant owners:** An Admin creates an Owner account and assigns
+   the restaurant locations that person manages. Owners only see those
+   locations; locations they add are automatically assigned to them.
+4. **Review and improve:** Owners inspect their reviews and run AI analysis to
+   identify service, food, wait-time, hygiene, ambience, and price issues.
+   Analysts can compare and analyze all locations, but cannot change source
+   data, manage accounts, or run sync jobs.
+5. **Operate the workspace:** Admins manage accounts and assignments, deactivate
+   access when staff leave, and run review syncs. Changes to a user's role or
+   active status take effect on their next authenticated request.
+
+For local demonstrations, `api/seed_demo_users.py` creates separate accounts
+for Admin, Owner, and F&B Analyst with randomly generated one-time passwords.
+Run it only after restaurant data exists. It refuses to overwrite accounts with
+the same demo emails and does not print passwords again on a rerun.
 
 ---
 
@@ -224,7 +265,7 @@ gitGraph
 4. **Develop and run tests:**
    ```bash
    # Run tests to ensure nothing breaks
-   ./api/.venv/bin/python -m unittest api/tests/test_api.py
+   ./api/.venv/bin/python -m unittest discover -s api/tests -v
    ```
 
 5. **Commit using Conventional Commits:**
@@ -301,7 +342,7 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ### Submitting & Reviewing Pull Requests
 
-- **Self-Review**: Run the test suite (`python -m unittest api/tests/test_api.py`) before opening the PR.
+- **Self-Review**: Run the test suite (`python -m unittest discover -s api/tests -v`) before opening the PR.
 - **Link Issues**: Reference related issues in the PR description (e.g., `Closes #5`).
 - **Peer Review**: At least one collaborator should review and approve before merging to `main`.
 - **Merge Strategy**: Prefer **Squash and Merge** or **Rebase and Merge** to maintain a clean linear commit history on `main`.

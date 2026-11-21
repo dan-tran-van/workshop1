@@ -3,6 +3,53 @@ from typing import List, Optional, Any, Dict, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
+UserRole = Literal["OWNER", "ANALYST", "ADMIN"]
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=320)
+    password: str = Field(..., min_length=1, max_length=128)
+
+
+class BootstrapRequest(LoginRequest):
+    full_name: str = Field(..., min_length=1, max_length=255)
+    setup_key: str = Field(..., min_length=1, max_length=512)
+
+
+class UserCreate(LoginRequest):
+    full_name: str = Field(..., min_length=1, max_length=255)
+    role: UserRole = "OWNER"
+    restaurant_ids: List[int] = Field(default_factory=list)
+
+
+class UserUpdate(BaseModel):
+    role: Optional[UserRole] = None
+    is_active: Optional[bool] = None
+    restaurant_ids: Optional[List[int]] = None
+
+
+class UserResponse(BaseModel):
+    id: int
+    email: str
+    full_name: str
+    role: UserRole
+    is_active: bool
+    restaurant_ids: List[int] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    user: UserResponse
+
+
+class AuthSetupResponse(BaseModel):
+    setup_required: bool
+
+
 # --------------------------------------------------------
 # Aspect & Analysis Inner Result Structures
 # --------------------------------------------------------

@@ -16,6 +16,11 @@ A FastAPI backend powered by SQLite (and SQLAlchemy) providing restaurant review
 - **Sync Jobs**:
   - Google Places API integration (`place_id` lookups) with mock fallback for local testing.
   - Tracking of `sync_targets` and `sync_runs`.
+- **Role-based access control**:
+  - `OWNER`: can access assigned restaurants and their reviews/analysis, and add restaurants to their own account.
+  - `ANALYST` (F&B Analyst): can read all restaurant data and run analyses; cannot change source data, manage users, or sync.
+  - `ADMIN`: full access, including user provisioning and sync controls.
+  - Password-hashed accounts, expiring signed bearer tokens, and server-side authorization on every protected API route.
 
 ---
 
@@ -30,6 +35,10 @@ Core Tables:
 Sync Tables:
 - sync_targets (id, target_type, value, language_code, is_active, last_synced_at)
 - sync_runs    (id, status, started_at, finished_at, restaurants_upserted, reviews_upserted, error_message)
+
+Access Tables:
+- users (id, email, full_name, password_hash, role, is_active, created_at)
+- user_restaurants (user_id, restaurant_id) — restaurant ownership assignments
 ```
 
 ---
@@ -75,6 +84,36 @@ Key variables:
 - `OPENAI_API_KEY`: Your OpenAI API key (falls back to heuristic analysis if omitted)
 - `OPENAI_MODEL`: `gpt-4o-mini`
 - `GOOGLE_PLACES_API_KEY`: Google Places API Key (optional)
+- `AUTH_SECRET_KEY`: stable random signing key for access tokens; set this in deployments so restarts do not invalidate sessions.
+- `AUTH_BOOTSTRAP_KEY`: one-time key required to create the first administrator. Set a unique value before opening the app, then use it once on the initial setup screen.
+
+The first account is provisioned through the one-time `/auth/bootstrap` endpoint; public self-registration is disabled. Choose a password of at least 12 characters. Administrators can create and deactivate accounts and assign restaurant IDs to owners from the **User access** screen. Use unique, private keys in deployed environments.
+
+### Business workflow and local demo accounts
+
+1. An operator configures the auth keys and bootstraps the first Admin once.
+   Remove `AUTH_BOOTSTRAP_KEY` after setup.
+2. An Admin seeds or syncs locations and reviews, creates staff accounts, and
+   assigns each Owner only the locations they manage.
+3. Owners monitor their assigned restaurants and run analysis. F&B Analysts
+   compare all restaurants and run analysis but cannot manage users, change
+   source reviews, or sync. Admins manage access and sync operations.
+
+For a local demonstration, seed one account per role after at least one
+restaurant exists:
+
+```bash
+# From the running Docker API container:
+docker compose exec api python seed_demo_users.py
+
+# Or from api/ with the local virtual environment and api/.env configured:
+python seed_demo_users.py
+```
+
+The script uses distinct randomly generated passwords, prints them once, and
+assigns the Owner to the first restaurant by ID. Save the passwords privately.
+It refuses to overwrite existing demo accounts and is not intended for
+production. It does not modify existing users.
 
 #### 3. Seed Sample Data
 
@@ -110,7 +149,7 @@ docker compose run --rm test
 python -m unittest discover -s tests -v
 
 # Or from repository root:
-./api/.venv/bin/python -m unittest api/tests/test_api.py
+./api/.venv/bin/python -m unittest discover -s api/tests -v
 ```
 
 Use Python 3.12 or later. On Windows, activate with `.venv\Scripts\Activate.ps1`.
@@ -139,3 +178,19 @@ versions. See [test coverage and documentation](tests/README.md).
 | `POST` | `/sync/run` | Execute sync job |
 | `GET` | `/sync/runs` | List sync job execution history |
 | `GET` | `/health` | API health check |
+| `GET` | `/auth/setup` | Check whether first-admin setup is required |
+| `POST` | `/auth/bootstrap` | Create the first admin with the configured setup key |
+| `POST` | `/auth/login` | Exchange email/password for a bearer token |
+| `GET` | `/auth/me` | Return the authenticated user and role |
+| `GET/POST` | `/admin/users` | List or provision accounts (Admin only) |
+| `PATCH` | `/admin/users/{id}` | Change role, account status, or owner restaurant assignments |
+
+Protected endpoints require `Authorization: Bearer <access_token>`. Restaurant ownership violations return 404 to avoid disclosing restaurants outside an owner's account; role violations return 403.
+| `GET` | `/auth/setup` | Check whether first-admin setup is required |
+| `POST` | `/auth/bootstrap` | Create the first admin with the configured setup key |
+| `POST` | `/auth/login` | Exchange email/password for a bearer token |
+| `GET` | `/auth/me` | Return the authenticated user and role |
+| `GET/POST` | `/admin/users` | List or provision accounts (Admin only) |
+| `PATCH` | `/admin/users/{id}` | Change role, account status, or owner restaurant assignments |
+
+Protected endpoints require `Authorization: Bearer <access_token>`. Restaurant ownership violations return 404 to avoid disclosing restaurants outside an owner's account; role violations return 403.

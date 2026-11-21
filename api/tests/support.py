@@ -24,7 +24,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.config import settings
 from app.database import Base, get_db
-from app.models import Analysis, Restaurant
+from app.models import Analysis, Restaurant, User
+from app.services.auth import create_access_token, hash_password
 
 EXPECTED_ANALYSIS = {
     "overall_sentiment": "MIXED",
@@ -110,6 +111,17 @@ class BackendTestCase(unittest.TestCase):
         self.resources.enter_context(patch("socket.create_connection", guarded_create_connection))
         self.resources.enter_context(patch("socket.getaddrinfo", guarded_getaddrinfo))
         self.client = self.resources.enter_context(TestClient(app, raise_server_exceptions=False))
+        admin = User(
+            email="admin@example.com",
+            full_name="Test Administrator",
+            password_hash=hash_password("test-admin-password-123"),
+            role="ADMIN",
+            is_active=True,
+        )
+        self.db.add(admin)
+        self.db.commit()
+        self.db.refresh(admin)
+        self.client.headers.update({"Authorization": f"Bearer {create_access_token(admin)}"})
         self.assertEqual(self.db.query(Restaurant).count(), 0)
 
     def tearDown(self) -> None:

@@ -23,7 +23,7 @@ This file provides system instructions, technical architecture, and coding conve
 - **Database**: SQLite (local development in `data.db`, connection string `sqlite:///./data.db` with `check_same_thread=False`)
 - **AI / LLM**: OpenAI Chat Completions API (`gpt-4o-mini` default), with a built-in heuristic fallback when `OPENAI_API_KEY` is not provided
 - **Testing**: Python standard `unittest` / `unittest.TestCase` with `fastapi.testclient.TestClient`
-- **Frontend** *(Upcoming)*: To be housed under `frontend/`
+- **Frontend**: React, TypeScript, Vite under `frontend/`; authenticated role-aware dashboard
 
 ---
 
@@ -38,15 +38,16 @@ workshop1/
 │   │   ├── models.py         # SQLAlchemy ORM models (restaurants, reviews, analyses, sync_*)
 │   │   ├── schemas.py        # Pydantic request/response & analysis payload models
 │   │   ├── main.py           # FastAPI app instance, CORS middleware, router registration
-│   │   ├── routers/          # Route handlers (restaurants.py, reviews.py, sync.py)
-│   │   └── services/         # Business logic (analysis.py, sync.py)
+│   │   ├── routers/          # Route handlers (auth.py, restaurants.py, reviews.py, sync.py)
+│   │   └── services/         # Business logic (analysis.py, auth.py, sync.py)
 │   ├── tests/
-│   │   └── test_api.py       # API integration tests
+│   │   ├── test_api.py       # API acceptance and integration tests
+│   │   └── test_rbac.py      # Role-based access tests
 │   ├── seed.py               # Seed script with realistic restaurant & review data
 │   ├── requirements.txt      # Python dependencies
 │   ├── .env.example          # Environment template
 │   └── README.md             # API documentation
-├── frontend/                 # Client UI application (future expansion)
+├── frontend/                 # React + TypeScript web application
 ├── docker-compose.yml        # Docker Compose configuration for local dev
 ├── .dockerignore             # Docker build ignore rules
 ├── .env.example              # Environment variables template
@@ -88,7 +89,7 @@ pip install -r requirements.txt
 ### Run Tests (Mandatory before submitting changes)
 ```bash
 # Run unit tests from repo root
-./api/.venv/bin/python -m unittest api/tests/test_api.py
+./api/.venv/bin/python -m unittest discover -s api/tests -v
 
 # Or run discovery across all tests from within api/
 cd api && .venv/bin/python -m unittest discover -s tests -v
@@ -157,13 +158,13 @@ uvicorn app.main:app --reload --port 8000
 - **Branch naming**: `feat/<name>`, `fix/<name>`, `docs/<name>`, `test/<name>`, `refactor/<name>`.
 - **Commit style**: Conventional Commits (e.g., `feat(api): add export endpoint for analysis`).
 - **Pre-commit checklist**:
-  - [ ] All tests pass: `python -m unittest api/tests/test_api.py`.
+  - [ ] All tests pass: `python -m unittest discover -s api/tests -v`.
   - [ ] New endpoints have corresponding test coverage.
   - [ ] No temporary files or SQLite databases staged.
 - **Workflow**:
   1. `git checkout main && git pull origin main`
   2. `git checkout -b feat/<name>`
-  3. Work & test: `./api/.venv/bin/python -m unittest api/tests/test_api.py`
+  3. Work & test: `./api/.venv/bin/python -m unittest discover -s api/tests -v`
   4. `git add . && git commit -m "feat(api): ..."`
   5. `git fetch origin && git rebase origin/main`
   6. `git push -u origin feat/<name>`

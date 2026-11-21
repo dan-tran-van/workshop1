@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { installApiMocks, reviews } from "./fixtures";
+import { authenticateTestUser, installApiMocks, reviews } from "./fixtures";
 
 test.describe("FE-02 restaurant details and reviews", () => {
   test.beforeEach(async ({ page }) => {
     await installApiMocks(page);
     await page.goto("/");
+    await authenticateTestUser(page);
   });
 
   test("FE-07 opens details for the selected restaurant ID", async ({ page }) => {
