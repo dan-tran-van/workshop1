@@ -77,6 +77,17 @@ class Analysis(Base):
     restaurant = relationship("Restaurant", back_populates="analyses")
 
 
+class AnalysisRun(Base):
+    __tablename__ = "analysis_runs"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    analysis_id = Column(Integer, ForeignKey("analyses.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    analysis = relationship("Analysis")
+
+
 class SyncTarget(Base):
     __tablename__ = "sync_targets"
 

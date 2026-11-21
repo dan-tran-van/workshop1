@@ -1,10 +1,12 @@
+import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.database import get_db
-from app.models import Restaurant, Review, Analysis, User
+from app.models import Restaurant, Review, Analysis, AnalysisRun, User
 from app.routers.auth import ensure_restaurant_access, get_current_user, require_roles
 from app.schemas import (
     RestaurantResponse,
@@ -16,6 +18,7 @@ from app.schemas import (
 from app.services.analysis import get_or_run_restaurant_analysis
 
 router = APIRouter(prefix="/restaurants", tags=["Restaurants"])
+logger = logging.getLogger(__name__)
 
 
 @router.get("", response_model=List[RestaurantResponse])
@@ -121,7 +124,6 @@ def run_restaurant_analysis(
             force_refresh=request.force_refresh,
             requested_model=request.model
         )
-        return analysis
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except HTTPException:
@@ -131,6 +133,18 @@ def run_restaurant_analysis(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to analyze restaurant"
         )
+
+    try:
+        db.add(AnalysisRun(user_id=current_user.id, analysis_id=analysis.id))
+        db.commit()
+    except SQLAlchemyError as e:
+        db.rollback()
+        logger.exception("Failed to record analysis history")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to record analysis history"
+        ) from e
+    return analysis
 
 
 @router.get("/{restaurant_id}/analyses", response_model=List[AnalysisResponse])

@@ -4,12 +4,13 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.config import settings
 from app.database import get_db
-from app.models import Restaurant, User
+from app.models import Analysis, AnalysisRun, Restaurant, User
 from app.schemas import (
+    AnalysisHistoryResponse,
     AuthSetupResponse,
     BootstrapRequest,
     LoginRequest,
@@ -129,6 +130,24 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse
 @router.get("/auth/me", response_model=UserResponse)
 def current_user_profile(user: User = Depends(get_current_user)) -> UserResponse:
     return _user_response(user)
+
+
+@router.get("/auth/me/analysis-history", response_model=List[AnalysisHistoryResponse])
+def current_user_analysis_history(
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> List[AnalysisHistoryResponse]:
+    query = (
+        db.query(AnalysisRun)
+        .join(Analysis, AnalysisRun.analysis_id == Analysis.id)
+        .filter(AnalysisRun.user_id == user.id)
+        .options(joinedload(AnalysisRun.analysis))
+        .order_by(AnalysisRun.created_at.desc(), AnalysisRun.id.desc())
+    )
+    if user.role == "OWNER":
+        restaurant_ids = [restaurant.id for restaurant in user.restaurants]
+        query = query.filter(Analysis.restaurant_id.in_(restaurant_ids))
+    return query.all()
 
 
 @router.get("/admin/users", response_model=List[UserResponse])

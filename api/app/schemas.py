@@ -130,6 +130,14 @@ class AnalysisResponse(AnalysisBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AnalysisHistoryResponse(BaseModel):
+    id: int
+    created_at: datetime
+    analysis: AnalysisResponse
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class TriggerAnalysisRequest(BaseModel):
     force_refresh: bool = False
     model: Optional[str] = None
