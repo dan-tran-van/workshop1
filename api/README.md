@@ -9,8 +9,9 @@ A FastAPI backend powered by SQLite (and SQLAlchemy) providing restaurant review
 - **Restaurant & Review Management**: List, search, and view detailed restaurant profiles with Google reviews.
 - **AI Review Intelligence**:
   - Overall sentiment & rating trend estimation.
-  - Aspect breakdown: `food`, `service`, `wait_time`, `hygiene`, `ambience`, `price`.
+  - Aspect breakdown across 6 core aspects: `food`, `service`, `wait_time`, `hygiene`, `ambience`, `price` (bilingual English + Vietnamese keyword detection).
   - Prioritized actionable improvement steps and key strengths for marketing.
+  - **Two-Stage Hybrid Context Compression**: Handles large review datasets (1k–10k+ reviews) with 100% data coverage by combining an $O(N)$ deterministic statistical engine with high-signal stratified sampling (capturing pain points, praises, and recency), reducing token context by 98%+ while executing in ~1.5s with a single LLM call. See [detailed architecture](docs/analysis-context-compression.md).
   - Automatic analysis caching for instant loading and low token costs.
   - Intelligent fallback analyzer if OpenAI API key is not configured.
 - **Sync Jobs**:
