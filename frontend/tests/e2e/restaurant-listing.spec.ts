@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { installApiMocks } from "./fixtures";
+import { authenticateTestUser, installApiMocks } from "./fixtures";
 
 test.describe("FE-01 restaurant listing and search", () => {
   test.beforeEach(async ({ page }) => {
     await installApiMocks(page);
     await page.goto("/");
+    await authenticateTestUser(page);
   });
 
   test("FE-01 displays restaurant data and optional values", async ({ page }) => {
@@ -71,6 +72,7 @@ test.describe("FE-01 restaurant listing and search", () => {
       new URL(candidate.url()).pathname === "/restaurants" && candidate.status() === 503,
     );
     await page.goto("/");
+    await authenticateTestUser(page);
     await expect(page.getByText("Loading restaurants...")).toBeVisible();
     releaseList();
     await firstList;

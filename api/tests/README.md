@@ -1,7 +1,7 @@
 # Backend automation tests
 
-Scope: automated tests, test infrastructure, documentation, and a manual GitHub
-Actions workflow. Application files in `api/app/` are unchanged.
+Scope: automated acceptance, RBAC, and reporting tests, test infrastructure,
+documentation, and a manual GitHub Actions workflow.
 
 ## Setup and local execution
 
@@ -29,8 +29,7 @@ python -m unittest discover -s tests -v -k _p1_
 
 The standard discovery command also runs heuristic, cache, CORS, OpenAPI,
 frontend API-contract, isolation, network-guard, and report-generation tests.
-The historical root command `./api/.venv/bin/python -m unittest api/tests/test_api.py`
-still works; use discovery to include the report-generation tests as well.
+Use discovery to include all acceptance, RBAC, and report-generation tests.
 
 To create the same reports as CI (Bash):
 
@@ -111,8 +110,8 @@ No repository secrets or external provider credentials are used.
 - Unmocked provider calls, external DNS resolution, and external socket
   connections fail tests, including attempted calls swallowed by a fallback.
   Loopback remains available for Windows event-loop plumbing.
-- Fixtures create their own restaurants, reviews, analyses, and sync targets.
-  No seed command or shared developer database is used.
+- Fixtures create their own users, restaurant assignments, restaurants, reviews,
+  analyses, and sync targets. No seed command or shared developer database is used.
 
 ## Acceptance coverage and baseline
 
@@ -149,7 +148,7 @@ from the existing `requirements.txt`; CI records resolved versions on every run.
 | BE-25 | P1 | Provider failures, accurate status, atomic imports | Fail | Pass (Resolved) |
 
 Current Status: **25/25 acceptance cases pass** (**17/17 P0**, **8/8 P1**). All tests:
-**65/65 test methods pass**, **0 failing test methods**, **0 errors**, **0 skips**.
+**74/74 test methods pass**, **0 failing test methods**, **0 errors**, **0 skips**.
 
 Resolved acceptance defects:
 

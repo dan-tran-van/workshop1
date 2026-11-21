@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { analysis, installApiMocks } from "./fixtures";
+import { analysis, authenticateTestUser, installApiMocks } from "./fixtures";
 
 test("FE-20 keeps listing, details, and insights usable at supported viewport sizes", async ({ page }) => {
   await installApiMocks(page, { initialAnalysis: analysis });
   await page.goto("/");
+  await authenticateTestUser(page);
 
   for (const width of [375, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
@@ -28,6 +29,7 @@ test("FE-20 keeps listing, details, and insights usable at supported viewport si
 test("FE-20 keeps long reviews readable and interactive controls keyboard accessible", async ({ page }) => {
   await installApiMocks(page, { initialAnalysis: analysis });
   await page.goto("/");
+  await authenticateTestUser(page);
 
   await expect(page.getByText(/The meal was lovely\./)).toBeVisible();
   const unnamedControls = await page.locator("a, button, input, select, textarea").evaluateAll((controls) =>
