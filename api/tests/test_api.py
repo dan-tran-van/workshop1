@@ -478,6 +478,7 @@ class TestIntegrationSupport(BackendTestCase):
             response = self.client.post(f'/restaurants/{restaurant["id"]}/analyze')
         self.assertEqual(response.status_code, 500)
         self.assertNotIn(sentinel, response.text)
+        self.assertEqual(self.client.get("/auth/me/analysis-history").json(), [])
 
     def test_temporary_database_is_removed_after_fixture_cleanup(self) -> None:
         nested = BackendTestCase()

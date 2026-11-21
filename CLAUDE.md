@@ -12,7 +12,7 @@ docker compose run --rm test
 docker compose down
 
 # Run unit tests locally
-./api/.venv/bin/python -m unittest api/tests/test_api.py
+./api/.venv/bin/python -m unittest discover -s api/tests -v
 
 # Run development server locally
 cd api && ./venv/bin/uvicorn app.main:app --reload --port 8000
@@ -27,13 +27,14 @@ cd api && pip install -r requirements.txt
 ## Architecture & Codebase
 
 - **Backend (`api/`)**: FastAPI + SQLAlchemy 2.0 + SQLite (`data.db`).
-  - `app/models.py`: SQLAlchemy models (`Restaurant`, `Review`, `Analysis`, `SyncTarget`, `SyncRun`).
+  - `app/models.py`: SQLAlchemy models (`User`, `Restaurant`, `Review`, `Analysis`, `SyncTarget`, `SyncRun`).
   - `app/schemas.py`: Pydantic v2 schemas.
   - `app/services/analysis.py`: OpenAI review sentiment & aspect breakdown analysis with caching and heuristic fallback.
   - `app/services/sync.py`: Google Places review sync with mock support.
-  - `app/routers/`: Modular route handlers (`restaurants.py`, `reviews.py`, `sync.py`).
+  - `app/services/auth.py` and `app/routers/auth.py`: password hashing, bearer tokens, role checks, and admin user management.
+  - `app/routers/`: Modular route handlers (`auth.py`, `restaurants.py`, `reviews.py`, `sync.py`).
   - `seed.py`: Realistic seed data generator.
-- **Frontend (`frontend/`)**: Client-side UI (pending initialization).
+- **Frontend (`frontend/`)**: React + TypeScript dashboard with role-based login and navigation.
 
 ## Coding Conventions
 
@@ -46,5 +47,5 @@ cd api && pip install -r requirements.txt
 ## Git & PR Guidelines
 
 - Follow Conventional Commits: `feat(api): ...`, `fix(api): ...`, `docs: ...`, `test: ...`.
-- Run tests before any commit: `./api/.venv/bin/python -m unittest api/tests/test_api.py`.
+- Run tests before any commit: `./api/.venv/bin/python -m unittest discover -s api/tests -v`.
 - Never stage `.env` or `*.db` files.

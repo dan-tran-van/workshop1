@@ -25,7 +25,7 @@ If you are an invited collaborator with direct push permissions to `dan-tran-van
 
 3. **Verify tests before committing:**
    ```bash
-   ./api/.venv/bin/python -m unittest api/tests/test_api.py
+   ./api/.venv/bin/python -m unittest discover -s api/tests -v
    ```
 
 4. **Commit with Conventional Commits:**

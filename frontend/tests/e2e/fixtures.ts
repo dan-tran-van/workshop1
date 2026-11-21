@@ -70,6 +70,7 @@ type MockOptions = {
   details?: Record<number, Partial<RestaurantDetail>>;
   initialAnalysis?: Analysis | null;
   analysisResult?: AnalysisResult;
+  role?: "OWNER" | "ANALYST" | "ADMIN";
 };
 
 export const restaurants: Restaurant[] = [
@@ -181,14 +182,80 @@ export const analysis: Analysis = {
 
 export async function installApiMocks(page: Page, options: MockOptions = {}) {
   let listRequests = 0;
+  const role = options.role ?? "ADMIN";
 
-  await page.route("http://localhost:8000/**", async (route) => {
+  await page.route("**/*", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
+    if (url.hostname !== "localhost" || url.port !== "8000") {
+      await route.continue();
+      return;
+    }
     const path = url.pathname;
+
+    if (request.method() === "OPTIONS") {
+      await route.fulfill({
+        status: 204,
+        headers: {
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": "GET, POST, PATCH, OPTIONS",
+          "access-control-allow-headers": "authorization, content-type",
+        },
+      });
+      return;
+    }
 
     if (path === "/health") {
       await json(route, { status: "ok" });
+      return;
+    }
+
+    if (path === "/auth/setup") {
+      await json(route, { setup_required: false });
+      return;
+    }
+
+    if (path === "/auth/login" && request.method() === "POST") {
+      await json(route, {
+        access_token: "test-token",
+        token_type: "bearer",
+        expires_in: 1800,
+        user: {
+          id: 1,
+          email: "test@example.com",
+          full_name: "Test User",
+          role,
+          is_active: true,
+          restaurant_ids: role === "OWNER" ? [1] : [],
+        },
+      });
+      return;
+    }
+
+    if (path === "/auth/me") {
+      await json(route, {
+        id: 1,
+        email: "test@example.com",
+        full_name: "Test User",
+        role,
+        is_active: true,
+        restaurant_ids: role === "OWNER" ? [1] : [],
+      });
+      return;
+    }
+
+    if (path === "/admin/users" && request.method() === "GET") {
+      await json(route, []);
+      return;
+    }
+
+    if (path === "/admin/users" && request.method() === "POST") {
+      await json(route, { id: 2, ...request.postDataJSON() }, 201);
+      return;
+    }
+
+    if (path.startsWith("/admin/users/") && request.method() === "PATCH") {
+      await json(route, { id: 2, ...request.postDataJSON() });
       return;
     }
 
@@ -204,7 +271,8 @@ export async function installApiMocks(page: Page, options: MockOptions = {}) {
       const skip = Number(url.searchParams.get("skip") ?? 0);
       const limit = Number(url.searchParams.get("limit") ?? 20);
       const matching = restaurants.filter((restaurant) =>
-        `${restaurant.name} ${restaurant.address ?? ""}`.toLowerCase().includes(query),
+        (role !== "OWNER" || restaurant.id === 1)
+        && `${restaurant.name} ${restaurant.address ?? ""}`.toLowerCase().includes(query),
       );
       await json(route, matching.slice(skip, skip + limit));
       return;
@@ -257,10 +325,28 @@ export async function installApiMocks(page: Page, options: MockOptions = {}) {
   });
 }
 
+export async function authenticateTestUser(page: Page) {
+  const email = page.getByRole("textbox", { name: "Email" });
+  if (await email.isVisible()) {
+    await email.fill("test@example.com");
+    await page.getByLabel("Password").fill("secure-test-password-123");
+    const loginResponsePromise = page.waitForResponse((response) =>
+      response.request().method() === "POST" && new URL(response.url()).pathname === "/auth/login",
+    );
+    await page.getByRole("button", { name: "Sign in" }).click();
+    const loginResponse = await loginResponsePromise;
+    if (!loginResponse.ok()) {
+      throw new Error(`Mock login failed (${loginResponse.status()}): ${await loginResponse.text()}`);
+    }
+  }
+  await page.locator(".app-shell").waitFor();
+}
+
 async function json(route: Route, body: unknown, status = 200) {
   await route.fulfill({
     status,
     contentType: "application/json",
+    headers: { "access-control-allow-origin": "*" },
     body: JSON.stringify(body),
   });
 }

@@ -2,59 +2,50 @@ import json
 import os
 import sys
 from datetime import datetime, timezone
+from typing import Dict, List, Optional
 
 # Add api directory to sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from sqlalchemy.orm import Session
 
 from app.database import SessionLocal, engine, Base
 from app.models import Restaurant, Review, SyncTarget
 from app.services.analysis import get_or_run_restaurant_analysis
 
 
-def find_data_file() -> str:
-    """Find the dump file from candidate paths."""
+DATASETS: List[str] = [
+    "district2_restaurants_reviews",
+    "alaska_moose_tooth_reviews",
+]
+
+
+def find_data_file(dataset: str) -> Optional[str]:
+    """Find a dump file for one dataset from candidate paths."""
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    candidates = [
-        os.path.join(base_dir, "district2_restaurants_reviews.json"),
-        os.path.join(base_dir, "district2_restaurants_reviews 1.json"),
-        os.path.join(base_dir, "..", "district2_restaurants_reviews.json"),
-        os.path.join(base_dir, "..", "district2_restaurants_reviews 1.json"),
-        "district2_restaurants_reviews.json",
-        "district2_restaurants_reviews 1.json",
-    ]
+    names = [f"{dataset}.json", f"{dataset} 1.json"]
+    candidates = [os.path.join(base_dir, n) for n in names]
+    candidates += [os.path.join(base_dir, "..", n) for n in names]
+    candidates += names
     for path in candidates:
         if os.path.exists(path):
             return path
-    raise FileNotFoundError(
-        "Could not find district2_restaurants_reviews.json data dump file. "
-        f"Checked: {candidates}"
-    )
+    return None
 
 
-def seed_data(reset: bool = False):
-    Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
+def find_data_files() -> List[str]:
+    """Find every known dump file; at least one must exist."""
+    found = [path for path in (find_data_file(d) for d in DATASETS) if path]
+    if not found:
+        raise FileNotFoundError(
+            f"Could not find any data dump file. Expected one of: {[d + '.json' for d in DATASETS]}"
+        )
+    return found
 
-    if reset or "--reset" in sys.argv or "-r" in sys.argv:
-        print("Resetting existing database data...")
-        db.query(SyncTarget).delete()
-        db.query(Restaurant).delete()
-        db.commit()
 
-    # Clean up legacy dummy placeholder restaurants if present
-    legacy_ids = ["ChIJ_golden_lotus_001", "ChIJ_sakura_ramen_002"]
-    legacy_count = (
-        db.query(Restaurant)
-        .filter(Restaurant.google_place_id.in_(legacy_ids))
-        .delete(synchronize_session=False)
-    )
-    if legacy_count > 0:
-        print(f"Removed {legacy_count} legacy dummy restaurant(s).")
-        db.commit()
-
-    data_file = find_data_file()
+def load_dump(db: Session, data_file: str, source_id_to_restaurant: Dict[str, Restaurant]) -> None:
+    """Upsert the restaurants and reviews from one JSON dump."""
     print(f"Loading data dump from: {data_file}")
-
     with open(data_file, "r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -62,7 +53,6 @@ def seed_data(reset: bool = False):
     reviews_data = data.get("reviews", [])
 
     print(f"Upserting {len(restaurants_data)} restaurants...")
-    source_id_to_restaurant = {}
     restaurants_upserted = 0
 
     for r_data in restaurants_data:
@@ -147,6 +137,32 @@ def seed_data(reset: bool = False):
             reviews_upserted += 1
 
     print(f"Reviews processed: {len(reviews_data)} ({reviews_upserted} new)")
+
+
+def seed_data(reset: bool = False) -> None:
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+
+    if reset or "--reset" in sys.argv or "-r" in sys.argv:
+        print("Resetting existing database data...")
+        db.query(SyncTarget).delete()
+        db.query(Restaurant).delete()
+        db.commit()
+
+    # Clean up legacy dummy placeholder restaurants if present
+    legacy_ids = ["ChIJ_golden_lotus_001", "ChIJ_sakura_ramen_002"]
+    legacy_count = (
+        db.query(Restaurant)
+        .filter(Restaurant.google_place_id.in_(legacy_ids))
+        .delete(synchronize_session=False)
+    )
+    if legacy_count > 0:
+        print(f"Removed {legacy_count} legacy dummy restaurant(s).")
+        db.commit()
+
+    source_id_to_restaurant: Dict[str, Restaurant] = {}
+    for data_file in find_data_files():
+        load_dump(db, data_file, source_id_to_restaurant)
 
     print("Configuring sync targets...")
     targets_added = 0

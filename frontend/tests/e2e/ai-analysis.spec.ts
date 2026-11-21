@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { analysis, analysisResult, installApiMocks } from "./fixtures";
+import { analysis, analysisResult, authenticateTestUser, installApiMocks } from "./fixtures";
 
 test.describe("FE-03 AI analysis", () => {
   test.beforeEach(async ({ page }) => {
     await installApiMocks(page);
     await page.goto("/");
+    await authenticateTestUser(page);
   });
 
   test("FE-12 triggers analysis for the selected restaurant and renders its response", async ({ page }) => {
@@ -22,6 +23,7 @@ test.describe("FE-03 AI analysis", () => {
     await page.unroute("http://localhost:8000/**");
     await installApiMocks(page, { analysisDelayMs: 300 });
     await page.goto("/");
+    await authenticateTestUser(page);
 
     let requestCount = 0;
     page.on("request", (request) => {
@@ -78,6 +80,7 @@ test.describe("FE-03 AI analysis", () => {
       },
     });
     await page.goto("/");
+    await authenticateTestUser(page);
     await page.getByRole("button", { name: "Analyze reviews" }).click();
 
     await expect(page.getByText(analysisResult.summary)).toBeVisible();
@@ -90,6 +93,7 @@ test.describe("FE-03 AI analysis", () => {
     await page.unroute("http://localhost:8000/**");
     await installApiMocks(page, { initialAnalysis: analysis });
     await page.goto("/");
+    await authenticateTestUser(page);
 
     const refreshedRequest = page.waitForRequest((request) =>
       request.method() === "POST" && new URL(request.url()).pathname === "/restaurants/1/analyze",

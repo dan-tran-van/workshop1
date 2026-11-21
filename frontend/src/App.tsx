@@ -12,6 +12,7 @@ import {
   Filter,
   LayoutDashboard,
   LoaderCircle,
+  LogOut,
   MapPin,
   MessageSquareText,
   MoreHorizontal,
@@ -23,6 +24,7 @@ import {
   Sparkles,
   Star,
   Store,
+  Users,
   ThumbsUp,
   TrendingDown,
   TrendingUp,
@@ -121,14 +123,34 @@ type SyncRun = {
   error_message: string | null;
 };
 
-type Page = "overview" | "restaurants" | "insights" | "sync";
+type Page = "overview" | "restaurants" | "insights" | "sync" | "users";
+type UserRole = "OWNER" | "ANALYST" | "ADMIN";
+type AuthUser = {
+  id: number;
+  email: string;
+  full_name: string;
+  role: UserRole;
+  is_active: boolean;
+  restaurant_ids: number[];
+};
+type AdminUser = AuthUser;
+
+let authToken = "";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  headers.set("Content-Type", "application/json");
+  if (authToken) headers.set("Authorization", `Bearer ${authToken}`);
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers },
+    headers,
   });
   if (!response.ok) {
+    if (response.status === 401 && authToken) {
+      authToken = "";
+      window.sessionStorage.removeItem("gather-access-token");
+      window.location.reload();
+    }
     let message = `Request failed (${response.status})`;
     try {
       const body = await response.json();
@@ -161,6 +183,63 @@ function titleCase(value: string) {
 }
 
 function App() {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [setupRequired, setSetupRequired] = useState(false);
+
+  useEffect(() => {
+    const savedToken = window.sessionStorage.getItem("gather-access-token");
+    if (savedToken) {
+      authToken = savedToken;
+      request<AuthUser>("/auth/me")
+        .then(setUser)
+        .catch(() => {
+          authToken = "";
+          window.sessionStorage.removeItem("gather-access-token");
+        })
+        .finally(() => setAuthLoading(false));
+    } else {
+      request<{ setup_required: boolean }>("/auth/setup")
+        .then((response) => setSetupRequired(response.setup_required))
+        .catch(() => setSetupRequired(false))
+        .finally(() => setAuthLoading(false));
+    }
+  }, []);
+
+  async function signIn(email: string, password: string) {
+    const result = await request<{ access_token: string; user: AuthUser }>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+    authToken = result.access_token;
+    window.sessionStorage.setItem("gather-access-token", result.access_token);
+    setUser(result.user);
+  }
+
+  async function bootstrapAdmin(email: string, fullName: string, password: string, setupKey: string) {
+    const result = await request<{ access_token: string; user: AuthUser }>("/auth/bootstrap", {
+      method: "POST",
+      body: JSON.stringify({ email, full_name: fullName, password, setup_key: setupKey }),
+    });
+    authToken = result.access_token;
+    window.sessionStorage.setItem("gather-access-token", result.access_token);
+    setUser(result.user);
+    setSetupRequired(false);
+  }
+
+  function signOut() {
+    authToken = "";
+    window.sessionStorage.removeItem("gather-access-token");
+    setUser(null);
+    setSetupRequired(false);
+  }
+
+  if (authLoading) return <AuthLoading />;
+  if (!user) return <AuthScreen setupRequired={setupRequired} onSignIn={signIn} onBootstrap={bootstrapAdmin} />;
+  return <Dashboard currentUser={user} onSignOut={signOut} />;
+}
+
+function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOut: () => void }) {
   const [page, setPage] = useState<Page>("overview");
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -185,6 +264,12 @@ function App() {
   const [addRestaurantOpen, setAddRestaurantOpen] = useState(false);
   const [addRestaurantError, setAddRestaurantError] = useState("");
   const [addingRestaurant, setAddingRestaurant] = useState(false);
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [adminUsersLoading, setAdminUsersLoading] = useState(false);
+  const [adminUsersError, setAdminUsersError] = useState("");
+  const [adminUsersNotice, setAdminUsersNotice] = useState("");
+  const [adminUserCreating, setAdminUserCreating] = useState(false);
+  const [adminUserUpdating, setAdminUserUpdating] = useState<number | null>(null);
 
   const loadRestaurants = useCallback(async (query: string, signal?: AbortSignal) => {
     setLoadingRestaurants(true);
@@ -260,9 +345,25 @@ function App() {
     }
   }, []);
 
+  const loadAdminUsers = useCallback(async () => {
+    setAdminUsersLoading(true);
+    setAdminUsersError("");
+    try {
+      setAdminUsers(await request<AdminUser[]>("/admin/users"));
+    } catch (error) {
+      setAdminUsersError(error instanceof Error ? error.message : "Unable to load users.");
+    } finally {
+      setAdminUsersLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (page === "sync") void loadSyncData();
   }, [loadSyncData, page]);
+
+  useEffect(() => {
+    if (page === "users" && currentUser.role === "ADMIN") void loadAdminUsers();
+  }, [currentUser.role, loadAdminUsers, page]);
 
   const sortedRestaurants = useMemo(() => [...restaurants].sort((a, b) => {
     if (sortBy === "reviews") return (b.review_count ?? 0) - (a.review_count ?? 0);
@@ -358,11 +459,55 @@ function App() {
     }
   }
 
+  async function createAdminUser(form: { full_name: string; email: string; password: string; role: UserRole; restaurant_ids: string }) {
+    setAdminUserCreating(true);
+    setAdminUsersError("");
+    setAdminUsersNotice("");
+    try {
+      const restaurantIds = form.role === "OWNER"
+        ? form.restaurant_ids.split(",").map((value) => value.trim()).filter(Boolean).map(Number)
+        : [];
+      if (restaurantIds.some((id) => !Number.isInteger(id) || id < 1)) throw new Error("Restaurant IDs must be positive integers.");
+      await request<AdminUser>("/admin/users", {
+        method: "POST",
+        body: JSON.stringify({ ...form, restaurant_ids: restaurantIds }),
+      });
+      setAdminUsersNotice("User account created.");
+      await loadAdminUsers();
+    } catch (error) {
+      setAdminUsersError(error instanceof Error ? error.message : "Unable to create user.");
+    } finally {
+      setAdminUserCreating(false);
+    }
+  }
+
+  async function updateAdminUser(userId: number, changes: { role?: UserRole; is_active?: boolean; restaurant_ids?: number[] }) {
+    setAdminUserUpdating(userId);
+    setAdminUsersError("");
+    setAdminUsersNotice("");
+    try {
+      await request<AdminUser>(`/admin/users/${userId}`, { method: "PATCH", body: JSON.stringify(changes) });
+      setAdminUsersNotice("User permissions updated.");
+      await loadAdminUsers();
+    } catch (error) {
+      setAdminUsersError(error instanceof Error ? error.message : "Unable to update this user.");
+    } finally {
+      setAdminUserUpdating(null);
+    }
+  }
+
+  useEffect(() => {
+    if (currentUser.role !== "ADMIN" && (page === "sync" || page === "users")) {
+      setPage("overview");
+    }
+  }, [currentUser.role, page]);
+
   const pageTitles: Record<Page, { title: string; subtitle: string }> = {
     overview: { title: "Good morning", subtitle: "Here’s what your guests are saying." },
     restaurants: { title: "Restaurants", subtitle: "Explore locations and understand every guest experience." },
     insights: { title: "Review insights", subtitle: "Turn customer feedback into your next best move." },
     sync: { title: "Data sync", subtitle: "Manage Google Maps review collection and sync activity." },
+    users: { title: "User access", subtitle: "Manage workspace accounts and their permissions." },
   };
   const todayLabel = new Intl.DateTimeFormat("en", { weekday: "long", month: "long", day: "numeric" }).format(new Date()).toUpperCase();
 
@@ -374,8 +519,8 @@ function App() {
           <span className="brand-name">gather<span>.</span></span>
         </a>
         <div className="workspace-switcher">
-          <div className="workspace-avatar">H</div>
-          <div className="workspace-copy"><strong>Hearth &amp; Honey</strong><span>Workspace</span></div>
+          <div className="workspace-avatar">{currentUser.full_name.charAt(0).toUpperCase()}</div>
+          <div className="workspace-copy"><strong>Restaurant workspace</strong><span>{titleCase(currentUser.role)}</span></div>
           <ChevronDown size={15} className="muted-icon" />
         </div>
         <div className="nav-section-label">WORKSPACE</div>
@@ -383,7 +528,8 @@ function App() {
           <NavItem active={page === "overview"} onClick={() => setPage("overview")} icon={<LayoutDashboard size={18} />} label="Overview" />
           <NavItem active={page === "restaurants"} onClick={() => setPage("restaurants")} icon={<Store size={18} />} label="Restaurants" count={restaurants.length} />
           <NavItem active={page === "insights"} onClick={() => setPage("insights")} icon={<BarChart3 size={18} />} label="Review insights" />
-          <NavItem active={page === "sync"} onClick={() => setPage("sync")} icon={<RefreshCw size={17} />} label="Data sync" />
+          {currentUser.role === "ADMIN" && <NavItem active={page === "sync"} onClick={() => setPage("sync")} icon={<RefreshCw size={17} />} label="Data sync" />}
+          {currentUser.role === "ADMIN" && <NavItem active={page === "users"} onClick={() => setPage("users")} icon={<Users size={17} />} label="User access" />}
         </nav>
         <div className="sidebar-bottom">
           <div className="help-card">
@@ -392,10 +538,10 @@ function App() {
             <p>Get the most out of your guest insights.</p>
             <button type="button" className="help-link" onClick={() => window.open(`${API_BASE}/docs`, "_blank", "noopener,noreferrer")}>Explore API docs <ArrowRight size={13} /></button>
           </div>
-          <button type="button" className="profile-button">
-            <span className="profile-avatar">AM</span>
-            <span className="profile-copy"><strong>Alex Morgan</strong><span>Restaurant owner</span></span>
-            <MoreHorizontal size={19} className="muted-icon" />
+          <button type="button" className="profile-button" onClick={onSignOut} aria-label="Sign out">
+            <span className="profile-avatar">{currentUser.full_name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}</span>
+            <span className="profile-copy"><strong>{currentUser.full_name}</strong><span>{titleCase(currentUser.role)}</span></span>
+            <LogOut size={17} className="muted-icon" />
           </button>
         </div>
       </aside>
@@ -406,7 +552,9 @@ function App() {
           <div className="topbar-actions">
             <span className={`sync-status${apiConnected === false ? " disconnected" : ""}`}><span className="status-dot" /> {apiConnected === null ? "Connecting to API" : apiConnected ? "API connected" : "API unavailable"}</span>
             <button type="button" className="icon-button" aria-label="Settings"><Settings2 size={18} /></button>
-            <button type="button" className="top-avatar" aria-label="User profile">AM</button>
+            <button type="button" className="top-avatar" aria-label={`${currentUser.full_name}, ${titleCase(currentUser.role)}`}>
+              {currentUser.full_name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase()}
+            </button>
           </div>
         </header>
 
@@ -414,14 +562,14 @@ function App() {
           <section className="page-heading">
             <div>
               <div className="eyebrow">{page === "overview" ? todayLabel : "YOUR BUSINESS"}</div>
-              <h1>{pageTitles[page].title}{page === "overview" && <span className="heading-period">, Alex</span>}</h1>
+              <h1>{pageTitles[page].title}{page === "overview" && <span className="heading-period">, {currentUser.full_name.split(/\s+/)[0]}</span>}</h1>
               <p>{pageTitles[page].subtitle}</p>
             </div>
             <div className="heading-actions">
               <button type="button" className="button button-secondary" onClick={() => { void checkApiConnection(); page === "sync" ? void loadSyncData() : void loadRestaurants(search.trim()); }}>
                 <RefreshCw size={15} /> Refresh
               </button>
-              <button type="button" className="button button-primary" onClick={() => { setAddRestaurantError(""); setAddRestaurantOpen(true); }}><Plus size={16} /> Add restaurant</button>
+              {(currentUser.role === "ADMIN" || currentUser.role === "OWNER") && <button type="button" className="button button-primary" onClick={() => { setAddRestaurantError(""); setAddRestaurantOpen(true); }}><Plus size={16} /> Add restaurant</button>}
             </div>
           </section>
 
@@ -474,10 +622,149 @@ function App() {
               onAddTarget={() => { setAddTargetError(""); setAddTargetOpen(true); }}
             />
           )}
+
+          {page === "users" && currentUser.role === "ADMIN" && (
+            <AdminUsersPage
+              users={adminUsers}
+              restaurants={restaurants}
+              loading={adminUsersLoading}
+              creating={adminUserCreating}
+              updatingId={adminUserUpdating}
+              error={adminUsersError}
+              notice={adminUsersNotice}
+              onCreate={createAdminUser}
+              onUpdate={updateAdminUser}
+              onRefresh={() => void loadAdminUsers()}
+            />
+          )}
         </div>
       </main>
       {addRestaurantOpen && <AddRestaurantDialog error={addRestaurantError} loading={addingRestaurant} onClose={() => setAddRestaurantOpen(false)} onSubmit={createRestaurant} />}
       {addTargetOpen && <AddSyncTargetDialog error={addTargetError} loading={addingTarget} onClose={() => setAddTargetOpen(false)} onSubmit={createSyncTarget} />}
+    </div>
+  );
+}
+
+function AuthLoading() {
+  return <main className="auth-page"><LoadingState label="Checking your account..." /></main>;
+}
+
+function AuthScreen({ setupRequired, onSignIn, onBootstrap }: {
+  setupRequired: boolean;
+  onSignIn: (email: string, password: string) => Promise<void>;
+  onBootstrap: (email: string, fullName: string, password: string, setupKey: string) => Promise<void>;
+}) {
+  const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [password, setPassword] = useState("");
+  const [setupKey, setSetupKey] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    setError("");
+    try {
+      if (setupRequired) await onBootstrap(email, fullName, password, setupKey);
+      else await onSignIn(email, password);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Unable to authenticate.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <main className="auth-page">
+      <section className="auth-card">
+        <a className="brand auth-brand" href="#" onClick={(event) => event.preventDefault()}>
+          <span className="brand-mark"><Waves size={21} strokeWidth={2.5} /></span>
+          <span className="brand-name">gather<span>.</span></span>
+        </a>
+        <span className="section-kicker">{setupRequired ? "WORKSPACE SETUP" : "SECURE WORKSPACE"}</span>
+        <h1>{setupRequired ? "Create your administrator" : "Welcome back"}</h1>
+        <p>{setupRequired ? "Use the configured setup key to create the first administrator account." : "Sign in to view your restaurant review insights."}</p>
+        <form onSubmit={submit}>
+          {setupRequired && <label>Full name<input required maxLength={255} autoComplete="name" value={fullName} onChange={(event) => setFullName(event.target.value)} /></label>}
+          <label>Email<input required type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} /></label>
+          <label>Password<input required type="password" minLength={setupRequired ? 12 : 1} autoComplete={setupRequired ? "new-password" : "current-password"} value={password} onChange={(event) => setPassword(event.target.value)} /></label>
+          {setupRequired && <label>Administrator setup key<input required type="password" autoComplete="off" value={setupKey} onChange={(event) => setSetupKey(event.target.value)} /></label>}
+          {error && <ErrorBanner message={error} />}
+          <button type="submit" className="button button-primary auth-submit" disabled={submitting}>
+            {submitting && <LoaderCircle size={15} className="spin" />}{setupRequired ? "Create administrator" : "Sign in"}
+          </button>
+        </form>
+      </section>
+    </main>
+  );
+}
+
+function AdminUsersPage({ users, restaurants, loading, creating, updatingId, error, notice, onCreate, onUpdate, onRefresh }: {
+  users: AdminUser[];
+  restaurants: Restaurant[];
+  loading: boolean;
+  creating: boolean;
+  updatingId: number | null;
+  error: string;
+  notice: string;
+  onCreate: (form: { full_name: string; email: string; password: string; role: UserRole; restaurant_ids: string }) => void;
+  onUpdate: (userId: number, changes: { role?: UserRole; is_active?: boolean; restaurant_ids?: number[] }) => void;
+  onRefresh: () => void;
+}) {
+  const [form, setForm] = useState({ full_name: "", email: "", password: "", role: "OWNER" as UserRole, restaurant_ids: "" });
+  return (
+    <div className="users-layout">
+      <section className="panel user-create-panel">
+        <div className="panel-heading"><div><h2>Create a user</h2><p>Passwords must be at least 12 characters.</p></div></div>
+        <form className="user-create-form" onSubmit={(event) => { event.preventDefault(); onCreate(form); }}>
+          <label>Full name<input required maxLength={255} value={form.full_name} onChange={(event) => setForm({ ...form, full_name: event.target.value })} /></label>
+          <label>Email<input required type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
+          <label>Temporary password<input required type="password" minLength={12} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} /></label>
+          <label>Role<select value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value as UserRole })}><option value="OWNER">Restaurant Owner</option><option value="ANALYST">F&amp;B Analyst</option><option value="ADMIN">Admin</option></select></label>
+          {form.role === "OWNER" && <label className="user-restaurant-ids">Restaurant IDs <span className="optional-label">Comma-separated</span><input value={form.restaurant_ids} onChange={(event) => setForm({ ...form, restaurant_ids: event.target.value })} placeholder={restaurants.length ? restaurants.map((item) => item.id).join(", ") : "No restaurants yet"} /></label>}
+          <button type="submit" className="button button-primary" disabled={creating}>{creating ? <LoaderCircle size={15} className="spin" /> : <Plus size={15} />}{creating ? "Creating..." : "Create account"}</button>
+        </form>
+        {error && <ErrorBanner message={error} />}
+        {notice && <div className="notice-banner user-notice"><Check size={15} />{notice}</div>}
+      </section>
+      <section className="panel user-list-panel">
+        <div className="panel-heading"><div><h2>Workspace users</h2><p>Role changes take effect immediately.</p></div><button type="button" className="text-button" onClick={onRefresh}>Refresh <RefreshCw size={13} /></button></div>
+        {loading ? <LoadingState label="Loading workspace users..." /> : users.length ? <div className="table-wrap"><table><thead><tr><th>User</th><th>Role</th><th>Restaurants</th><th>Status</th></tr></thead><tbody>{users.map((user) => <tr key={user.id}>
+          <td><strong className="user-name">{user.full_name}</strong><small className="user-email">{user.email}</small></td>
+          <td><select aria-label={`Role for ${user.email}`} value={user.role} disabled={updatingId === user.id} onChange={(event) => onUpdate(user.id, { role: event.target.value as UserRole })}><option value="OWNER">Restaurant Owner</option><option value="ANALYST">F&amp;B Analyst</option><option value="ADMIN">Admin</option></select></td>
+          <td>{user.role === "OWNER" ? <OwnerRestaurantAssignments user={user} restaurants={restaurants} updating={updatingId === user.id} onSave={(restaurantIds) => onUpdate(user.id, { restaurant_ids: restaurantIds })} /> : "All restaurants"}</td>
+          <td><button type="button" className={`user-status${user.is_active ? " active" : ""}`} disabled={updatingId === user.id} onClick={() => onUpdate(user.id, { is_active: !user.is_active })}>{updatingId === user.id ? "Updating..." : user.is_active ? "Active" : "Disabled"}</button></td>
+        </tr>)}</tbody></table></div> : <EmptyState title="No users found" description="Create an account to invite a workspace user." />}
+      </section>
+    </div>
+  );
+}
+
+function OwnerRestaurantAssignments({ user, restaurants, updating, onSave }: {
+  user: AdminUser;
+  restaurants: Restaurant[];
+  updating: boolean;
+  onSave: (restaurantIds: number[]) => void;
+}) {
+  const [value, setValue] = useState(user.restaurant_ids.join(", "));
+  const [error, setError] = useState("");
+  return (
+    <div>
+      <form className="owner-assignment-form" onSubmit={(event) => {
+        event.preventDefault();
+        const ids = value.split(",").map((part) => part.trim()).filter(Boolean).map(Number);
+        if (ids.some((id) => !Number.isInteger(id) || id < 1)) {
+          setError("Enter positive restaurant IDs.");
+          return;
+        }
+        setError("");
+        onSave(ids);
+      }}>
+        <input aria-label={`Restaurant IDs for ${user.email}`} value={value} onChange={(event) => { setValue(event.target.value); setError(""); }} placeholder={restaurants.length ? "Restaurant IDs" : "No restaurants"} />
+        <button type="submit" className="text-button" disabled={updating}>{updating ? "Saving..." : "Save"}</button>
+      </form>
+      {error && <small className="assignment-error">{error}</small>}
     </div>
   );
 }

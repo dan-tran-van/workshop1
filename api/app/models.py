@@ -1,8 +1,18 @@
-from sqlalchemy import Column, Integer, String, Float, Text, Boolean, DateTime, ForeignKey, JSON, UniqueConstraint
+
+from sqlalchemy import Column, Integer, String, Float, Text, Boolean, DateTime, ForeignKey, JSON, Table, UniqueConstraint
+
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.database import Base
+
+
+user_restaurants = Table(
+    "user_restaurants",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+    Column("restaurant_id", Integer, ForeignKey("restaurants.id", ondelete="CASCADE"), primary_key=True),
+)
 
 
 class Restaurant(Base):
@@ -20,6 +30,21 @@ class Restaurant(Base):
     # Relationships
     reviews = relationship("Review", back_populates="restaurant", cascade="all, delete-orphan", order_by="desc(Review.published_at)")
     analyses = relationship("Analysis", back_populates="restaurant", cascade="all, delete-orphan", order_by="desc(Analysis.created_at)")
+    owners = relationship("User", secondary=user_restaurants, back_populates="restaurants")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    email = Column(String(320), unique=True, index=True, nullable=False)
+    full_name = Column(String(255), nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(30), nullable=False, default="OWNER")
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    restaurants = relationship("Restaurant", secondary=user_restaurants, back_populates="owners")
 
 
 class Review(Base):
@@ -52,6 +77,17 @@ class Analysis(Base):
 
     # Relationships
     restaurant = relationship("Restaurant", back_populates="analyses")
+
+
+class AnalysisRun(Base):
+    __tablename__ = "analysis_runs"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    analysis_id = Column(Integer, ForeignKey("analyses.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    analysis = relationship("Analysis")
 
 
 class SyncTarget(Base):

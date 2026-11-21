@@ -3,8 +3,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Restaurant, Review
+from app.models import Restaurant, Review, User
 from app.schemas import ReviewResponse, ReviewCreate
+from app.routers.auth import ensure_restaurant_access, get_current_user, require_roles
 
 router = APIRouter(tags=["Reviews"])
 
@@ -14,11 +15,13 @@ def list_restaurant_reviews(
     restaurant_id: int,
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     restaurant = db.query(Restaurant).filter(Restaurant.id == restaurant_id).first()
     if not restaurant:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Restaurant not found")
+    ensure_restaurant_access(restaurant, current_user)
 
     reviews = (
         db.query(Review)
@@ -35,7 +38,8 @@ def list_restaurant_reviews(
 def create_review_for_restaurant(
     restaurant_id: int,
     payload: ReviewCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _: User = Depends(require_roles("ADMIN")),
 ):
     if payload.restaurant_id is not None and payload.restaurant_id != restaurant_id:
         raise HTTPException(
