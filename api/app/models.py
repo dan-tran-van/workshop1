@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, Text, Boolean, DateTime, ForeignKey, JSON, Table
+
+from sqlalchemy import Column, Integer, String, Float, Text, Boolean, DateTime, ForeignKey, JSON, Table, UniqueConstraint
+
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -109,3 +111,21 @@ class SyncRun(Base):
     restaurants_upserted = Column(Integer, default=0, nullable=False)
     reviews_upserted = Column(Integer, default=0, nullable=False)
     error_message = Column(Text, nullable=True)
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+    __table_args__ = (UniqueConstraint("review_id", "channel", name="uq_notifications_review_channel"),)
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    restaurant_id = Column(Integer, ForeignKey("restaurants.id", ondelete="CASCADE"), nullable=False, index=True)
+    review_id = Column(Integer, ForeignKey("reviews.id", ondelete="CASCADE"), nullable=False, index=True)
+    sync_run_id = Column(Integer, ForeignKey("sync_runs.id", ondelete="SET NULL"), nullable=True, index=True)
+    channel = Column(String(50), nullable=False, default="in_app")
+    status = Column(String(50), nullable=False, default="PENDING")  # PENDING, SENT, FAILED
+    error_message = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    sent_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Relationships
+    review = relationship("Review")

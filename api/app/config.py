@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     AUTH_SECRET_KEY: str = secrets.token_urlsafe(32)
     AUTH_BOOTSTRAP_KEY: str = ""
     CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://localhost:5173"]
+    BAD_REVIEW_NOTIFICATIONS_ENABLED: bool = True
+    BAD_REVIEW_RATING_THRESHOLD: float = 2.0
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

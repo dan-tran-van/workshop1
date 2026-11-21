@@ -14,6 +14,7 @@ This file provides system instructions, technical architecture, and coding conve
   - Structure customer feedback across 6 core aspects: `food`, `service`, `wait_time`, `hygiene`, `ambience`, `price`.
   - Provide actionable, prioritized recommendations and highlight key strengths for marketing.
   - Cache AI analysis results to minimize LLM token costs and keep response times fast.
+  - Notify managers about new low-rated Google reviews after each sync (manual or scheduled).
 
 ---
 
@@ -35,11 +36,11 @@ workshop1/
 │   ├── app/
 │   │   ├── config.py         # Pydantic BaseSettings (.env loading)
 │   │   ├── database.py       # Engine, SessionLocal, get_db dependency
-│   │   ├── models.py         # SQLAlchemy ORM models (restaurants, reviews, analyses, sync_*)
+│   │   ├── models.py         # SQLAlchemy ORM models (restaurants, reviews, analyses, sync_*, notifications)
 │   │   ├── schemas.py        # Pydantic request/response & analysis payload models
 │   │   ├── main.py           # FastAPI app instance, CORS middleware, router registration
-│   │   ├── routers/          # Route handlers (auth.py, restaurants.py, reviews.py, sync.py)
-│   │   └── services/         # Business logic (analysis.py, auth.py, sync.py)
+│   │   ├── routers/          # Route handlers (auth.py, restaurants.py, reviews.py, sync.py, notifications.py)
+│   │   └── services/         # Business logic (analysis.py, auth.py, sync.py, notifications.py)
 │   ├── tests/
 │   │   ├── test_api.py       # API acceptance and integration tests
 │   │   └── test_rbac.py      # Role-based access tests
@@ -140,6 +141,7 @@ uvicorn app.main:app --reload --port 8000
    - Sync jobs must be atomic: on provider error, timeout, or invalid payloads, execute `db.rollback()` to prevent partial imports.
    - Accurately persist job status as `FAILED`.
    - Never leak internal exception details or provider API keys in API responses.
+   - Record bad review notifications only after the sync commit succeeds, and only for reviews newly imported from Google (never mock data). A notification failure must be logged and must never turn a completed sync into `FAILED`.
 
 5. **Database Conventions**:
    - SQLite tables use `autoincrement=True` integer primary keys.

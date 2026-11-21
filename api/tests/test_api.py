@@ -18,12 +18,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 # Import support first so safe settings are loaded before the application.
 from tests.support import BackendTestCase, EXPECTED_ANALYSIS, settings
 import httpx
-from app.models import Analysis, Restaurant, Review, SyncRun, SyncTarget
+from app.models import Analysis, Notification, Restaurant, Review, SyncRun, SyncTarget
 from app.schemas import (
-    AnalysisResponse, AnalysisResultPayload, RestaurantDetailResponse,
+    AnalysisResponse, AnalysisResultPayload, NotificationResponse, RestaurantDetailResponse,
     RestaurantResponse, ReviewResponse, SyncRunResponse, SyncTargetResponse,
 )
 from app.services.analysis import generate_mock_analysis, get_or_run_restaurant_analysis
+from app.services.sync import execute_sync_job
 
 
 class TestBackendAcceptance(BackendTestCase):
@@ -537,6 +538,90 @@ class TestIntegrationSupport(BackendTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["status"], "FAILED")
         self.assertNotIn(sentinel, response.text)
+
+
+class TestBadReviewNotifications(BackendTestCase):
+    def google_response(self, place_id: str, ratings: list) -> httpx.Response:
+        reviews = [{"time": 1577836800 + index, "author_name": f"Guest {index}", "rating": rating,
+                    "text": f"Review rated {rating}"} for index, rating in enumerate(ratings)]
+        payload = {"status": "OK", "result": {"place_id": place_id, "name": "Provider Cafe",
+                                              "formatted_address": "42 Test Road", "rating": 3.5,
+                                              "user_ratings_total": len(reviews), "reviews": reviews}}
+        return httpx.Response(200, json=payload, request=httpx.Request("GET", "https://provider.invalid"))
+
+    def live_sync(self, ratings: list) -> dict:
+        target = self.target()
+        with patch.object(settings, "GOOGLE_PLACES_API_KEY", "test-only-google-key"), \
+                patch("app.services.sync.httpx.get", return_value=self.google_response(target["value"], ratings)):
+            response = self.client.post("/sync/run")
+        self.assertEqual(response.status_code, 200)
+        return response.json()
+
+    def test_manual_live_sync_notifies_only_reviews_at_or_below_threshold(self) -> None:
+        with self.assertLogs("app.services.notifications", level="WARNING") as logs:
+            run = self.live_sync([1.0, 2.0, 3.0, 5.0])
+        self.assertEqual(run["status"], "COMPLETED")
+        self.assertEqual(run["reviews_upserted"], 4)
+        self.assertEqual(len(logs.records), 2)
+        rows = self.client.get("/notifications").json()
+        for row in rows:
+            NotificationResponse.model_validate(row)
+        self.assertEqual(sorted(row["review"]["rating"] for row in rows), [1.0, 2.0])
+        self.assertTrue(all(row["channel"] == "in_app" and row["status"] == "SENT" for row in rows))
+        self.assertTrue(all(row["sync_run_id"] == run["id"] for row in rows))
+        restaurant_id = self.db.query(Restaurant).one().id
+        self.assertEqual(len(self.client.get(f"/notifications?restaurant_id={restaurant_id}").json()), 2)
+        self.assertEqual(self.client.get("/notifications?restaurant_id=999999").json(), [])
+
+    def test_scheduled_sync_entry_point_notifies(self) -> None:
+        target = self.target()
+        with patch.object(settings, "GOOGLE_PLACES_API_KEY", "test-only-google-key"), \
+                patch("app.services.sync.httpx.get", return_value=self.google_response(target["value"], [1.0])):
+            run = execute_sync_job(self.db)
+        self.assertEqual(run.status, "COMPLETED")
+        self.assertEqual(self.db.query(Notification).count(), 1)
+
+    def test_repeated_sync_does_not_duplicate_notifications(self) -> None:
+        target = self.target()
+        response = self.google_response(target["value"], [1.0, 4.0])
+        with patch.object(settings, "GOOGLE_PLACES_API_KEY", "test-only-google-key"), \
+                patch("app.services.sync.httpx.get", return_value=response):
+            first = self.client.post("/sync/run").json()
+            second = self.client.post("/sync/run").json()
+        self.assertEqual((first["status"], second["status"]), ("COMPLETED", "COMPLETED"))
+        self.assertEqual(second["reviews_upserted"], 0)
+        self.assertEqual(self.db.query(Notification).count(), 1)
+
+    def test_mock_sync_never_notifies(self) -> None:
+        self.target()
+        run = self.client.post("/sync/run").json()
+        self.assertEqual(run["status"], "COMPLETED")
+        self.assertTrue(self.db.query(Review).filter(Review.rating <= 2.0).count() > 0)
+        self.assertEqual(self.db.query(Notification).count(), 0)
+
+    def test_failed_sync_does_not_notify(self) -> None:
+        run = self.live_sync([1.0, "not-a-rating"])
+        self.assertEqual(run["status"], "FAILED")
+        self.assertEqual(self.db.query(Review).count(), 0)
+        self.assertEqual(self.db.query(Notification).count(), 0)
+
+    def test_notification_failure_does_not_fail_sync(self) -> None:
+        with patch("app.services.notifications.Notification", side_effect=RuntimeError("store down")):
+            run = self.live_sync([1.0])
+        self.assertEqual(run["status"], "COMPLETED")
+        self.assertEqual(self.db.query(Review).count(), 1)
+        self.assertEqual(self.db.query(Notification).count(), 0)
+
+    def test_threshold_is_configurable(self) -> None:
+        with patch.object(settings, "BAD_REVIEW_RATING_THRESHOLD", 3.0):
+            self.live_sync([3.0, 4.0])
+        self.assertEqual(self.db.query(Notification).count(), 1)
+
+    def test_notifications_can_be_disabled(self) -> None:
+        with patch.object(settings, "BAD_REVIEW_NOTIFICATIONS_ENABLED", False):
+            run = self.live_sync([1.0])
+        self.assertEqual(run["status"], "COMPLETED")
+        self.assertEqual(self.db.query(Notification).count(), 0)
 
 
 if __name__ == "__main__":

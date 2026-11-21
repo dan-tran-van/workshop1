@@ -213,3 +213,21 @@ class SyncRunResponse(BaseModel):
     error_message: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# --------------------------------------------------------
+# Notification Schemas
+# --------------------------------------------------------
+class NotificationResponse(BaseModel):
+    id: int
+    restaurant_id: int
+    review_id: int
+    sync_run_id: Optional[int] = None
+    channel: str
+    status: str
+    error_message: Optional[str] = None
+    created_at: datetime
+    sent_at: Optional[datetime] = None
+    review: ReviewResponse
+
+    model_config = ConfigDict(from_attributes=True)

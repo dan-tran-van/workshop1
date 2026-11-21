@@ -6,8 +6,10 @@ from unittest.mock import patch
 # Support invocation both from the repository root and from api/.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from datetime import datetime
+
 from tests.support import BackendTestCase, settings
-from app.models import User
+from app.models import Notification, Review, User
 
 
 class TestRoleBasedAccessControl(BackendTestCase):
@@ -32,7 +34,32 @@ class TestRoleBasedAccessControl(BackendTestCase):
         self.assertEqual(self.client.get("/restaurants").status_code, 401)
         self.assertEqual(self.client.get("/auth/me/analysis-history").status_code, 401)
         self.assertEqual(self.client.get("/sync/targets").status_code, 401)
+        self.assertEqual(self.client.get("/notifications").status_code, 401)
         self.assertEqual(self.client.get("/health").status_code, 200)
+
+    def test_owner_sees_only_notifications_for_assigned_restaurants(self) -> None:
+        assigned = self.restaurant()
+        unassigned = self.restaurant(google_place_id="other-place", name="Other Cafe")
+        for restaurant in (assigned, unassigned):
+            review = Review(restaurant_id=restaurant["id"], author_name="Guest", rating=1.0,
+                            text="Cold food", published_at=datetime(2025, 1, 1))
+            self.db.add(review)
+            self.db.flush()
+            self.db.add(Notification(restaurant_id=restaurant["id"], review_id=review.id,
+                                     channel="in_app", status="SENT"))
+        self.db.commit()
+        self.create_account("OWNER", "alerts-owner@example.com", [assigned["id"]])
+        self.create_account("ANALYST", "alerts-analyst@example.com")
+
+        self.assertEqual(len(self.client.get("/notifications").json()), 2)
+
+        self.login_as("alerts-owner@example.com")
+        rows = self.client.get("/notifications").json()
+        self.assertEqual([row["restaurant_id"] for row in rows], [assigned["id"]])
+        self.assertEqual(self.client.get(f"/notifications?restaurant_id={unassigned['id']}").json(), [])
+
+        self.login_as("alerts-analyst@example.com")
+        self.assertEqual(len(self.client.get("/notifications").json()), 2)
 
     def test_analysis_history_is_per_user_and_records_cached_requests(self) -> None:
         restaurant = self.restaurant()

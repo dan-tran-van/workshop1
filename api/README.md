@@ -16,6 +16,10 @@ A FastAPI backend powered by SQLite (and SQLAlchemy) providing restaurant review
 - **Sync Jobs**:
   - Google Places API integration (`place_id` lookups) with mock fallback for local testing.
   - Tracking of `sync_targets` and `sync_runs`.
+- **Bad Review Notifications**:
+  - After every successful sync (manual `POST /sync/run` or a scheduled run), each new Google review rated at or below `BAD_REVIEW_RATING_THRESHOLD` (default `2.0`) is recorded in `notifications` and logged as a warning.
+  - Failed syncs, mock data, and reviews already notified never create notifications; a notification error never fails the sync.
+  - `GET /notifications` lists them with the review attached. Owners only see their assigned restaurants.
 - **Role-based access control**:
   - `OWNER`: can access assigned restaurants and their reviews/analysis, and add restaurants to their own account.
   - `ANALYST` (F&B Analyst): can read all restaurant data and run analyses; cannot change source data, manage users, or sync.
@@ -36,6 +40,9 @@ Core Tables:
 Sync Tables:
 - sync_targets (id, target_type, value, language_code, is_active, last_synced_at)
 - sync_runs    (id, status, started_at, finished_at, restaurants_upserted, reviews_upserted, error_message)
+
+Notification Tables:
+- notifications (id, restaurant_id, review_id, sync_run_id, channel, status, error_message, created_at, sent_at) — unique per (review_id, channel)
 
 Access Tables:
 - users (id, email, full_name, password_hash, role, is_active, created_at)
@@ -101,6 +108,8 @@ Key variables:
 - `GOOGLE_PLACES_API_KEY`: Google Places API Key (optional)
 - `AUTH_SECRET_KEY`: stable random signing key for access tokens; set this in deployments so restarts do not invalidate sessions.
 - `AUTH_BOOTSTRAP_KEY`: one-time key required to create the first administrator. Set a unique value before opening the app, then use it once on the initial setup screen.
+- `BAD_REVIEW_NOTIFICATIONS_ENABLED`: `true` by default; set `false` to stop recording bad review notifications.
+- `BAD_REVIEW_RATING_THRESHOLD`: `2.0` by default; new Google reviews rated at or below this value create a notification.
 
 The first account is provisioned through the one-time `/auth/bootstrap` endpoint; public self-registration is disabled. Choose a password of at least 12 characters. Administrators can create and deactivate accounts and assign restaurant IDs to owners from the **User access** screen. Use unique, private keys in deployed environments.
 
@@ -193,6 +202,7 @@ versions. See [test coverage and documentation](tests/README.md).
 | `POST` | `/sync/targets` | Add sync target |
 | `POST` | `/sync/run` | Execute sync job |
 | `GET` | `/sync/runs` | List sync job execution history |
+| `GET` | `/notifications` | Bad review notifications with the review attached (supports `?restaurant_id=`, `skip`, `limit`; Owners see assigned restaurants only) |
 | `GET` | `/health` | API health check |
 | `GET` | `/auth/setup` | Check whether first-admin setup is required |
 | `POST` | `/auth/bootstrap` | Create the first admin with the configured setup key |
