@@ -252,9 +252,6 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
   const [analysisHistory, setAnalysisHistory] = useState<AnalysisHistoryEntry[]>([]);
   const [analysisHistoryLoading, setAnalysisHistoryLoading] = useState(false);
   const [analysisHistoryError, setAnalysisHistoryError] = useState("");
-  const [restaurantAnalyses, setRestaurantAnalyses] = useState<Analysis[]>([]);
-  const [loadingAnalyses, setLoadingAnalyses] = useState(false);
-  const [analysesError, setAnalysesError] = useState("");
   const [selectedBaselineByRestaurant, setSelectedBaselineByRestaurant] = useState<Record<number, number | "none">>({});
   const [comparisonViewMode, setComparisonViewMode] = useState<ComparisonViewMode>("cards");
 
@@ -298,17 +295,11 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
   useEffect(() => {
     if (selectedId === null) {
       setDetail(null);
-      setRestaurantAnalyses([]);
-      setAnalysesError("");
-      setLoadingAnalyses(false);
       return;
     }
     const controller = new AbortController();
     setLoadingDetail(true);
     setDetailError("");
-    setLoadingAnalyses(true);
-    setAnalysesError("");
-    setRestaurantAnalyses([]);
 
     request<RestaurantDetail>(`/restaurants/${selectedId}`, { signal: controller.signal })
       .then(setDetail)
@@ -318,16 +309,6 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoadingDetail(false);
-      });
-
-    request<Analysis[]>(`/restaurants/${selectedId}/analyses`, { signal: controller.signal })
-      .then(setRestaurantAnalyses)
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === "AbortError") return;
-        setAnalysesError(error instanceof Error ? error.message : "Unable to load past analyses.");
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoadingAnalyses(false);
       });
 
     return () => controller.abort();
@@ -383,6 +364,10 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
   }, [currentUser.role, loadAdminUsers, page]);
 
   useEffect(() => {
+    void loadAnalysisHistory();
+  }, [loadAnalysisHistory]);
+
+  useEffect(() => {
     if (page === "insights") void loadAnalysisHistory();
   }, [loadAnalysisHistory, page]);
 
@@ -401,9 +386,18 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null;
   const analysis = detail?.latest_analysis?.result_json;
 
+  const userRestaurantAnalyses = useMemo(
+    () =>
+      selectedId === null
+        ? []
+        : analysisHistory
+            .filter((entry) => entry.analysis.restaurant_id === selectedId)
+            .map((entry) => entry.analysis),
+    [analysisHistory, selectedId],
+  );
   const pastAnalyses = useMemo(
-    () => getPastAnalyses(detail?.latest_analysis, restaurantAnalyses),
-    [detail?.latest_analysis, restaurantAnalyses],
+    () => getPastAnalyses(detail?.latest_analysis, userRestaurantAnalyses),
+    [detail?.latest_analysis, userRestaurantAnalyses],
   );
   const baselineChoice = selectedId !== null ? selectedBaselineByRestaurant[selectedId] : undefined;
   const baselineAnalysis = useMemo(() => {
@@ -451,13 +445,6 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
           delete next[selectedId];
           return next;
         });
-      }
-      try {
-        setAnalysesError("");
-        const updatedAnalyses = await request<Analysis[]>(`/restaurants/${selectedId}/analyses`);
-        setRestaurantAnalyses(updatedAnalyses);
-      } catch (historyError) {
-        setAnalysesError(historyError instanceof Error ? historyError.message : "Unable to load past analyses.");
       }
       await loadAnalysisHistory();
     } catch (error) {
@@ -649,8 +636,8 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
               detail={detail}
               analysis={analysis}
               pastAnalyses={pastAnalyses}
-              loadingAnalyses={loadingAnalyses}
-              analysesError={analysesError}
+              loadingAnalyses={analysisHistoryLoading}
+              analysesError={analysisHistoryError}
               selectedBaselineId={selectedBaselineId}
               baselineAnalysis={baselineAnalysis}
               comparisonSummary={comparisonSummary}

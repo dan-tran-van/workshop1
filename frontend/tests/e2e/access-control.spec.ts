@@ -40,15 +40,13 @@ test("owners only see their assigned restaurants and can add their own", async (
   await expect(page.getByRole("button", { name: "Data sync" })).toHaveCount(0);
 });
 
-test("owners can compare 6 criteria on assigned restaurants and launch comparison from Review insights", async ({ page }) => {
+test("owners can compare 6 criteria on assigned restaurants using their own history and launch comparison from Review insights", async ({ page }) => {
   await installApiMocks(page, {
     role: "OWNER",
     initialAnalysis: analysis,
-    restaurantAnalyses: {
-      1: [analysis, pastAnalysis, olderAnalysis],
-    },
     analysisHistory: [
-      { id: 20, created_at: "2026-11-14T11:00:00Z", analysis },
+      { id: 21, created_at: "2026-11-14T11:00:00Z", analysis },
+      { id: 20, created_at: "2026-11-08T09:00:00Z", analysis: pastAnalysis },
       { id: 19, created_at: "2026-11-01T10:00:00Z", analysis: olderAnalysis },
     ],
   });
@@ -64,20 +62,16 @@ test("owners can compare 6 criteria on assigned restaurants and launch compariso
   await page.getByRole("button", { name: "Cards" }).click();
 
   await page.getByRole("button", { name: "Review insights" }).click();
-  const olderRow = page.locator(".insights-results table tbody tr").nth(1);
+  const olderRow = page.locator(".insights-results table tbody tr").nth(2);
   await olderRow.getByRole("button", { name: "Compare" }).click();
   await expect(page.getByRole("combobox", { name: "Compare with past analysis" })).toHaveValue(String(olderAnalysis.id));
   await expect(page.locator(".aspect-card").filter({ hasText: "Fresh, seasonal dishes." })).toContainText("+0.8");
 });
 
-test("analysts can compare 6 criteria across locations without seeing admin controls", async ({ page }) => {
+test("analysts can compare 6 criteria across locations using their own history without seeing admin controls", async ({ page }) => {
   await installApiMocks(page, {
     role: "ANALYST",
     initialAnalysis: analysis,
-    restaurantAnalyses: {
-      1: [analysis, pastAnalysis, olderAnalysis],
-      2: [],
-    },
     analysisHistory: [
       { id: 30, created_at: "2026-11-14T11:00:00Z", analysis },
       { id: 29, created_at: "2026-11-08T10:00:00Z", analysis: pastAnalysis },

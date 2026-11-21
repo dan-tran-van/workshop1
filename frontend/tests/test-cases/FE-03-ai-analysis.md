@@ -190,7 +190,7 @@
 
 ### Implementation note
 
-`GET /restaurants/{id}/analyses` is now used to populate the baseline selector for 6-criteria comparison (`FE-21`–`FE-25`) and per-user activity is shown in **Review insights** (`FE-20`). `FE-19` remains marked `fixme` until a dedicated `Analysis history` region is added.
+`GET /auth/me/analysis-history` powers both the per-user **Your analysis activity** table on **Review insights** (`FE-20`) and the user-scoped baseline selector for 6-criteria comparison (`FE-21`–`FE-25`), ensuring users only compare against their own past analysis runs. `FE-19` remains marked `fixme` until a dedicated per-restaurant `Analysis history` region using `GET /restaurants/{id}/analyses` is added.
 
 ---
 
@@ -210,12 +210,12 @@
 
 ---
 
-## FE-21 [P0] — Compare current 6 criteria against previous analysis snapshot
+## FE-21 [P0] — Compare current 6 criteria against previous analysis in user history
 
 **Type:** Positive / Analytics Comparison
 
 ### Preconditions
-- The selected restaurant has `latest_analysis` and at least one older snapshot returned by `GET /restaurants/{id}/analyses`.
+- The selected restaurant has `latest_analysis` and at least one older snapshot in the authenticated user's `GET /auth/me/analysis-history` response.
 
 ### Test Steps
 1. Open the restaurant detail panel.
@@ -247,20 +247,20 @@
 
 ---
 
-## FE-23 [P1] — Handle single snapshot gracefully and activate comparison after Refresh analysis
+## FE-23 [P1] — Isolate comparison to user's own history and activate comparison after Refresh analysis
 
-**Type:** Positive / Edge Case
+**Type:** Positive / Edge Case & Isolation
 
 ### Preconditions
-- The selected restaurant has only one analysis snapshot.
+- The authenticated user has only one analysis snapshot for the selected restaurant in `GET /auth/me/analysis-history` (even if other users' snapshots exist on the restaurant).
 
 ### Test Steps
 1. Open the restaurant detail panel and inspect the comparison area.
-2. Click **Refresh analysis** (`force_refresh: true`) to generate a newer snapshot.
+2. Click **Refresh analysis** (`force_refresh: true`) to generate a newer snapshot for the user.
 
 ### Expected Results
-- With only one snapshot, the UI shows single-snapshot guidance and renders no fabricated deltas.
-- After refreshing, the frontend fetches updated snapshots and automatically compares the new analysis against the previous one.
+- Without a prior snapshot in the user's own history, the UI shows empty comparison guidance and does not expose snapshots from other users.
+- After refreshing, the frontend reloads `GET /auth/me/analysis-history` and automatically compares the new analysis against the user's previous one.
 
 ---
 

@@ -27,7 +27,7 @@
 | FE-10 | Review pagination | Skipped — review pagination is not implemented |
 | FE-11 | Invalid restaurant detail URL / Not Found state | Skipped — deferred until URL-routed details are implemented |
 | FE-12–FE-18 | Analysis request, loading/duplicate prevention, result rendering, empty insights, and refresh | Passed |
-| FE-19 | Dedicated per-restaurant analysis history region | Skipped — `GET /restaurants/{id}/analyses` currently powers baseline comparison selector |
+| FE-19 | Dedicated per-restaurant analysis history region | Skipped — analysis comparison uses per-user `GET /auth/me/analysis-history` |
 | FE-20 (Insights) | Per-user analysis activity table on Review insights ordered newest first | Passed |
 | FE-20 (Responsive/A11y) | Responsive layouts, long review content, keyboard navigation, focus indicator, and accessible names | Passed (2 E2E tests) |
 | FE-21–FE-25 | 6-criteria comparison deltas, baseline switching, SVG Chart/Cards toggle, single-snapshot & refresh flow, Review insights Compare shortcut, cross-restaurant isolation, and responsive overflow checks | Passed (5 E2E tests) |

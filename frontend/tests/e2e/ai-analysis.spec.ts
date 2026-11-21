@@ -134,13 +134,15 @@ test.describe("FE-03 AI analysis", () => {
     await expect(rows.nth(0)).toContainText(analysisHistory[0].analysis.result_json.summary);
   });
 
-  test("FE-21 compares current 6 criteria against previous analysis with deltas, sentiment shift, and summary", async ({ page }) => {
+  test("FE-21 compares current 6 criteria against previous analysis in user history with deltas, sentiment shift, and summary", async ({ page }) => {
     await page.unroute("http://localhost:8000/**");
     await installApiMocks(page, {
       initialAnalysis: analysis,
-      restaurantAnalyses: {
-        1: [analysis, pastAnalysis, olderAnalysis],
-      },
+      analysisHistory: [
+        { id: 30, created_at: "2026-11-14T11:00:00Z", analysis },
+        { id: 29, created_at: "2026-11-08T09:00:00Z", analysis: pastAnalysis },
+        { id: 28, created_at: "2026-11-01T09:00:00Z", analysis: olderAnalysis },
+      ],
     });
     await page.goto("/");
     await authenticateTestUser(page);
@@ -168,13 +170,15 @@ test.describe("FE-03 AI analysis", () => {
     await expect(serviceCard).toContainText("0.0");
   });
 
-  test("FE-22 switches past baseline snapshots, toggles chart view, and disables comparison", async ({ page }) => {
+  test("FE-22 switches past baseline snapshots from user history, toggles chart view, and disables comparison", async ({ page }) => {
     await page.unroute("http://localhost:8000/**");
     await installApiMocks(page, {
       initialAnalysis: analysis,
-      restaurantAnalyses: {
-        1: [analysis, pastAnalysis, olderAnalysis],
-      },
+      analysisHistory: [
+        { id: 30, created_at: "2026-11-14T11:00:00Z", analysis },
+        { id: 29, created_at: "2026-11-08T09:00:00Z", analysis: pastAnalysis },
+        { id: 28, created_at: "2026-11-01T09:00:00Z", analysis: olderAnalysis },
+      ],
     });
     await page.goto("/");
     await authenticateTestUser(page);
@@ -201,13 +205,17 @@ test.describe("FE-03 AI analysis", () => {
     await expect(foodCard.locator(".aspect-delta")).toHaveCount(0);
   });
 
-  test("FE-23 shows graceful guidance for single snapshot and updates comparison after Refresh analysis", async ({ page }) => {
+  test("FE-23 ignores other users' snapshots and activates comparison after user refreshes analysis", async ({ page }) => {
     await page.unroute("http://localhost:8000/**");
     await installApiMocks(page, {
       initialAnalysis: pastAnalysis,
+      // Restaurant has other snapshots globally, while current user only has pastAnalysis in their own history
       restaurantAnalyses: {
-        1: [pastAnalysis],
+        1: [pastAnalysis, olderAnalysis],
       },
+      analysisHistory: [
+        { id: 21, created_at: "2026-11-08T09:00:00Z", analysis: pastAnalysis },
+      ],
     });
     await page.goto("/");
     await authenticateTestUser(page);
@@ -226,9 +234,6 @@ test.describe("FE-03 AI analysis", () => {
     await page.unroute("http://localhost:8000/**");
     await installApiMocks(page, {
       initialAnalysis: analysis,
-      restaurantAnalyses: {
-        1: [analysis, pastAnalysis, olderAnalysis],
-      },
       analysisHistory: [
         { id: 10, created_at: "2026-11-14T11:00:00Z", analysis },
         { id: 9, created_at: "2026-11-01T10:00:00Z", analysis: olderAnalysis },
@@ -251,10 +256,10 @@ test.describe("FE-03 AI analysis", () => {
     await page.unroute("http://localhost:8000/**");
     await installApiMocks(page, {
       initialAnalysis: analysis,
-      restaurantAnalyses: {
-        1: [analysis, pastAnalysis],
-        2: [],
-      },
+      analysisHistory: [
+        { id: 40, created_at: "2026-11-14T11:00:00Z", analysis },
+        { id: 39, created_at: "2026-11-08T09:00:00Z", analysis: pastAnalysis },
+      ],
     });
     await page.goto("/");
     await authenticateTestUser(page);

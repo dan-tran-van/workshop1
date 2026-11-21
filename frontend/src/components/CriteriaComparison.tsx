@@ -41,7 +41,7 @@ export function ComparisonToolbar({
     return (
       <div className="comparison-hint" role="status">
         <LoaderCircle size={13} className="spin" />
-        <span>Loading past analysis snapshots...</span>
+        <span>Loading your past analysis runs...</span>
       </div>
     );
   }
@@ -50,7 +50,7 @@ export function ComparisonToolbar({
     return (
       <div className="comparison-hint comparison-hint-error" role="status">
         <Info size={13} />
-        <span>Past snapshots unavailable: {error}</span>
+        <span>Your analysis history is unavailable: {error}</span>
       </div>
     );
   }
@@ -59,7 +59,7 @@ export function ComparisonToolbar({
     return (
       <div className="comparison-hint" data-testid="comparison-single-snapshot">
         <History size={13} />
-        <span>Only one analysis snapshot exists yet. Refresh analysis later to compare the 6 criteria over time.</span>
+        <span>No past analysis runs in your history yet. Refresh analysis later to compare the 6 criteria over time.</span>
       </div>
     );
   }

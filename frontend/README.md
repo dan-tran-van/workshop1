@@ -30,9 +30,9 @@ The API base URL defaults to `http://localhost:8000`. To use another backend URL
 
 On first launch, create the initial administrator with the `AUTH_BOOTSTRAP_KEY` configured for the API. Subsequent users sign in with accounts provisioned by an administrator. The dashboard hides role-restricted navigation, while the API independently enforces every permission. Owners only see assigned locations, F&B Analysts can inspect and analyze all locations, and Admins can manage accounts and data sync.
 
-The app uses the restaurant list/search, restaurant detail, analysis, restaurant analysis history (`GET /restaurants/{id}/analyses`), per-user analysis activity (`GET /auth/me/analysis-history`), sync, authentication, and user-management endpoints. The API's CORS configuration already allows the default Vite origin.
+The app uses the restaurant list/search, restaurant detail, analysis, per-user analysis history (`GET /auth/me/analysis-history`), sync, authentication, and user-management endpoints. The API's CORS configuration already allows the default Vite origin.
 
-When a restaurant has two or more analysis snapshots, the **At a glance** section compares the current 6 criteria (`food`, `service`, `wait_time`, `hygiene`, `ambience`, `price`) against a selectable past snapshot, displaying score deltas, sentiment shifts, baseline progress markers, a comparison summary strip, and a toggleable **Cards / Chart** (SVG radar + paired horizontal bars) view. Users can also launch a comparison directly from older rows in **Review insights → Your analysis activity**.
+When the authenticated user has past analysis runs for a restaurant in their own history (`GET /auth/me/analysis-history`), the **At a glance** section compares the current 6 criteria (`food`, `service`, `wait_time`, `hygiene`, `ambience`, `price`) against a selectable past run from that user's history, displaying score deltas, sentiment shifts, baseline progress markers, a comparison summary strip, and a toggleable **Cards / Chart** (SVG radar + paired horizontal bars) view. Users can also launch a comparison directly from older rows in **Review insights → Your analysis activity**.
 
 ## End-to-end tests
 
