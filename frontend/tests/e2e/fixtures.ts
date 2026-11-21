@@ -77,6 +77,7 @@ type MockOptions = {
   initialAnalysis?: Analysis | null;
   analysisResult?: AnalysisResult;
   analysisHistory?: AnalysisHistoryEntry[];
+  restaurantAnalyses?: Record<number, Analysis[]>;
   role?: "OWNER" | "ANALYST" | "ADMIN";
 };
 
@@ -187,6 +188,60 @@ export const analysis: Analysis = {
   created_at: "2026-11-14T09:00:00Z",
 };
 
+export const pastAnalysisResult: AnalysisResult = {
+  overall_sentiment: "MIXED",
+  summary: "Earlier feedback noted slower evening pacing alongside solid food.",
+  estimated_rating_trend: "STABLE",
+  aspect_breakdown: [
+    { aspect: "food", sentiment: "POSITIVE", score: 4.4, summary: "Good seasonal ingredients.", highlights: [] },
+    { aspect: "service", sentiment: "POSITIVE", score: 4.6, summary: "Friendly team.", highlights: [] },
+    { aspect: "wait_time", sentiment: "NEGATIVE", score: 2.6, summary: "Noticeable weekend wait times.", highlights: [] },
+    { aspect: "hygiene", sentiment: "POSITIVE", score: 4.8, summary: "Spotless dining room.", highlights: [] },
+    { aspect: "ambience", sentiment: "POSITIVE", score: 4.4, summary: "Cozy lighting and decor.", highlights: [] },
+    { aspect: "price", sentiment: "MIXED", score: 3.2, summary: "Some guests felt prices were high.", highlights: [] },
+  ],
+  prioritized_improvements: [],
+  strengths_to_keep: [],
+};
+
+export const pastAnalysis: Analysis = {
+  id: 85,
+  restaurant_id: 1,
+  overall_sentiment: pastAnalysisResult.overall_sentiment,
+  result_json: pastAnalysisResult,
+  review_count: 1,
+  last_review_at: "2026-11-08T10:00:00Z",
+  model: "test-fixture",
+  created_at: "2026-11-08T09:00:00Z",
+};
+
+export const olderAnalysisResult: AnalysisResult = {
+  overall_sentiment: "MIXED",
+  summary: "Initial baseline snapshot before menu updates.",
+  estimated_rating_trend: "STABLE",
+  aspect_breakdown: [
+    { aspect: "food", sentiment: "POSITIVE", score: 4.0, summary: "Reliable dishes.", highlights: [] },
+    { aspect: "service", sentiment: "POSITIVE", score: 4.2, summary: "Polite service.", highlights: [] },
+    { aspect: "wait_time", sentiment: "MIXED", score: 3.5, summary: "Moderate wait times.", highlights: [] },
+    { aspect: "hygiene", sentiment: "POSITIVE", score: 4.5, summary: "Clean seating area.", highlights: [] },
+    { aspect: "ambience", sentiment: "POSITIVE", score: 4.1, summary: "Warm ambiance.", highlights: [] },
+    { aspect: "price", sentiment: "NEUTRAL", score: 3.9, summary: "Reasonable pricing.", highlights: [] },
+  ],
+  prioritized_improvements: [],
+  strengths_to_keep: [],
+};
+
+export const olderAnalysis: Analysis = {
+  id: 80,
+  restaurant_id: 1,
+  overall_sentiment: olderAnalysisResult.overall_sentiment,
+  result_json: olderAnalysisResult,
+  review_count: 1,
+  last_review_at: "2026-11-01T10:00:00Z",
+  model: "test-fixture",
+  created_at: "2026-11-01T09:00:00Z",
+};
+
 const analysisResultLotus: AnalysisResult = {
   ...analysisResult,
   overall_sentiment: "MIXED",
@@ -228,6 +283,13 @@ export async function installApiMocks(page: Page, options: MockOptions = {}) {
   let nextHistoryId = 100;
   const role = options.role ?? "ADMIN";
   const historyRuns = [...(options.analysisHistory ?? [])];
+  const analysesByRestaurant: Record<number, Analysis[]> = {};
+  for (const [key, list] of Object.entries(options.restaurantAnalyses ?? {})) {
+    analysesByRestaurant[Number(key)] = [...list];
+  }
+  if (options.initialAnalysis && !analysesByRestaurant[options.initialAnalysis.restaurant_id]) {
+    analysesByRestaurant[options.initialAnalysis.restaurant_id] = [options.initialAnalysis];
+  }
 
   await page.route("**/*", async (route) => {
     const request = route.request();
@@ -373,12 +435,18 @@ export async function installApiMocks(page: Page, options: MockOptions = {}) {
         created_at: new Date().toISOString(),
         analysis: snapshot,
       });
+      const existingList = analysesByRestaurant[id] ?? [];
+      if (!existingList.some((item) => item.id === snapshot.id)) {
+        analysesByRestaurant[id] = [snapshot, ...existingList];
+      }
       await json(route, snapshot);
       return;
     }
 
-    if (path.match(/^\/restaurants\/\d+\/analyses$/)) {
-      await json(route, []);
+    const analysesMatch = path.match(/^\/restaurants\/(\d+)\/analyses$/);
+    if (analysesMatch) {
+      const id = Number(analysesMatch[1]);
+      await json(route, analysesByRestaurant[id] ?? []);
       return;
     }
 
