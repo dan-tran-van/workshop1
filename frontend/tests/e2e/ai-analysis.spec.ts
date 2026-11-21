@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { analysis, analysisResult, authenticateTestUser, installApiMocks } from "./fixtures";
+import { analysis, analysisHistory, analysisResult, authenticateTestUser, installApiMocks } from "./fixtures";
 
 test.describe("FE-03 AI analysis", () => {
   test.beforeEach(async ({ page }) => {
@@ -107,5 +107,22 @@ test.describe("FE-03 AI analysis", () => {
   test.fixme("FE-19 displays analysis history newest first", async ({ page }) => {
     // The frontend currently renders only the latest analysis and has no history view.
     await expect(page.getByRole("region", { name: "Analysis history" })).toBeVisible();
+  });
+
+  test("FE-20 displays per-user analysis activity on Review insights newest first", async ({ page }) => {
+    await page.unroute("http://localhost:8000/**");
+    await installApiMocks(page, { analysisHistory });
+    await page.goto("/");
+    await authenticateTestUser(page);
+
+    await page.getByRole("button", { name: "Review insights" }).click();
+    await expect(page.getByRole("region", { name: "Your analysis activity" })).toBeVisible();
+
+    const rows = page.locator(".insights-results table tbody tr");
+    await expect(rows).toHaveCount(3);
+    await expect(rows.nth(0)).toContainText("Hearth & Honey");
+    await expect(rows.nth(1)).toContainText("Lotus Garden");
+    await expect(rows.nth(2)).toContainText("Hearth & Honey");
+    await expect(page.getByText(analysisHistory[0].analysis.result_json.summary)).toBeVisible();
   });
 });
