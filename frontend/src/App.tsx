@@ -99,6 +99,12 @@ type Analysis = {
   created_at: string;
 };
 
+type AnalysisHistoryEntry = {
+  id: number;
+  created_at: string;
+  analysis: Analysis;
+};
+
 type RestaurantDetail = Restaurant & {
   reviews: Review[];
   latest_analysis: Analysis | null;
@@ -270,6 +276,9 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
   const [adminUsersNotice, setAdminUsersNotice] = useState("");
   const [adminUserCreating, setAdminUserCreating] = useState(false);
   const [adminUserUpdating, setAdminUserUpdating] = useState<number | null>(null);
+  const [analysisHistory, setAnalysisHistory] = useState<AnalysisHistoryEntry[]>([]);
+  const [analysisHistoryLoading, setAnalysisHistoryLoading] = useState(false);
+  const [analysisHistoryError, setAnalysisHistoryError] = useState("");
 
   const loadRestaurants = useCallback(async (query: string, signal?: AbortSignal) => {
     setLoadingRestaurants(true);
@@ -357,6 +366,18 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
     }
   }, []);
 
+  const loadAnalysisHistory = useCallback(async () => {
+    setAnalysisHistoryLoading(true);
+    setAnalysisHistoryError("");
+    try {
+      setAnalysisHistory(await request<AnalysisHistoryEntry[]>("/auth/me/analysis-history"));
+    } catch (error) {
+      setAnalysisHistoryError(error instanceof Error ? error.message : "Unable to load analysis activity.");
+    } finally {
+      setAnalysisHistoryLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (page === "sync") void loadSyncData();
   }, [loadSyncData, page]);
@@ -364,6 +385,10 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
   useEffect(() => {
     if (page === "users" && currentUser.role === "ADMIN") void loadAdminUsers();
   }, [currentUser.role, loadAdminUsers, page]);
+
+  useEffect(() => {
+    if (page === "insights") void loadAnalysisHistory();
+  }, [loadAnalysisHistory, page]);
 
   const sortedRestaurants = useMemo(() => [...restaurants].sort((a, b) => {
     if (sortBy === "reviews") return (b.review_count ?? 0) - (a.review_count ?? 0);
@@ -390,6 +415,7 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
         body: JSON.stringify({ force_refresh: forceRefresh }),
       });
       setDetail((current) => current ? { ...current, latest_analysis: result } : current);
+      await loadAnalysisHistory();
     } catch (error) {
       setDetailError(error instanceof Error ? error.message : "Unable to analyze reviews.");
     } finally {
@@ -603,6 +629,10 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
               detail={detail}
               loading={loadingDetail}
               error={detailError}
+              history={analysisHistory}
+              historyLoading={analysisHistoryLoading}
+              historyError={analysisHistoryError}
+              onHistoryRefresh={() => void loadAnalysisHistory()}
               onSelect={(id) => { setSelectedId(id); setPage("overview"); }}
               onAnalyze={runAnalysis}
               analyzing={analyzing}
@@ -953,7 +983,41 @@ function ReviewRow({ review }: { review: Review }) {
   );
 }
 
-function InsightsPage({ restaurants, detail, loading, error, onSelect, onAnalyze, analyzing }: { restaurants: Restaurant[]; detail: RestaurantDetail | null; loading: boolean; error: string; onSelect: (id: number) => void; onAnalyze: (refresh?: boolean) => void; analyzing: boolean }) {
+function truncateText(value: string, maxLength: number) {
+  const trimmed = value.trim();
+  if (trimmed.length <= maxLength) return trimmed;
+  return `${trimmed.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
+function restaurantName(restaurants: Restaurant[], restaurantId: number) {
+  return restaurants.find((item) => item.id === restaurantId)?.name ?? `Restaurant #${restaurantId}`;
+}
+
+function InsightsPage({
+  restaurants,
+  detail,
+  loading,
+  error,
+  history,
+  historyLoading,
+  historyError,
+  onHistoryRefresh,
+  onSelect,
+  onAnalyze,
+  analyzing,
+}: {
+  restaurants: Restaurant[];
+  detail: RestaurantDetail | null;
+  loading: boolean;
+  error: string;
+  history: AnalysisHistoryEntry[];
+  historyLoading: boolean;
+  historyError: string;
+  onHistoryRefresh: () => void;
+  onSelect: (id: number) => void;
+  onAnalyze: (refresh?: boolean) => void;
+  analyzing: boolean;
+}) {
   const analyzed = restaurants.filter((restaurant) => restaurant.id === detail?.id && detail.latest_analysis);
   return (
     <div className="insights-layout">
@@ -972,6 +1036,61 @@ function InsightsPage({ restaurants, detail, loading, error, onSelect, onAnalyze
           </div>
         ) : <EmptyState title="Your insights are one click away" description={restaurants.length ? "Select a restaurant and generate an analysis to see what your guests are telling you." : "Add restaurants and reviews to start understanding your guest experience."} />}
       </div>
+      {historyError && <ErrorBanner message={historyError} />}
+      <section className="panel insights-results" role="region" aria-label="Your analysis activity">
+        <div className="panel-heading">
+          <div>
+            <h2>Your analysis activity</h2>
+            <p>Runs you&apos;ve triggered across your workspace</p>
+          </div>
+          <button type="button" className="text-button" onClick={onHistoryRefresh}>Refresh <RefreshCw size={13} /></button>
+        </div>
+        {historyLoading ? (
+          <LoadingState label="Loading your analysis activity..." />
+        ) : history.length ? (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Restaurant</th>
+                  <th>Requested</th>
+                  <th>Sentiment</th>
+                  <th>Reviews</th>
+                  <th>Model</th>
+                  <th>Summary</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((entry) => (
+                  <tr key={entry.id}>
+                    <td>{restaurantName(restaurants, entry.analysis.restaurant_id)}</td>
+                    <td>{formatDate(entry.created_at)}</td>
+                    <td>
+                      <span className={`sentiment-pill ${sentimentClass(entry.analysis.overall_sentiment)}`}>
+                        {titleCase(entry.analysis.overall_sentiment)}
+                      </span>
+                    </td>
+                    <td>{entry.analysis.review_count}</td>
+                    <td>{entry.analysis.model}</td>
+                    <td>{truncateText(entry.analysis.result_json.summary, 120)}</td>
+                    <td>
+                      <button type="button" className="text-button" onClick={() => onSelect(entry.analysis.restaurant_id)}>
+                        Open restaurant <ArrowRight size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <EmptyState
+            title="No analysis runs yet"
+            description="Trigger an analysis from a restaurant or the button above to see your history here."
+          />
+        )}
+      </section>
       <div className="insights-note"><ShieldCheck size={17} /><span><strong>Insights are a starting point, not the whole story.</strong> AI recommendations are advisory and depend on the reviews available.</span></div>
       {analyzed.length > 0 && <span className="sr-only">Analysis available for {analyzed.length} location</span>}
     </div>

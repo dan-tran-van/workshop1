@@ -58,6 +58,12 @@ type Analysis = {
   created_at: string;
 };
 
+type AnalysisHistoryEntry = {
+  id: number;
+  created_at: string;
+  analysis: Analysis;
+};
+
 type RestaurantDetail = Restaurant & {
   reviews: Review[];
   latest_analysis: Analysis | null;
@@ -70,6 +76,7 @@ type MockOptions = {
   details?: Record<number, Partial<RestaurantDetail>>;
   initialAnalysis?: Analysis | null;
   analysisResult?: AnalysisResult;
+  analysisHistory?: AnalysisHistoryEntry[];
   role?: "OWNER" | "ANALYST" | "ADMIN";
 };
 
@@ -180,9 +187,47 @@ export const analysis: Analysis = {
   created_at: "2026-11-14T09:00:00Z",
 };
 
+const analysisResultLotus: AnalysisResult = {
+  ...analysisResult,
+  overall_sentiment: "MIXED",
+  summary: "Fresh food and a welcoming atmosphere, with occasional pacing concerns.",
+  estimated_rating_trend: "STABLE",
+};
+
+const analysisLotus: Analysis = {
+  id: 88,
+  restaurant_id: 2,
+  overall_sentiment: analysisResultLotus.overall_sentiment,
+  result_json: analysisResultLotus,
+  review_count: 1,
+  last_review_at: "2026-11-11T10:00:00Z",
+  model: "test-fixture",
+  created_at: "2026-11-12T08:00:00Z",
+};
+
+export const analysisHistory: AnalysisHistoryEntry[] = [
+  {
+    id: 3,
+    created_at: "2026-11-14T11:00:00Z",
+    analysis,
+  },
+  {
+    id: 2,
+    created_at: "2026-11-13T15:30:00Z",
+    analysis: analysisLotus,
+  },
+  {
+    id: 1,
+    created_at: "2026-11-12T09:15:00Z",
+    analysis,
+  },
+];
+
 export async function installApiMocks(page: Page, options: MockOptions = {}) {
   let listRequests = 0;
+  let nextHistoryId = 100;
   const role = options.role ?? "ADMIN";
+  const historyRuns = [...(options.analysisHistory ?? [])];
 
   await page.route("**/*", async (route) => {
     const request = route.request();
@@ -241,6 +286,15 @@ export async function installApiMocks(page: Page, options: MockOptions = {}) {
         is_active: true,
         restaurant_ids: role === "OWNER" ? [1] : [],
       });
+      return;
+    }
+
+    if (path === "/auth/me/analysis-history" && request.method() === "GET") {
+      const visibleRuns = historyRuns.filter((entry) => {
+        if (role !== "OWNER") return true;
+        return entry.analysis.restaurant_id === 1;
+      });
+      await json(route, visibleRuns);
       return;
     }
 
@@ -305,14 +359,21 @@ export async function installApiMocks(page: Page, options: MockOptions = {}) {
       const result = refresh
         ? { ...baseResult, summary: "Refreshed analysis: service remains a guest favorite." }
         : baseResult;
-      await json(route, {
+      const snapshot: Analysis = {
         ...analysis,
         id: refresh ? 92 : analysis.id,
         restaurant_id: id,
         overall_sentiment: result.overall_sentiment,
         result_json: result,
         created_at: refresh ? "2026-11-14T10:00:00Z" : analysis.created_at,
+      };
+      nextHistoryId += 1;
+      historyRuns.unshift({
+        id: nextHistoryId,
+        created_at: new Date().toISOString(),
+        analysis: snapshot,
       });
+      await json(route, snapshot);
       return;
     }
 
