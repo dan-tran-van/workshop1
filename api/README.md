@@ -213,6 +213,7 @@ versions. See [test coverage and documentation](tests/README.md).
 | `GET` | `/restaurants/{id}/analyses` | History of past analyses for restaurant |
 | `GET` | `/auth/me/analysis-history` | The authenticated user's successful analysis requests, including cache hits |
 | `GET` | `/restaurants/{id}/reviews` | List reviews for a restaurant |
+| `GET` | `/reviews/search` | Semantic review search using stored embeddings with `ILIKE` keyword fallback (`?q=...&restaurant_id=...`) |
 | `GET` | `/restaurants/{id}/competitors` | Suggested competitive set ranked by review embedding similarity (when indexed) with review-volume fallback, reasons, and pinned/manual/dismissed choices (Owner, Analyst) |
 | `GET` | `/restaurants/{id}/competitors/candidates` | Workspace restaurants that can be added manually as competitors, combining lexical name/address search with semantic review matching when embeddings exist (Owner, Analyst) |
 | `PUT` | `/restaurants/{id}/competitors/{competitor_id}` | Pin, dismiss, or manually add a competitor: `{"status": "PINNED" \| "DISMISSED" \| "MANUAL"}` (Owner) |

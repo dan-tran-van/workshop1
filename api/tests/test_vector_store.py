@@ -147,5 +147,78 @@ class VectorStoreTestCase(BackendTestCase):
         self.assertEqual(self.db.query(ReviewEmbedding).count(), 2)
 
 
+class ReviewSearchApiTestCase(BackendTestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.restaurant_a = self.restaurant(google_place_id="search-place-a", name="Ramen Spot")
+        self.restaurant_b = self.restaurant(google_place_id="search-place-b", name="Bistro B")
+        self.rev_cold = self.review(self.restaurant_a["id"], text="The dish arrived stone cold")
+        self.rev_wait = self.review(self.restaurant_a["id"], text="We had a long wait for seating")
+        self.rev_other = self.review(self.restaurant_b["id"], text="Ice cold beer and cold food")
+
+    def test_semantic_search_ranks_by_similarity_and_respects_filters(self) -> None:
+        model = settings.OPENAI_EMBEDDING_MODEL
+        store_review_embedding(self.db, self.rev_cold["id"], [0.95, 0.05], model)
+        store_review_embedding(self.db, self.rev_wait["id"], [0.0, 1.0], model)
+        store_review_embedding(self.db, self.rev_other["id"], [0.85, 0.15], model)
+
+        with patch("app.services.vector_store.embed_texts", return_value=[[1.0, 0.0]]):
+            response = self.client.get(
+                "/reviews/search",
+                params={"q": "cold food", "restaurant_id": self.restaurant_a["id"], "min_similarity": 0.5},
+            )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body["mode"], "semantic")
+        self.assertEqual(body["model"], model)
+        self.assertEqual([item["id"] for item in body["results"]], [self.rev_cold["id"]])
+        self.assertEqual(body["results"][0]["restaurant_name"], "Ramen Spot")
+        self.assertEqual(body["results"][0]["match_type"], "semantic")
+        self.assertGreater(body["results"][0]["similarity"], 0.99)
+
+    def test_search_falls_back_to_keyword_like_when_embeddings_unavailable(self) -> None:
+        with patch("app.services.vector_store.embed_texts", return_value=[]):
+            response = self.client.get("/reviews/search", params={"q": "stone cold"})
+
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body["mode"], "keyword_fallback")
+        self.assertIsNone(body["model"])
+        self.assertEqual([item["id"] for item in body["results"]], [self.rev_cold["id"]])
+        self.assertEqual(body["results"][0]["match_type"], "keyword")
+        self.assertIsNone(body["results"][0]["similarity"])
+
+    def test_owner_search_is_scoped_to_assigned_restaurants(self) -> None:
+        create_res = self.client.post(
+            "/admin/users",
+            json={
+                "email": "search-owner@example.com",
+                "full_name": "Search Owner",
+                "password": "secure-test-password-123",
+                "role": "OWNER",
+                "restaurant_ids": [self.restaurant_a["id"]],
+            },
+        )
+        self.assertEqual(create_res.status_code, 201, create_res.text)
+        login_res = self.client.post(
+            "/auth/login",
+            json={"email": "search-owner@example.com", "password": "secure-test-password-123"},
+        )
+        self.assertEqual(login_res.status_code, 200, login_res.text)
+        self.client.headers.update({"Authorization": f"Bearer {login_res.json()['access_token']}"})
+
+        with patch("app.services.vector_store.embed_texts", return_value=[]):
+            scoped = self.client.get("/reviews/search", params={"q": "cold"})
+            forbidden = self.client.get(
+                "/reviews/search",
+                params={"q": "cold", "restaurant_id": self.restaurant_b["id"]},
+            )
+
+        self.assertEqual(scoped.status_code, 200, scoped.text)
+        self.assertEqual([item["id"] for item in scoped.json()["results"]], [self.rev_cold["id"]])
+        self.assertEqual(forbidden.status_code, 404)
+
+
 if __name__ == "__main__":
     unittest.main()
