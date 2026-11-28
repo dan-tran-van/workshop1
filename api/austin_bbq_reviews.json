@@ -1,0 +1,2136 @@
+{
+  "dataset": "austin_bbq_reviews",
+  "area": "Austin, Texas, USA (South Congress, East Cesar Chavez, Barton Springs) - mock data",
+  "source": "Synthetic mock data generated for workshop demos. Not real reviews of real businesses.",
+  "snapshot_at": "2026-11-28T02:00:00+00:00",
+  "mock": true,
+  "adaptations": [
+    "All restaurants, addresses and reviews are fictional mock data. Any resemblance to real businesses is coincidental.",
+    "google_place_id is pending:mock:<slug>, so seed.py keeps these restaurants out of sync_targets. Do not send them to the Places API.",
+    "Each restaurant has a quality profile per criterion (food, service, price, ambience, cleanliness, wait), so market comparison and aspect analysis show visible differences.",
+    "google_rating is the mean of the review stars in this dump; user_rating_count is the review count in this dump.",
+    "reviews.text is NOT NULL. Star-only reviews are stored as empty text with text_missing=true, like the Alaska dump.",
+    "source_id / external_review_id are UUIDv5 values derived from dataset, restaurant slug and index, so re-runs upsert instead of duplicating.",
+    "author_uri is null: no real contributor profiles are referenced."
+  ],
+  "restaurants": [
+    {
+      "source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "google_place_id": "pending:mock:hickory-and-hide",
+      "place_id_resolved": false,
+      "name": "Hickory & Hide Smokehouse",
+      "address": "1412 S Congress Ave, Austin, TX 78704, USA",
+      "google_rating": 3.6,
+      "user_rating_count": 70,
+      "last_synced_at": "2026-11-28T02:00:00+00:00",
+      "updated_at": "2026-11-28T02:00:00+00:00"
+    },
+    {
+      "source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "google_place_id": "pending:mock:lone-star-brisket",
+      "place_id_resolved": false,
+      "name": "Lone Star Brisket Co.",
+      "address": "2203 E Cesar Chavez St, Austin, TX 78702, USA",
+      "google_rating": 3.2,
+      "user_rating_count": 55,
+      "last_synced_at": "2026-11-28T02:00:00+00:00",
+      "updated_at": "2026-11-28T02:00:00+00:00"
+    },
+    {
+      "source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "google_place_id": "pending:mock:barton-creek-taqueria",
+      "place_id_resolved": false,
+      "name": "Barton Creek Taqueria",
+      "address": "3104 Barton Springs Rd, Austin, TX 78704, USA",
+      "google_rating": 4.1,
+      "user_rating_count": 45,
+      "last_synced_at": "2026-11-28T02:00:00+00:00",
+      "updated_at": "2026-11-28T02:00:00+00:00"
+    },
+    {
+      "source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "google_place_id": "pending:mock:pecan-street-diner",
+      "place_id_resolved": false,
+      "name": "Pecan Street Diner",
+      "address": "508 E 6th St, Austin, TX 78701, USA",
+      "google_rating": 3.1,
+      "user_rating_count": 35,
+      "last_synced_at": "2026-11-28T02:00:00+00:00",
+      "updated_at": "2026-11-28T02:00:00+00:00"
+    }
+  ],
+  "reviews": [
+    {
+      "source_id": "ceb7bf4b-95ff-5577-a95f-3955f353b9da",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "ceb7bf4b-95ff-5577-a95f-3955f353b9da",
+      "author_name": "Ruby Whitaker",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "We waited over 45 minutes for our food and nobody explained why. Great vibe, we stayed longer than planned just enjoying the setting. Okay experience, might give it another try.",
+      "published_at": "2026-11-16T14:30:00+00:00"
+    },
+    {
+      "source_id": "a9e6f71a-0540-58f8-907d-af68a0605d5e",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "a9e6f71a-0540-58f8-907d-af68a0605d5e",
+      "author_name": "Wyatt Sullivan",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The horchata was outstanding, full of flavor and cooked just right. Great value for money, we left full without spending much. Tables were wiped down right away and everything looked very clean. Five stars from us.",
+      "published_at": "2026-11-13T22:36:00+00:00"
+    },
+    {
+      "source_id": "e3093122-f220-57aa-87d9-830dbaaf7e58",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "e3093122-f220-57aa-87d9-830dbaaf7e58",
+      "author_name": "Mia Tran",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Food came out fast even though the place was full. Service was warm and efficient from the moment we walked in. Five stars from us.",
+      "published_at": "2026-11-13T18:09:00+00:00"
+    },
+    {
+      "source_id": "8c4ec150-a51f-5250-8db0-a175174e003e",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "8c4ec150-a51f-5250-8db0-a175174e003e",
+      "author_name": "Isla Rivera",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Honestly cheap for what you get, I'd happily pay more. Quick service, perfect for a lunch break.",
+      "published_at": "2026-11-13T17:45:00+00:00"
+    },
+    {
+      "source_id": "0a9cb547-9e2f-55d2-863f-a485be0365e5",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "0a9cb547-9e2f-55d2-863f-a485be0365e5",
+      "author_name": "Emma Foster",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Music was blasting and the place felt chaotic. Staff looked burnt out and not friendly at all. Very hygienic kitchen and clean dining area, which I really appreciate.",
+      "published_at": "2026-11-10T12:01:00+00:00"
+    },
+    {
+      "source_id": "eb707a26-bc3b-5427-a7e4-0bd2b80cb0db",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "eb707a26-bc3b-5427-a7e4-0bd2b80cb0db",
+      "author_name": "Logan Carter",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Prices are very reasonable for the quality and the portion size. Nobody checked on our table once the food arrived. Best buttermilk pancakes I've had in a long time, the seasoning was spot on. I noticed flies near the counter and the cutlery was not clean. Okay experience, might give it another try.",
+      "published_at": "2026-11-07T12:42:00+00:00"
+    },
+    {
+      "source_id": "923624ba-b5eb-57b1-92dc-cb3e3b11c26b",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "923624ba-b5eb-57b1-92dc-cb3e3b11c26b",
+      "author_name": "Elena Garza",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Clean cutlery, clean floors, clear attention to detail. Quick service, perfect for a lunch break. My carne asada burrito was overcooked and the portion was smaller than expected.",
+      "published_at": "2026-11-04T23:54:00+00:00"
+    },
+    {
+      "source_id": "28e30380-057d-59a0-a8fe-1a150ecbaf53",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "28e30380-057d-59a0-a8fe-1a150ecbaf53",
+      "author_name": "Jacob Foster",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The atmosphere felt cold and impersonal. Prices are very reasonable for the quality and the portion size.",
+      "published_at": "2026-10-31T01:55:00+00:00"
+    },
+    {
+      "source_id": "81db14e6-0eef-5195-aaf7-c76e9f3f0360",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "81db14e6-0eef-5195-aaf7-c76e9f3f0360",
+      "author_name": "Declan Hughes",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Everything we ordered was delicious, especially the carne asada burrito. Great value for money, we left full without spending much. Our reservation was honored right away and the food arrived promptly. Five stars from us.",
+      "published_at": "2026-10-28T11:52:00+00:00"
+    },
+    {
+      "source_id": "5caff3bf-936a-5179-8cc8-14fa8521c88f",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "5caff3bf-936a-5179-8cc8-14fa8521c88f",
+      "author_name": "Marcus Foster",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Prices have gone up but the portions keep shrinking. The brisket plate arrived hot and the flavors were well balanced. We waited over 45 minutes for our food and nobody explained why. Staff were friendly, attentive and checked on us often.",
+      "published_at": "2026-10-28T04:13:00+00:00"
+    },
+    {
+      "source_id": "d51fabdb-e110-524f-927e-4767df7d7704",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "d51fabdb-e110-524f-927e-4767df7d7704",
+      "author_name": "Caleb Whitaker",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Our reservation was honored right away and the food arrived promptly. Too hot inside and the air conditioning barely worked. Okay experience, might give it another try.",
+      "published_at": "2026-10-27T02:57:00+00:00"
+    },
+    {
+      "source_id": "066f67f5-9243-56ec-979f-60432bd47f93",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "066f67f5-9243-56ec-979f-60432bd47f93",
+      "author_name": "Nora Ellis",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Prices are very reasonable for the quality and the portion size. Best burnt ends I've had in a long time, the seasoning was spot on. The tables are packed so close together there is no privacy. Will definitely come back.",
+      "published_at": "2026-10-24T01:23:00+00:00"
+    },
+    {
+      "source_id": "33821f37-9a77-5363-9488-d5b1d5532091",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "33821f37-9a77-5363-9488-d5b1d5532091",
+      "author_name": "Caleb Coleman",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Tables were wiped down right away and everything looked very clean. Great service, they even accommodated our food allergy without fuss. Too expensive for an average meal, I felt a bit ripped off. The tables are packed so close together there is no privacy.",
+      "published_at": "2026-10-20T22:35:00+00:00"
+    },
+    {
+      "source_id": "7461c755-780e-590f-9de9-ce0d1594df95",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "7461c755-780e-590f-9de9-ce0d1594df95",
+      "author_name": "Lucas Ortiz",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The table was sticky and the floor had not been cleaned. Great vibe, we stayed longer than planned just enjoying the setting. Decent overall, but there is room for improvement.",
+      "published_at": "2026-10-20T00:15:00+00:00"
+    },
+    {
+      "source_id": "bc1915c5-38b7-5614-8c3c-01c103a4cd9a",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "bc1915c5-38b7-5614-8c3c-01c103a4cd9a",
+      "author_name": "Marcus Carter",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Too hot inside and the air conditioning barely worked. The banana pudding was outstanding, full of flavor and cooked just right. Waiters were polite and refilled our drinks without being asked. Can't wait to return.",
+      "published_at": "2026-10-19T05:10:00+00:00"
+    },
+    {
+      "source_id": "0966f297-f68a-51e9-bc56-f40d469c8d50",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "0966f297-f68a-51e9-bc56-f40d469c8d50",
+      "author_name": "Jacob Sullivan",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Comfortable seating and a warm, welcoming interior. Staff were rude and barely acknowledged us. Everything we ordered was delicious, especially the brisket plate.",
+      "published_at": "2026-10-16T02:34:00+00:00"
+    },
+    {
+      "source_id": "d64b8938-e83a-5223-b5df-d631a00945af",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "d64b8938-e83a-5223-b5df-d631a00945af",
+      "author_name": "Chloe Foster",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "",
+      "published_at": "2026-10-14T17:19:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "b511d9cc-6219-588a-9cb6-578943952c13",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "b511d9cc-6219-588a-9cb6-578943952c13",
+      "author_name": "Elena Ellis",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Waited forever for the bill, we nearly gave up. Loved the pork ribs; portions were generous and everything tasted fresh. Our server seemed distracted and forgot part of our order. I probably will not come back.",
+      "published_at": "2026-10-13T20:48:00+00:00"
+    },
+    {
+      "source_id": "32e27046-b568-5ace-bc89-b0f940f44128",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "32e27046-b568-5ace-bc89-b0f940f44128",
+      "author_name": "Ethan Foster",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Our server seemed distracted and forgot part of our order. Everything we ordered was delicious, especially the buttermilk pancakes. Okay experience, might give it another try.",
+      "published_at": "2026-10-13T03:51:00+00:00"
+    },
+    {
+      "source_id": "4e7856a1-95f3-50a5-b7e1-574b14e222df",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "4e7856a1-95f3-50a5-b7e1-574b14e222df",
+      "author_name": "Sophia Carter",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Good portions for the price, nothing felt overpriced. The tables are packed so close together there is no privacy. Okay experience, might give it another try.",
+      "published_at": "2026-10-12T21:18:00+00:00"
+    },
+    {
+      "source_id": "64193b2f-c923-5bd7-b673-ef0b2baeb91b",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "64193b2f-c923-5bd7-b673-ef0b2baeb91b",
+      "author_name": "Priya Patel",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "",
+      "published_at": "2026-10-09T07:15:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "cc70911c-c54e-547b-aa78-aec808c54636",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "cc70911c-c54e-547b-aa78-aec808c54636",
+      "author_name": "Liam Coleman",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Tables were wiped down right away and everything looked very clean. The waiter got our order wrong and was dismissive when we pointed it out. Okay experience, might give it another try.",
+      "published_at": "2026-10-07T18:47:00+00:00"
+    },
+    {
+      "source_id": "cf915346-ea16-5f62-96af-e22250d03697",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "cf915346-ea16-5f62-96af-e22250d03697",
+      "author_name": "Lucas Bennett",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Best pot roast I've had in a long time, the seasoning was spot on. Lovely decor and relaxed music, a really pleasant place to sit. Can't wait to return.",
+      "published_at": "2026-10-06T13:00:00+00:00"
+    },
+    {
+      "source_id": "aa343d90-232e-50f2-af4e-04f9a6988197",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "aa343d90-232e-50f2-af4e-04f9a6988197",
+      "author_name": "Ethan Price",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "",
+      "published_at": "2026-09-29T15:35:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "6f848a05-c275-52f2-acc5-f2cc141b5db8",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "6f848a05-c275-52f2-acc5-f2cc141b5db8",
+      "author_name": "Jacob Lopez",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Best biscuits and gravy I've had in a long time, the seasoning was spot on. Great service, they even accommodated our food allergy without fuss. I noticed flies near the counter and the cutlery was not clean.",
+      "published_at": "2026-09-29T02:30:00+00:00"
+    },
+    {
+      "source_id": "0093d538-0ada-5182-9000-762bffbbe878",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "0093d538-0ada-5182-9000-762bffbbe878",
+      "author_name": "Chloe Morales",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Our server seemed distracted and forgot part of our order. The burnt ends was outstanding, full of flavor and cooked just right. Fair prices and the lunch special is a bargain. Okay experience, might give it another try.",
+      "published_at": "2026-09-27T21:16:00+00:00"
+    },
+    {
+      "source_id": "31891766-74bc-55fc-8738-645b6bf51943",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "31891766-74bc-55fc-8738-645b6bf51943",
+      "author_name": "Jacob Garza",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "",
+      "published_at": "2026-09-26T03:00:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "36344221-9bde-5436-a062-d89eaf263fe9",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "36344221-9bde-5436-a062-d89eaf263fe9",
+      "author_name": "Ava Lopez",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "A charming spot with a great view and a good mood. Best horchata I've had in a long time, the seasoning was spot on. Very hygienic kitchen and clean dining area, which I really appreciate. Quick service, perfect for a lunch break.",
+      "published_at": "2026-09-25T12:00:00+00:00"
+    },
+    {
+      "source_id": "3a4cb03f-618f-517d-bfb0-b04a0d0e7353",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "3a4cb03f-618f-517d-bfb0-b04a0d0e7353",
+      "author_name": "Emma Carter",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Waiters were polite and refilled our drinks without being asked. Tables were wiped down right away and everything looked very clean. The queso was outstanding, full of flavor and cooked just right. Good portions for the price, nothing felt overpriced. Highly recommended.",
+      "published_at": "2026-09-23T19:43:00+00:00"
+    },
+    {
+      "source_id": "e710d865-e71f-50db-9f73-f6497f41c9ce",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "e710d865-e71f-50db-9f73-f6497f41c9ce",
+      "author_name": "Hannah Patel",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Loved the coleslaw; portions were generous and everything tasted fresh. It was so loud we could barely hold a conversation.",
+      "published_at": "2026-09-23T03:59:00+00:00"
+    },
+    {
+      "source_id": "aa345d4c-f394-5016-a845-20eecee0decd",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "aa345d4c-f394-5016-a845-20eecee0decd",
+      "author_name": "Logan Nguyen",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The waiter got our order wrong and was dismissive when we pointed it out. The al pastor tacos arrived hot and the flavors were well balanced. Honestly cheap for what you get, I'd happily pay more. Okay experience, might give it another try.",
+      "published_at": "2026-09-22T15:38:00+00:00"
+    },
+    {
+      "source_id": "c9a8d3d9-f064-5bfc-8967-f038c33117f3",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "c9a8d3d9-f064-5bfc-8967-f038c33117f3",
+      "author_name": "Chloe Nguyen",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The team went out of their way to make us feel welcome. Great vibe, we stayed longer than planned just enjoying the setting. The restaurant was spotless, including the restrooms.",
+      "published_at": "2026-09-22T00:23:00+00:00"
+    },
+    {
+      "source_id": "db7193ac-1f12-5aee-950b-2491728c44e3",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "db7193ac-1f12-5aee-950b-2491728c44e3",
+      "author_name": "Isla Morales",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The team went out of their way to make us feel welcome. Loved the al pastor tacos; portions were generous and everything tasted fresh. Fair prices and the lunch special is a bargain. Will definitely come back.",
+      "published_at": "2026-09-21T01:24:00+00:00"
+    },
+    {
+      "source_id": "61cb9aba-8d5e-5d0b-8c1f-e21ca9c0dcbc",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "61cb9aba-8d5e-5d0b-8c1f-e21ca9c0dcbc",
+      "author_name": "Priya Fischer",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Everything we ordered was delicious, especially the horchata. Staff were friendly, attentive and checked on us often. Restrooms were dirty and out of soap. It was so loud we could barely hold a conversation. Highly recommended.",
+      "published_at": "2026-09-17T02:04:00+00:00"
+    },
+    {
+      "source_id": "de8af52d-8079-57c0-8f8e-8e6143d6ca80",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "de8af52d-8079-57c0-8f8e-8e6143d6ca80",
+      "author_name": "Reid Coleman",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Staff looked burnt out and not friendly at all. Best burnt ends I've had in a long time, the seasoning was spot on. Good portions for the price, nothing felt overpriced. Music was blasting and the place felt chaotic. Decent overall, but there is room for improvement.",
+      "published_at": "2026-09-16T23:06:00+00:00"
+    },
+    {
+      "source_id": "3ea944b8-5d55-502d-a8ba-b305780927a1",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "3ea944b8-5d55-502d-a8ba-b305780927a1",
+      "author_name": "Olivia Garza",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Best smoked sausage I've had in a long time, the seasoning was spot on. Overpriced for what you get, the portions are small. Waiters were polite and refilled our drinks without being asked. Five stars from us.",
+      "published_at": "2026-09-14T23:46:00+00:00"
+    },
+    {
+      "source_id": "c95d1492-8574-58ff-be15-3a3db7680806",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "c95d1492-8574-58ff-be15-3a3db7680806",
+      "author_name": "Amelia Price",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Service was disorganized, we had to flag someone down three times. Fresh ingredients and a great beef rib, we cleaned our plates. The bill was higher than expected and the quality did not justify it.",
+      "published_at": "2026-09-11T12:07:00+00:00"
+    },
+    {
+      "source_id": "af084992-004a-5d39-92bd-ed55997e4cf0",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "af084992-004a-5d39-92bd-ed55997e4cf0",
+      "author_name": "Mia Reyes",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Waiters were polite and refilled our drinks without being asked. The pork ribs was too salty and greasy, I couldn't finish it. Overpriced for what you get, the portions are small. Long wait just to be seated, even with a reservation. I probably will not come back.",
+      "published_at": "2026-09-10T06:57:00+00:00"
+    },
+    {
+      "source_id": "90402c65-67d9-5b7d-8431-29398b658553",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "90402c65-67d9-5b7d-8431-29398b658553",
+      "author_name": "Marcus Tran",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "Overpriced for what you get, the portions are small. Nobody checked on our table once the food arrived. Hope they improve.",
+      "published_at": "2026-09-09T16:01:00+00:00"
+    },
+    {
+      "source_id": "d05a7f42-65ea-5b02-b5a4-614a2cf6acc5",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "d05a7f42-65ea-5b02-b5a4-614a2cf6acc5",
+      "author_name": "Amelia Brooks",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Lovely decor and relaxed music, a really pleasant place to sit. Best pecan pie I've had in a long time, the seasoning was spot on. Five stars from us.",
+      "published_at": "2026-09-08T23:40:00+00:00"
+    },
+    {
+      "source_id": "d6604887-79ca-5d64-a14a-2e6623aa1385",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "d6604887-79ca-5d64-a14a-2e6623aa1385",
+      "author_name": "Sophia Nguyen",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Everything we ordered was delicious, especially the buttermilk pancakes. Our reservation was honored right away and the food arrived promptly. The restaurant was spotless, including the restrooms. It was so loud we could barely hold a conversation.",
+      "published_at": "2026-09-08T01:52:00+00:00"
+    },
+    {
+      "source_id": "63cbbb3f-ab16-5eef-b385-4e8e81f41bd4",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "63cbbb3f-ab16-5eef-b385-4e8e81f41bd4",
+      "author_name": "Olivia Kim",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Food came out fast even though the place was full. The team went out of their way to make us feel welcome. Great vibe, we stayed longer than planned just enjoying the setting. Food was just average, the al pastor tacos tasted like it had been sitting out. Can't wait to return.",
+      "published_at": "2026-09-07T12:50:00+00:00"
+    },
+    {
+      "source_id": "6e99b6d6-a643-5c24-8890-0fdb1964a06e",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "6e99b6d6-a643-5c24-8890-0fdb1964a06e",
+      "author_name": "Marcus Brooks",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Honestly cheap for what you get, I'd happily pay more. Loved the pecan pie; portions were generous and everything tasted fresh. The waiter got our order wrong and was dismissive when we pointed it out.",
+      "published_at": "2026-09-07T07:44:00+00:00"
+    },
+    {
+      "source_id": "a5870461-4588-5c58-86be-d682cdaa5c12",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "a5870461-4588-5c58-86be-d682cdaa5c12",
+      "author_name": "Priya Lopez",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "The beef rib was bland and arrived lukewarm. The waiter got our order wrong and was dismissive when we pointed it out. Long wait just to be seated, even with a reservation. A charming spot with a great view and a good mood. I probably will not come back.",
+      "published_at": "2026-09-05T17:36:00+00:00"
+    },
+    {
+      "source_id": "e881db4b-d69f-5d03-aa30-cc9dbb85866a",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "e881db4b-d69f-5d03-aa30-cc9dbb85866a",
+      "author_name": "Dylan Garza",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Everything we ordered was delicious, especially the carne asada burrito. Comfortable seating and a warm, welcoming interior.",
+      "published_at": "2026-09-05T13:29:00+00:00"
+    },
+    {
+      "source_id": "5c0a55ab-7a22-59c1-80e4-73f811380a6f",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "5c0a55ab-7a22-59c1-80e4-73f811380a6f",
+      "author_name": "Reid Morales",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The atmosphere is cozy and lively, perfect for a group dinner. Slow service during the dinner rush, plan for a long wait. Okay experience, might give it another try.",
+      "published_at": "2026-09-05T10:38:00+00:00"
+    },
+    {
+      "source_id": "fe565a3f-8252-5c4f-8416-a3fe5861047c",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "fe565a3f-8252-5c4f-8416-a3fe5861047c",
+      "author_name": "Tyler Nguyen",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "The interior feels dated and the seating is cramped. My buttermilk pancakes was overcooked and the portion was smaller than expected. Service was disorganized, we had to flag someone down three times.",
+      "published_at": "2026-09-04T02:39:00+00:00"
+    },
+    {
+      "source_id": "90035cd6-c6a4-5d01-ab63-42963d4ec052",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "90035cd6-c6a4-5d01-ab63-42963d4ec052",
+      "author_name": "Logan Coleman",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Long wait just to be seated, even with a reservation. It was so loud we could barely hold a conversation. Our server was knowledgeable and made great recommendations.",
+      "published_at": "2026-08-30T21:50:00+00:00"
+    },
+    {
+      "source_id": "c94e715b-6f7d-55f1-bc96-263106d74f93",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "c94e715b-6f7d-55f1-bc96-263106d74f93",
+      "author_name": "Elena Dawson",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "",
+      "published_at": "2026-08-28T05:37:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "86f64bb9-8389-5458-9c6f-2a76d931cba1",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "86f64bb9-8389-5458-9c6f-2a76d931cba1",
+      "author_name": "Priya Patel",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Good portions for the price, nothing felt overpriced. Very hygienic kitchen and clean dining area, which I really appreciate. Five stars from us.",
+      "published_at": "2026-08-27T14:56:00+00:00"
+    },
+    {
+      "source_id": "a4d3c0e7-35df-5b11-9e37-2c669cf11ef5",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "a4d3c0e7-35df-5b11-9e37-2c669cf11ef5",
+      "author_name": "Marcus Hayes",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The kitchen was painfully slow, dishes came out one by one. Very hygienic kitchen and clean dining area, which I really appreciate.",
+      "published_at": "2026-08-26T18:52:00+00:00"
+    },
+    {
+      "source_id": "e341f050-7741-572d-b83e-6c29a99db2a1",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "e341f050-7741-572d-b83e-6c29a99db2a1",
+      "author_name": "Grace Brooks",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Our server was knowledgeable and made great recommendations. My chicken fried steak was overcooked and the portion was smaller than expected. Okay experience, might give it another try.",
+      "published_at": "2026-08-26T17:33:00+00:00"
+    },
+    {
+      "source_id": "c302cc84-d8ef-5042-af02-ee12747fde65",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "c302cc84-d8ef-5042-af02-ee12747fde65",
+      "author_name": "Dylan Bennett",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Our reservation was honored right away and the food arrived promptly. Cleanliness needs work, the table still had leftovers from the last guests. Loved the al pastor tacos; portions were generous and everything tasted fresh. A charming spot with a great view and a good mood.",
+      "published_at": "2026-08-24T19:44:00+00:00"
+    },
+    {
+      "source_id": "2645ffcc-0210-5900-9cc6-197ea81132d8",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "2645ffcc-0210-5900-9cc6-197ea81132d8",
+      "author_name": "Grace Patel",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "The interior feels dated and the seating is cramped. The beef rib was too salty and greasy, I couldn't finish it. Hope they improve.",
+      "published_at": "2026-08-24T01:31:00+00:00"
+    },
+    {
+      "source_id": "44188821-d556-535d-a624-fb6a97306f8a",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "44188821-d556-535d-a624-fb6a97306f8a",
+      "author_name": "Nora Whitaker",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "A charming spot with a great view and a good mood. The waiter got our order wrong and was dismissive when we pointed it out. Food was just average, the mac and cheese tasted like it had been sitting out. Food came out fast even though the place was full. Okay experience, might give it another try.",
+      "published_at": "2026-08-23T00:30:00+00:00"
+    },
+    {
+      "source_id": "789f6198-5c00-5ea9-a186-e03a048e06eb",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "789f6198-5c00-5ea9-a186-e03a048e06eb",
+      "author_name": "Elena Fischer",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The tables are packed so close together there is no privacy. The apple pie was bland and arrived lukewarm. Service was warm and efficient from the moment we walked in.",
+      "published_at": "2026-08-22T07:28:00+00:00"
+    },
+    {
+      "source_id": "8f52e5fb-6408-5369-9e37-e1434ec6392c",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "8f52e5fb-6408-5369-9e37-e1434ec6392c",
+      "author_name": "Amelia Santos",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Staff were rude and barely acknowledged us. The restaurant was spotless, including the restrooms. Decent overall, but there is room for improvement.",
+      "published_at": "2026-08-17T18:17:00+00:00"
+    },
+    {
+      "source_id": "7d9cd60d-27fe-5356-95a8-d735bf7bd63b",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "7d9cd60d-27fe-5356-95a8-d735bf7bd63b",
+      "author_name": "Chloe Bennett",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The outdoor seating is beautiful in the evening. Overpriced for what you get, the portions are small. Staff were friendly, attentive and checked on us often. Ordered the breakfast tacos and it came out cold in the middle. Decent overall, but there is room for improvement.",
+      "published_at": "2026-08-15T09:40:00+00:00"
+    },
+    {
+      "source_id": "795a9b84-36dd-5bd3-9325-b333c2c03efa",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "795a9b84-36dd-5bd3-9325-b333c2c03efa",
+      "author_name": "Isla Bennett",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Long wait just to be seated, even with a reservation. The pecan pie arrived hot and the flavors were well balanced. Okay experience, might give it another try.",
+      "published_at": "2026-08-14T13:00:00+00:00"
+    },
+    {
+      "source_id": "242cf535-106d-59bc-8beb-9b8240a4ec7e",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "242cf535-106d-59bc-8beb-9b8240a4ec7e",
+      "author_name": "Grace Santos",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The waiter got our order wrong and was dismissive when we pointed it out. Honestly cheap for what you get, I'd happily pay more. The pecan pie was outstanding, full of flavor and cooked just right.",
+      "published_at": "2026-08-13T13:20:00+00:00"
+    },
+    {
+      "source_id": "0f0a993a-842a-5419-b486-e11f4d4efde5",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "0f0a993a-842a-5419-b486-e11f4d4efde5",
+      "author_name": "Jacob Fischer",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "",
+      "published_at": "2026-08-12T21:59:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "0e72a439-a86c-50be-a4d4-b24abb2eff7a",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "0e72a439-a86c-50be-a4d4-b24abb2eff7a",
+      "author_name": "Amelia Webb",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "A charming spot with a great view and a good mood. Service was disorganized, we had to flag someone down three times. Everything we ordered was delicious, especially the burnt ends. Five stars from us.",
+      "published_at": "2026-08-08T16:15:00+00:00"
+    },
+    {
+      "source_id": "2c42aa74-51f8-514f-99bd-b241218dc049",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "2c42aa74-51f8-514f-99bd-b241218dc049",
+      "author_name": "Harper Santos",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Great vibe, we stayed longer than planned just enjoying the setting. Staff looked burnt out and not friendly at all. I probably will not come back.",
+      "published_at": "2026-08-08T03:16:00+00:00"
+    },
+    {
+      "source_id": "5a051ea3-2599-5844-b31a-664684caea14",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "5a051ea3-2599-5844-b31a-664684caea14",
+      "author_name": "Sophia Reyes",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Our reservation was honored right away and the food arrived promptly. Comfortable seating and a warm, welcoming interior.",
+      "published_at": "2026-08-06T00:11:00+00:00"
+    },
+    {
+      "source_id": "84813249-ccae-5064-b085-7f1302490db8",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "84813249-ccae-5064-b085-7f1302490db8",
+      "author_name": "Dylan Price",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "",
+      "published_at": "2026-08-03T06:21:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "e0669a57-3040-5c25-a5b8-05fe9a0d1cfd",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "e0669a57-3040-5c25-a5b8-05fe9a0d1cfd",
+      "author_name": "Grace Hughes",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The smoked sausage arrived hot and the flavors were well balanced. No wait at all, we were seated and served within minutes. Highly recommended.",
+      "published_at": "2026-08-01T19:09:00+00:00"
+    },
+    {
+      "source_id": "0013549b-bd46-5005-8d19-e6adc7f60b74",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "0013549b-bd46-5005-8d19-e6adc7f60b74",
+      "author_name": "Reid Whitaker",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "",
+      "published_at": "2026-07-30T14:54:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "64391d12-cabb-5679-b399-81421a921ede",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "64391d12-cabb-5679-b399-81421a921ede",
+      "author_name": "Chloe Carter",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Great vibe, we stayed longer than planned just enjoying the setting. Everything we ordered was delicious, especially the pork ribs. The team went out of their way to make us feel welcome.",
+      "published_at": "2026-07-28T14:38:00+00:00"
+    },
+    {
+      "source_id": "7e30bb2a-b5f4-5f6d-9df0-525be193c77d",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "7e30bb2a-b5f4-5f6d-9df0-525be193c77d",
+      "author_name": "Harper Reyes",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Our server was knowledgeable and made great recommendations. Lovely decor and relaxed music, a really pleasant place to sit. Slow service during the dinner rush, plan for a long wait. Everything we ordered was delicious, especially the brisket plate. Five stars from us.",
+      "published_at": "2026-07-19T16:09:00+00:00"
+    },
+    {
+      "source_id": "3b5679f1-b8b2-5391-8844-b7a32ffd3aeb",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "3b5679f1-b8b2-5391-8844-b7a32ffd3aeb",
+      "author_name": "Wyatt Bennett",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Everything we ordered was delicious, especially the beef rib. Great vibe, we stayed longer than planned just enjoying the setting. Service was warm and efficient from the moment we walked in. Can't wait to return.",
+      "published_at": "2026-07-19T07:24:00+00:00"
+    },
+    {
+      "source_id": "30fda4d2-47ed-54d7-a9bc-9adffa4887e8",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "30fda4d2-47ed-54d7-a9bc-9adffa4887e8",
+      "author_name": "Chloe Lopez",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "The interior feels dated and the seating is cramped. The waiter got our order wrong and was dismissive when we pointed it out. Hope they improve.",
+      "published_at": "2026-07-18T22:26:00+00:00"
+    },
+    {
+      "source_id": "3a2f58c0-021c-5043-9a4e-065f59acb0bf",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "3a2f58c0-021c-5043-9a4e-065f59acb0bf",
+      "author_name": "Wyatt Reyes",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Best buttermilk pancakes I've had in a long time, the seasoning was spot on. Fair prices and the lunch special is a bargain.",
+      "published_at": "2026-07-18T18:20:00+00:00"
+    },
+    {
+      "source_id": "a6446a9e-ecbc-5b1f-8ce7-b0272611d09e",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "a6446a9e-ecbc-5b1f-8ce7-b0272611d09e",
+      "author_name": "Hannah Lopez",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "The smoked sausage was too salty and greasy, I couldn't finish it. It was so loud we could barely hold a conversation. Nobody checked on our table once the food arrived. The kitchen was painfully slow, dishes came out one by one. Disappointed overall.",
+      "published_at": "2026-07-17T15:06:00+00:00"
+    },
+    {
+      "source_id": "7c623e46-abf7-586b-9589-a8cfc12d4a12",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "7c623e46-abf7-586b-9589-a8cfc12d4a12",
+      "author_name": "Marcus Carter",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "",
+      "published_at": "2026-07-14T08:20:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "3abfed1d-3876-5872-8220-27ab7e8f00ac",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "3abfed1d-3876-5872-8220-27ab7e8f00ac",
+      "author_name": "Declan Nguyen",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Fresh ingredients and a great apple pie, we cleaned our plates. We waited over 45 minutes for our food and nobody explained why. Okay experience, might give it another try.",
+      "published_at": "2026-07-08T21:29:00+00:00"
+    },
+    {
+      "source_id": "74f082c5-6a7c-5872-a96d-670063c15354",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "74f082c5-6a7c-5872-a96d-670063c15354",
+      "author_name": "Logan Reyes",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Great value for money, we left full without spending much. Great service, they even accommodated our food allergy without fuss. No wait at all, we were seated and served within minutes. The queso was outstanding, full of flavor and cooked just right.",
+      "published_at": "2026-07-06T01:00:00+00:00"
+    },
+    {
+      "source_id": "87a4ee67-1d8e-5f26-a648-8329514baaaa",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "87a4ee67-1d8e-5f26-a648-8329514baaaa",
+      "author_name": "Ruby Hughes",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Comfortable seating and a warm, welcoming interior. Staff were friendly, attentive and checked on us often. Not worth the money, there are better options nearby for less. Cleanliness needs work, the table still had leftovers from the last guests.",
+      "published_at": "2026-07-05T05:38:00+00:00"
+    },
+    {
+      "source_id": "e0fad1dd-c46d-5762-bb2d-e35112c7bc67",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "e0fad1dd-c46d-5762-bb2d-e35112c7bc67",
+      "author_name": "Sophia Hughes",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Waiters were polite and refilled our drinks without being asked. Overpriced for what you get, the portions are small. Our reservation was honored right away and the food arrived promptly.",
+      "published_at": "2026-07-04T23:57:00+00:00"
+    },
+    {
+      "source_id": "5da23df2-072b-5bad-aeca-d24cbcab31a8",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "5da23df2-072b-5bad-aeca-d24cbcab31a8",
+      "author_name": "Cole Garza",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Ingredients did not taste fresh, and the pot roast was disappointing. Tables were wiped down right away and everything looked very clean. The set menu is excellent value. Okay experience, might give it another try.",
+      "published_at": "2026-07-03T17:36:00+00:00"
+    },
+    {
+      "source_id": "7cc11065-b7dc-5a94-a832-4eb1e133a95b",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "7cc11065-b7dc-5a94-a832-4eb1e133a95b",
+      "author_name": "Elena Ortiz",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "",
+      "published_at": "2026-07-03T07:11:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "3efcaf1f-9f81-5b07-82dc-a1fbab169659",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "3efcaf1f-9f81-5b07-82dc-a1fbab169659",
+      "author_name": "Elena Kim",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Hidden service charges made the final bill painful. Loved the pork ribs; portions were generous and everything tasted fresh. The kitchen was painfully slow, dishes came out one by one. Wouldn't recommend.",
+      "published_at": "2026-07-03T04:21:00+00:00"
+    },
+    {
+      "source_id": "5b32ae3c-d944-50a2-954c-6fb540b41dc9",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "5b32ae3c-d944-50a2-954c-6fb540b41dc9",
+      "author_name": "Jacob Dawson",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "The interior feels dated and the seating is cramped. The burnt ends was too salty and greasy, I couldn't finish it.",
+      "published_at": "2026-07-02T14:42:00+00:00"
+    },
+    {
+      "source_id": "339328dc-1652-5df8-97d2-8f8ae7b7caaf",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "339328dc-1652-5df8-97d2-8f8ae7b7caaf",
+      "author_name": "Jacob Kim",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Great service, they even accommodated our food allergy without fuss. I noticed flies near the counter and the cutlery was not clean. Decent overall, but there is room for improvement.",
+      "published_at": "2026-07-02T13:01:00+00:00"
+    },
+    {
+      "source_id": "4dca7055-5940-550e-bd77-ac818943ef23",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "4dca7055-5940-550e-bd77-ac818943ef23",
+      "author_name": "Hannah Ellis",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "The pecan pie was bland and arrived lukewarm. Waited forever for the bill, we nearly gave up.",
+      "published_at": "2026-06-30T22:18:00+00:00"
+    },
+    {
+      "source_id": "4af700cd-0b86-5904-b358-2a3ab626b205",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "4af700cd-0b86-5904-b358-2a3ab626b205",
+      "author_name": "Chloe Fischer",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Everything we ordered was delicious, especially the pork ribs. Slow service during the dinner rush, plan for a long wait. Hope they improve.",
+      "published_at": "2026-06-30T02:54:00+00:00"
+    },
+    {
+      "source_id": "89b110f8-bdd2-5fb5-b069-0f98ce13abbc",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "89b110f8-bdd2-5fb5-b069-0f98ce13abbc",
+      "author_name": "Hannah Tran",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "Hidden service charges made the final bill painful. The interior feels dated and the seating is cramped. My burnt ends was overcooked and the portion was smaller than expected.",
+      "published_at": "2026-06-29T04:16:00+00:00"
+    },
+    {
+      "source_id": "99e25c02-40f1-502b-8184-33253eea4c20",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "99e25c02-40f1-502b-8184-33253eea4c20",
+      "author_name": "Elena Garza",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Best breakfast tacos I've had in a long time, the seasoning was spot on. Very hygienic kitchen and clean dining area, which I really appreciate. Waiters were polite and refilled our drinks without being asked. Highly recommended.",
+      "published_at": "2026-06-27T12:52:00+00:00"
+    },
+    {
+      "source_id": "237928cc-9b8e-5b59-8b6e-bc42e6a94b59",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "237928cc-9b8e-5b59-8b6e-bc42e6a94b59",
+      "author_name": "Sophia Garza",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "",
+      "published_at": "2026-06-27T06:53:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "dd6386e0-c859-5ed2-b478-83bbfe1f29d1",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "dd6386e0-c859-5ed2-b478-83bbfe1f29d1",
+      "author_name": "Hannah Fischer",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Waiters were polite and refilled our drinks without being asked. Quick service, perfect for a lunch break. Five stars from us.",
+      "published_at": "2026-06-20T06:52:00+00:00"
+    },
+    {
+      "source_id": "c0bd6a9d-f8e9-5246-a1c0-cfb7d4672d60",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "c0bd6a9d-f8e9-5246-a1c0-cfb7d4672d60",
+      "author_name": "Declan Foster",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "The waiter got our order wrong and was dismissive when we pointed it out. Overpriced for what you get, the portions are small. Wouldn't recommend.",
+      "published_at": "2026-06-19T05:04:00+00:00"
+    },
+    {
+      "source_id": "bda94e41-69b6-5b04-8e66-b376b5a86b08",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "bda94e41-69b6-5b04-8e66-b376b5a86b08",
+      "author_name": "Declan Kim",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Great value for money, we left full without spending much. Everything we ordered was delicious, especially the pecan pie.",
+      "published_at": "2026-06-15T23:47:00+00:00"
+    },
+    {
+      "source_id": "133ba744-3df6-5fbd-a886-310d79a9992d",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "133ba744-3df6-5fbd-a886-310d79a9992d",
+      "author_name": "Priya Price",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "",
+      "published_at": "2026-06-14T08:47:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "c88461f8-c7c8-5063-93a5-9f6d3f1cbe88",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "c88461f8-c7c8-5063-93a5-9f6d3f1cbe88",
+      "author_name": "Ethan Whitaker",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The smoked sausage arrived hot and the flavors were well balanced. The team went out of their way to make us feel welcome. Highly recommended.",
+      "published_at": "2026-06-14T03:08:00+00:00"
+    },
+    {
+      "source_id": "9d231f8c-e522-53cc-830c-7ed151442a8a",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "9d231f8c-e522-53cc-830c-7ed151442a8a",
+      "author_name": "Priya Hughes",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "The kitchen was painfully slow, dishes came out one by one. Music was blasting and the place felt chaotic. Good portions for the price, nothing felt overpriced. Food was just average, the pot roast tasted like it had been sitting out. Hope they improve.",
+      "published_at": "2026-06-14T00:17:00+00:00"
+    },
+    {
+      "source_id": "a6099bdc-a5c6-5c81-86e4-9b1a74d1d15a",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "a6099bdc-a5c6-5c81-86e4-9b1a74d1d15a",
+      "author_name": "Mia Hughes",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Fresh ingredients and a great smoked sausage, we cleaned our plates. A charming spot with a great view and a good mood. Tables were wiped down right away and everything looked very clean. Highly recommended.",
+      "published_at": "2026-06-09T17:52:00+00:00"
+    },
+    {
+      "source_id": "d2aea21e-292b-5919-92ba-6ba7dbf38158",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "d2aea21e-292b-5919-92ba-6ba7dbf38158",
+      "author_name": "Reid Ortiz",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Quick service, perfect for a lunch break. Service was disorganized, we had to flag someone down three times. The table was sticky and the floor had not been cleaned. Disappointed overall.",
+      "published_at": "2026-06-09T01:35:00+00:00"
+    },
+    {
+      "source_id": "bd1630ba-2e3b-5056-85cf-13ee470eff5c",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "bd1630ba-2e3b-5056-85cf-13ee470eff5c",
+      "author_name": "Liam Foster",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The team went out of their way to make us feel welcome. The al pastor tacos arrived hot and the flavors were well balanced. Clean cutlery, clean floors, clear attention to detail. Good portions for the price, nothing felt overpriced.",
+      "published_at": "2026-06-08T21:41:00+00:00"
+    },
+    {
+      "source_id": "27d5fa87-3d8a-5470-9c29-797443db66c7",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "27d5fa87-3d8a-5470-9c29-797443db66c7",
+      "author_name": "Isla Whitaker",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Our server was knowledgeable and made great recommendations. The outdoor seating is beautiful in the evening. Food came out fast even though the place was full. Highly recommended.",
+      "published_at": "2026-06-07T03:23:00+00:00"
+    },
+    {
+      "source_id": "a47bf49c-5fb4-52d0-81d7-8b32cc9c803c",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "a47bf49c-5fb4-52d0-81d7-8b32cc9c803c",
+      "author_name": "Grace Sullivan",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Waited forever for the bill, we nearly gave up. Everything we ordered was delicious, especially the pork ribs. Our server was knowledgeable and made great recommendations. Okay experience, might give it another try.",
+      "published_at": "2026-06-06T20:52:00+00:00"
+    },
+    {
+      "source_id": "4c403a1c-1852-5cbb-abc7-4c0b41269980",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "4c403a1c-1852-5cbb-abc7-4c0b41269980",
+      "author_name": "Marcus Lopez",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Slow service during the dinner rush, plan for a long wait. Great value for money, we left full without spending much. Okay experience, might give it another try.",
+      "published_at": "2026-06-05T18:14:00+00:00"
+    },
+    {
+      "source_id": "ac9d372e-666d-5b16-a644-43c4bdecaa45",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "ac9d372e-666d-5b16-a644-43c4bdecaa45",
+      "author_name": "Grace Fischer",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Nobody checked on our table once the food arrived. Our reservation was honored right away and the food arrived promptly. Great vibe, we stayed longer than planned just enjoying the setting. Okay experience, might give it another try.",
+      "published_at": "2026-06-04T18:05:00+00:00"
+    },
+    {
+      "source_id": "9aa87b64-e86c-5985-bc55-0fb34b2264e9",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "9aa87b64-e86c-5985-bc55-0fb34b2264e9",
+      "author_name": "Wyatt Ellis",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Fair prices and the lunch special is a bargain. Our server was knowledgeable and made great recommendations. Fresh ingredients and a great banana pudding, we cleaned our plates. A charming spot with a great view and a good mood. Can't wait to return.",
+      "published_at": "2026-06-03T08:56:00+00:00"
+    },
+    {
+      "source_id": "16de4afb-ea35-5a32-b448-67c2092e4bc9",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "16de4afb-ea35-5a32-b448-67c2092e4bc9",
+      "author_name": "Ethan Reyes",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "No wait at all, we were seated and served within minutes. Lovely decor and relaxed music, a really pleasant place to sit. Nobody checked on our table once the food arrived. Decent overall, but there is room for improvement.",
+      "published_at": "2026-06-03T02:37:00+00:00"
+    },
+    {
+      "source_id": "eaabece8-0dff-5f84-a1e5-3de1881adff5",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "eaabece8-0dff-5f84-a1e5-3de1881adff5",
+      "author_name": "Hannah Coleman",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The waiter got our order wrong and was dismissive when we pointed it out. Fresh ingredients and a great horchata, we cleaned our plates. Great value for money, we left full without spending much.",
+      "published_at": "2026-06-02T19:45:00+00:00"
+    },
+    {
+      "source_id": "3c74ee99-616b-576a-93d4-bc9316c7ce09",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "3c74ee99-616b-576a-93d4-bc9316c7ce09",
+      "author_name": "Priya Nguyen",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Best coleslaw I've had in a long time, the seasoning was spot on. Prices have gone up but the portions keep shrinking. Decent overall, but there is room for improvement.",
+      "published_at": "2026-06-01T08:57:00+00:00"
+    },
+    {
+      "source_id": "0f54508e-35b0-56dd-a873-dfe100efda2c",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "0f54508e-35b0-56dd-a873-dfe100efda2c",
+      "author_name": "Noah Nguyen",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Food came out fast even though the place was full. The team went out of their way to make us feel welcome. Tables were wiped down right away and everything looked very clean. The atmosphere is cozy and lively, perfect for a group dinner. Can't wait to return.",
+      "published_at": "2026-05-29T23:55:00+00:00"
+    },
+    {
+      "source_id": "b8f3cc30-2ac2-549e-a56c-4317e98e4bc8",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "b8f3cc30-2ac2-549e-a56c-4317e98e4bc8",
+      "author_name": "Declan Carter",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The buttermilk pancakes was too salty and greasy, I couldn't finish it. Service was warm and efficient from the moment we walked in. We waited over 45 minutes for our food and nobody explained why. Decent overall, but there is room for improvement.",
+      "published_at": "2026-05-29T16:54:00+00:00"
+    },
+    {
+      "source_id": "7c098712-c69d-57b5-95c8-b19a608fe034",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "7c098712-c69d-57b5-95c8-b19a608fe034",
+      "author_name": "Lucas Carter",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "The tables are packed so close together there is no privacy. Staff were friendly, attentive and checked on us often. The queso arrived hot and the flavors were well balanced. Food came out fast even though the place was full. Will definitely come back.",
+      "published_at": "2026-05-27T20:54:00+00:00"
+    },
+    {
+      "source_id": "c50cc3e3-7c17-5457-bf77-92833ec2dd2a",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "c50cc3e3-7c17-5457-bf77-92833ec2dd2a",
+      "author_name": "Mason Kim",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Hidden service charges made the final bill painful. Everything we ordered was delicious, especially the apple pie. Can't wait to return.",
+      "published_at": "2026-05-27T17:54:00+00:00"
+    },
+    {
+      "source_id": "4f241a49-5daf-51cc-8ba6-d9cf18684c67",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "4f241a49-5daf-51cc-8ba6-d9cf18684c67",
+      "author_name": "Noah Ellis",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Quick service, perfect for a lunch break. Fresh ingredients and a great pecan pie, we cleaned our plates. Highly recommended.",
+      "published_at": "2026-05-23T08:20:00+00:00"
+    },
+    {
+      "source_id": "77c7865c-4a9a-5b10-904c-4085adb25012",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "77c7865c-4a9a-5b10-904c-4085adb25012",
+      "author_name": "Caleb Hayes",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The mac and cheese was outstanding, full of flavor and cooked just right. Overpriced for what you get, the portions are small. The tables are packed so close together there is no privacy. Decent overall, but there is room for improvement.",
+      "published_at": "2026-05-20T03:54:00+00:00"
+    },
+    {
+      "source_id": "fcfc6c83-02f0-5eb6-b650-18879db809e2",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "fcfc6c83-02f0-5eb6-b650-18879db809e2",
+      "author_name": "Amelia Ellis",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Waiters were polite and refilled our drinks without being asked. Honestly cheap for what you get, I'd happily pay more. Five stars from us.",
+      "published_at": "2026-05-19T13:34:00+00:00"
+    },
+    {
+      "source_id": "c9f0a9fe-cbb9-5dea-b19e-832c33b185b3",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "c9f0a9fe-cbb9-5dea-b19e-832c33b185b3",
+      "author_name": "Reid Kim",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Best burnt ends I've had in a long time, the seasoning was spot on. Too hot inside and the air conditioning barely worked. Our reservation was honored right away and the food arrived promptly.",
+      "published_at": "2026-05-18T13:28:00+00:00"
+    },
+    {
+      "source_id": "2bf0badc-7dce-5c22-9985-c83ed51df5d0",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "2bf0badc-7dce-5c22-9985-c83ed51df5d0",
+      "author_name": "Logan Brooks",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "Long wait just to be seated, even with a reservation. Prices have gone up but the portions keep shrinking.",
+      "published_at": "2026-05-17T23:28:00+00:00"
+    },
+    {
+      "source_id": "633a8146-a87c-5797-a964-5f4328b26413",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "633a8146-a87c-5797-a964-5f4328b26413",
+      "author_name": "Amelia Foster",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Staff looked burnt out and not friendly at all. The smoked sausage arrived hot and the flavors were well balanced. The kitchen was painfully slow, dishes came out one by one.",
+      "published_at": "2026-05-16T01:51:00+00:00"
+    },
+    {
+      "source_id": "5157cc10-309b-5135-8b79-6a4eb461c811",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "5157cc10-309b-5135-8b79-6a4eb461c811",
+      "author_name": "Noah Garza",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "My chicken fried steak was overcooked and the portion was smaller than expected. Staff were friendly, attentive and checked on us often. Decent overall, but there is room for improvement.",
+      "published_at": "2026-05-14T18:11:00+00:00"
+    },
+    {
+      "source_id": "56ea8049-c469-5270-9dee-92f960734272",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "56ea8049-c469-5270-9dee-92f960734272",
+      "author_name": "Reid Rivera",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Waiters were polite and refilled our drinks without being asked. The restaurant was spotless, including the restrooms.",
+      "published_at": "2026-05-10T12:06:00+00:00"
+    },
+    {
+      "source_id": "bc554b5d-c1ba-5df4-bd78-cfc5e1367075",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "bc554b5d-c1ba-5df4-bd78-cfc5e1367075",
+      "author_name": "Reid Garza",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Slow service during the dinner rush, plan for a long wait. The outdoor seating is beautiful in the evening. Highly recommended.",
+      "published_at": "2026-05-09T02:37:00+00:00"
+    },
+    {
+      "source_id": "b970acb4-cb31-5791-9678-2d1481756e94",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "b970acb4-cb31-5791-9678-2d1481756e94",
+      "author_name": "Dylan Hayes",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Staff were rude and barely acknowledged us. Loved the beef rib; portions were generous and everything tasted fresh. Slow service during the dinner rush, plan for a long wait. Disappointed overall.",
+      "published_at": "2026-05-08T08:33:00+00:00"
+    },
+    {
+      "source_id": "01adb166-405f-543e-9de1-39578f9a0e06",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "01adb166-405f-543e-9de1-39578f9a0e06",
+      "author_name": "Logan Patel",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "Not worth the money, there are better options nearby for less. Food was just average, the banana pudding tasted like it had been sitting out. Slow service during the dinner rush, plan for a long wait. I probably will not come back.",
+      "published_at": "2026-05-07T06:31:00+00:00"
+    },
+    {
+      "source_id": "a6e220a6-e8ca-54aa-880b-680df12fa916",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "a6e220a6-e8ca-54aa-880b-680df12fa916",
+      "author_name": "Marcus Sullivan",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Good portions for the price, nothing felt overpriced. Quick service, perfect for a lunch break.",
+      "published_at": "2026-05-04T20:19:00+00:00"
+    },
+    {
+      "source_id": "d3d62cd6-a728-5e62-8509-784081f5bc06",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "d3d62cd6-a728-5e62-8509-784081f5bc06",
+      "author_name": "Mason Price",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "Food was just average, the pork ribs tasted like it had been sitting out. Staff were rude and barely acknowledged us. Hope they improve.",
+      "published_at": "2026-05-04T12:27:00+00:00"
+    },
+    {
+      "source_id": "205c4411-6cde-5cdf-beb3-84701c55b05d",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "205c4411-6cde-5cdf-beb3-84701c55b05d",
+      "author_name": "Chloe Rivera",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Our server was knowledgeable and made great recommendations. The brisket plate arrived hot and the flavors were well balanced. Can't wait to return.",
+      "published_at": "2026-05-02T21:13:00+00:00"
+    },
+    {
+      "source_id": "062dc874-e0e8-52e3-9978-321b698b56f7",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "062dc874-e0e8-52e3-9978-321b698b56f7",
+      "author_name": "Marcus Price",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "A charming spot with a great view and a good mood. Food was just average, the queso tasted like it had been sitting out. Prices are very reasonable for the quality and the portion size.",
+      "published_at": "2026-05-01T14:37:00+00:00"
+    },
+    {
+      "source_id": "b69f18d1-6f0a-531b-b491-2ca760af54a7",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "b69f18d1-6f0a-531b-b491-2ca760af54a7",
+      "author_name": "Isla Sullivan",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "The tables are packed so close together there is no privacy. Ingredients did not taste fresh, and the buttermilk pancakes was disappointing.",
+      "published_at": "2026-05-01T00:22:00+00:00"
+    },
+    {
+      "source_id": "e035c492-5163-50a4-93ac-2f61a826eaff",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "e035c492-5163-50a4-93ac-2f61a826eaff",
+      "author_name": "Tyler Lopez",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The table was sticky and the floor had not been cleaned. Good portions for the price, nothing felt overpriced. Our server was knowledgeable and made great recommendations. Okay experience, might give it another try.",
+      "published_at": "2026-04-29T20:37:00+00:00"
+    },
+    {
+      "source_id": "67ab7145-694b-5df0-9ec6-627ab60c3891",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "67ab7145-694b-5df0-9ec6-627ab60c3891",
+      "author_name": "Ethan Santos",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The outdoor seating is beautiful in the evening. Our server was knowledgeable and made great recommendations. Clean cutlery, clean floors, clear attention to detail. Highly recommended.",
+      "published_at": "2026-04-28T05:28:00+00:00"
+    },
+    {
+      "source_id": "1981a01c-e69d-5f39-9ec1-6e11d2e9fb19",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "1981a01c-e69d-5f39-9ec1-6e11d2e9fb19",
+      "author_name": "Ethan Dawson",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "The burnt ends was bland and arrived lukewarm. Our reservation was honored right away and the food arrived promptly. Great vibe, we stayed longer than planned just enjoying the setting. The restaurant was spotless, including the restrooms. Can't wait to return.",
+      "published_at": "2026-04-26T20:02:00+00:00"
+    },
+    {
+      "source_id": "514ff969-696d-55ba-ae62-706fedcd3e59",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "514ff969-696d-55ba-ae62-706fedcd3e59",
+      "author_name": "Isla Ortiz",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Long wait just to be seated, even with a reservation. The team went out of their way to make us feel welcome. Hidden service charges made the final bill painful. Fresh ingredients and a great mac and cheese, we cleaned our plates.",
+      "published_at": "2026-04-25T12:34:00+00:00"
+    },
+    {
+      "source_id": "22c28db9-155d-51cc-86f9-0b1d0535794f",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "22c28db9-155d-51cc-86f9-0b1d0535794f",
+      "author_name": "Cole Sullivan",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Tables were wiped down right away and everything looked very clean. Staff were rude and barely acknowledged us. The set menu is excellent value. Will definitely come back.",
+      "published_at": "2026-04-21T15:47:00+00:00"
+    },
+    {
+      "source_id": "57e22745-e633-56bf-9196-f95f697389c5",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "57e22745-e633-56bf-9196-f95f697389c5",
+      "author_name": "Dylan Tran",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "The outdoor seating is beautiful in the evening. Everything we ordered was delicious, especially the queso. Quick service, perfect for a lunch break. Staff were rude and barely acknowledged us. Five stars from us.",
+      "published_at": "2026-04-13T08:45:00+00:00"
+    },
+    {
+      "source_id": "eb636c2c-ebbd-5b94-8908-9823cd80685f",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "eb636c2c-ebbd-5b94-8908-9823cd80685f",
+      "author_name": "Amelia Lopez",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "",
+      "published_at": "2026-04-10T09:35:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "204a59a3-502d-5f97-988f-eeff5478343e",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "204a59a3-502d-5f97-988f-eeff5478343e",
+      "author_name": "Mia Nguyen",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The pecan pie was outstanding, full of flavor and cooked just right. Staff were friendly, attentive and checked on us often. Five stars from us.",
+      "published_at": "2026-04-06T21:17:00+00:00"
+    },
+    {
+      "source_id": "fba7b682-9b7b-5551-b6d8-9a6eb15e5eeb",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "fba7b682-9b7b-5551-b6d8-9a6eb15e5eeb",
+      "author_name": "Tyler Dawson",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The set menu is excellent value. Great service, they even accommodated our food allergy without fuss. Everything we ordered was delicious, especially the beef rib. We waited over 45 minutes for our food and nobody explained why. Will definitely come back.",
+      "published_at": "2026-04-03T08:54:00+00:00"
+    },
+    {
+      "source_id": "cc983e22-f180-5c37-bd30-f7efbf896d2c",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "cc983e22-f180-5c37-bd30-f7efbf896d2c",
+      "author_name": "Chloe Fischer",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Fresh ingredients and a great carne asada burrito, we cleaned our plates. No wait at all, we were seated and served within minutes. Too hot inside and the air conditioning barely worked. Okay experience, might give it another try.",
+      "published_at": "2026-04-02T22:08:00+00:00"
+    },
+    {
+      "source_id": "ac70fb93-41f2-5648-b771-db0641fbc263",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "ac70fb93-41f2-5648-b771-db0641fbc263",
+      "author_name": "Hannah Ortiz",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Service was warm and efficient from the moment we walked in. Great vibe, we stayed longer than planned just enjoying the setting. Waited forever for the bill, we nearly gave up.",
+      "published_at": "2026-04-02T12:17:00+00:00"
+    },
+    {
+      "source_id": "689945a7-58da-5b65-923b-0d7e64721830",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "689945a7-58da-5b65-923b-0d7e64721830",
+      "author_name": "Lucas Rivera",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Good portions for the price, nothing felt overpriced. Staff were friendly, attentive and checked on us often. Tables were wiped down right away and everything looked very clean. Five stars from us.",
+      "published_at": "2026-04-01T16:32:00+00:00"
+    },
+    {
+      "source_id": "07aca3f2-524d-56bd-9696-c22c1306eb85",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "07aca3f2-524d-56bd-9696-c22c1306eb85",
+      "author_name": "Mia Hughes",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "The burnt ends was outstanding, full of flavor and cooked just right. Comfortable seating and a warm, welcoming interior. Our server seemed distracted and forgot part of our order. Will definitely come back.",
+      "published_at": "2026-04-01T10:20:00+00:00"
+    },
+    {
+      "source_id": "c469415e-255c-5593-9f7c-7a3931ce4664",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "c469415e-255c-5593-9f7c-7a3931ce4664",
+      "author_name": "Harper Whitaker",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Staff looked burnt out and not friendly at all. Fresh ingredients and a great brisket sandwich, we cleaned our plates. Decent overall, but there is room for improvement.",
+      "published_at": "2026-04-01T03:26:00+00:00"
+    },
+    {
+      "source_id": "b827a1dc-025f-59c3-a392-24d6c8cecff1",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "b827a1dc-025f-59c3-a392-24d6c8cecff1",
+      "author_name": "Mason Reyes",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Our server was knowledgeable and made great recommendations. The atmosphere is cozy and lively, perfect for a group dinner. Five stars from us.",
+      "published_at": "2026-03-30T22:05:00+00:00"
+    },
+    {
+      "source_id": "e42fcd2c-7aa4-532e-acc7-dbe8ee1b630f",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "e42fcd2c-7aa4-532e-acc7-dbe8ee1b630f",
+      "author_name": "Lucas Fischer",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "The horchata was outstanding, full of flavor and cooked just right. Staff were friendly, attentive and checked on us often. Comfortable seating and a warm, welcoming interior. I noticed flies near the counter and the cutlery was not clean. Can't wait to return.",
+      "published_at": "2026-03-29T12:50:00+00:00"
+    },
+    {
+      "source_id": "cb9bc951-b48f-5a62-a2ea-ea48a82ecee5",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "cb9bc951-b48f-5a62-a2ea-ea48a82ecee5",
+      "author_name": "Liam Hughes",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Fresh ingredients and a great brisket plate, we cleaned our plates. Slow service during the dinner rush, plan for a long wait. Comfortable seating and a warm, welcoming interior. Nobody checked on our table once the food arrived.",
+      "published_at": "2026-03-22T13:56:00+00:00"
+    },
+    {
+      "source_id": "e53a741a-e917-5c1b-b6a0-9f2e3bbe6fb8",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "e53a741a-e917-5c1b-b6a0-9f2e3bbe6fb8",
+      "author_name": "Caleb Hayes",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Fresh ingredients and a great smoked sausage, we cleaned our plates. Too expensive for an average meal, I felt a bit ripped off. A charming spot with a great view and a good mood. Quick service, perfect for a lunch break. Okay experience, might give it another try.",
+      "published_at": "2026-03-21T11:13:00+00:00"
+    },
+    {
+      "source_id": "2b422369-8352-5693-b071-a3351691c1fb",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "2b422369-8352-5693-b071-a3351691c1fb",
+      "author_name": "Cole Morales",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The atmosphere felt cold and impersonal. Service was warm and efficient from the moment we walked in. Long wait just to be seated, even with a reservation. Okay experience, might give it another try.",
+      "published_at": "2026-03-16T16:43:00+00:00"
+    },
+    {
+      "source_id": "f4217e01-7418-5f78-9cf4-a773f2adb87f",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "f4217e01-7418-5f78-9cf4-a773f2adb87f",
+      "author_name": "Noah Hayes",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Prices are very reasonable for the quality and the portion size. Great vibe, we stayed longer than planned just enjoying the setting. Slow service during the dinner rush, plan for a long wait. Will definitely come back.",
+      "published_at": "2026-03-15T23:55:00+00:00"
+    },
+    {
+      "source_id": "3092808c-6756-5b4b-93a5-8900d0dd6e90",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "3092808c-6756-5b4b-93a5-8900d0dd6e90",
+      "author_name": "Declan Santos",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "",
+      "published_at": "2026-03-15T22:22:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "eb97ce61-44e8-5d86-bee8-254ab700914c",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "eb97ce61-44e8-5d86-bee8-254ab700914c",
+      "author_name": "Mia Kim",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Prices have gone up but the portions keep shrinking. The brisket sandwich arrived hot and the flavors were well balanced. Service was disorganized, we had to flag someone down three times. Comfortable seating and a warm, welcoming interior. Decent overall, but there is room for improvement.",
+      "published_at": "2026-03-13T23:30:00+00:00"
+    },
+    {
+      "source_id": "3f8a96e4-1433-508a-b022-4c941dc14938",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "3f8a96e4-1433-508a-b022-4c941dc14938",
+      "author_name": "Emma Coleman",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "",
+      "published_at": "2026-03-12T07:40:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "c70a8283-bdbb-5f9d-b5e6-58362ebf4e81",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "c70a8283-bdbb-5f9d-b5e6-58362ebf4e81",
+      "author_name": "Caleb Coleman",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "",
+      "published_at": "2026-03-06T11:58:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "e6e70e10-a9ca-5b1d-a2b7-a88d9e6339d5",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "e6e70e10-a9ca-5b1d-a2b7-a88d9e6339d5",
+      "author_name": "Olivia Nguyen",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Our reservation was honored right away and the food arrived promptly. The outdoor seating is beautiful in the evening. Can't wait to return.",
+      "published_at": "2026-03-05T19:07:00+00:00"
+    },
+    {
+      "source_id": "ca593d79-8554-57c7-a2b4-ec11356f2f50",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "ca593d79-8554-57c7-a2b4-ec11356f2f50",
+      "author_name": "Noah Tran",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Great vibe, we stayed longer than planned just enjoying the setting. Great value for money, we left full without spending much. The chicken fried steak was too salty and greasy, I couldn't finish it. Okay experience, might give it another try.",
+      "published_at": "2026-03-05T13:15:00+00:00"
+    },
+    {
+      "source_id": "46e6cdde-f4ed-5304-ac4f-460805691d5f",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "46e6cdde-f4ed-5304-ac4f-460805691d5f",
+      "author_name": "Ava Santos",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Best brisket plate I've had in a long time, the seasoning was spot on. Our server seemed distracted and forgot part of our order. Fair prices and the lunch special is a bargain. Decent overall, but there is room for improvement.",
+      "published_at": "2026-03-05T01:01:00+00:00"
+    },
+    {
+      "source_id": "3f39bf5a-b046-5b7c-9d15-bca158b9b46a",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "3f39bf5a-b046-5b7c-9d15-bca158b9b46a",
+      "author_name": "Nora Tran",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "",
+      "published_at": "2026-02-23T15:33:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "05347826-c369-5776-8c43-e91604992f97",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "05347826-c369-5776-8c43-e91604992f97",
+      "author_name": "Elena Carter",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "",
+      "published_at": "2026-02-22T06:24:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "8afbf6c6-fe15-5e14-afff-c9818c2e92b8",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "8afbf6c6-fe15-5e14-afff-c9818c2e92b8",
+      "author_name": "Jacob Ellis",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Everything we ordered was delicious, especially the banana pudding. We waited over 45 minutes for our food and nobody explained why. Our server was knowledgeable and made great recommendations.",
+      "published_at": "2026-02-19T19:46:00+00:00"
+    },
+    {
+      "source_id": "f5458a80-05de-5dc8-9c5e-24a1dfd077f7",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "f5458a80-05de-5dc8-9c5e-24a1dfd077f7",
+      "author_name": "Ethan Ortiz",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Tables were wiped down right away and everything looked very clean. The outdoor seating is beautiful in the evening. Service was disorganized, we had to flag someone down three times. Decent overall, but there is room for improvement.",
+      "published_at": "2026-02-17T22:45:00+00:00"
+    },
+    {
+      "source_id": "688221b1-7119-577d-83e4-d057a3fb4381",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "688221b1-7119-577d-83e4-d057a3fb4381",
+      "author_name": "Declan Santos",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "We waited over 45 minutes for our food and nobody explained why. Very hygienic kitchen and clean dining area, which I really appreciate. Fresh ingredients and a great mac and cheese, we cleaned our plates. Highly recommended.",
+      "published_at": "2026-02-17T20:10:00+00:00"
+    },
+    {
+      "source_id": "449bae09-b1cb-54cc-8c19-5f84afef102a",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "449bae09-b1cb-54cc-8c19-5f84afef102a",
+      "author_name": "Marcus Rivera",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "The atmosphere felt cold and impersonal. Very hygienic kitchen and clean dining area, which I really appreciate. Disappointed overall.",
+      "published_at": "2026-02-15T20:11:00+00:00"
+    },
+    {
+      "source_id": "d1fd748e-0e1a-5bd1-89c6-9819d1c69ede",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "d1fd748e-0e1a-5bd1-89c6-9819d1c69ede",
+      "author_name": "Sophia Dawson",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Very hygienic kitchen and clean dining area, which I really appreciate. The set menu is excellent value. Waited forever for the bill, we nearly gave up. Our server was knowledgeable and made great recommendations.",
+      "published_at": "2026-02-13T17:07:00+00:00"
+    },
+    {
+      "source_id": "9fae1b86-7b9f-55d8-8dad-542266feb1ca",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "9fae1b86-7b9f-55d8-8dad-542266feb1ca",
+      "author_name": "Declan Price",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Fair prices and the lunch special is a bargain. Loved the breakfast tacos; portions were generous and everything tasted fresh. Five stars from us.",
+      "published_at": "2026-02-08T19:41:00+00:00"
+    },
+    {
+      "source_id": "7d5f1c2d-9853-5f31-885c-fdc56d9406e9",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "7d5f1c2d-9853-5f31-885c-fdc56d9406e9",
+      "author_name": "Noah Fischer",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The brisket sandwich was outstanding, full of flavor and cooked just right. Great vibe, we stayed longer than planned just enjoying the setting. Will definitely come back.",
+      "published_at": "2026-02-08T13:26:00+00:00"
+    },
+    {
+      "source_id": "c1419a16-bdec-551a-bcbd-d334ecdf4fba",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "c1419a16-bdec-551a-bcbd-d334ecdf4fba",
+      "author_name": "Isla Kim",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Comfortable seating and a warm, welcoming interior. The waiter got our order wrong and was dismissive when we pointed it out. My buttermilk pancakes was overcooked and the portion was smaller than expected.",
+      "published_at": "2026-02-05T06:16:00+00:00"
+    },
+    {
+      "source_id": "b6d4d62b-d3d3-562a-8667-5e6eeb08735b",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "b6d4d62b-d3d3-562a-8667-5e6eeb08735b",
+      "author_name": "Reid Dawson",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The carne asada burrito was bland and arrived lukewarm. Honestly cheap for what you get, I'd happily pay more. I noticed flies near the counter and the cutlery was not clean. Okay experience, might give it another try.",
+      "published_at": "2026-02-04T09:22:00+00:00"
+    },
+    {
+      "source_id": "ed7202fa-6455-5c89-b857-4beca9a64af8",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "ed7202fa-6455-5c89-b857-4beca9a64af8",
+      "author_name": "Ava Sullivan",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Fresh ingredients and a great biscuits and gravy, we cleaned our plates. A charming spot with a great view and a good mood. Five stars from us.",
+      "published_at": "2026-02-02T06:19:00+00:00"
+    },
+    {
+      "source_id": "c7622a3c-7c31-5e51-9b90-6646c1dcd7b2",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "c7622a3c-7c31-5e51-9b90-6646c1dcd7b2",
+      "author_name": "Amelia Carter",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Best banana pudding I've had in a long time, the seasoning was spot on. Great value for money, we left full without spending much. Five stars from us.",
+      "published_at": "2026-01-29T12:25:00+00:00"
+    },
+    {
+      "source_id": "8bed2e41-6f7e-58b0-b63b-5cd93fbeee6b",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "8bed2e41-6f7e-58b0-b63b-5cd93fbeee6b",
+      "author_name": "Tyler Webb",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "Staff looked burnt out and not friendly at all. The smoked sausage was too salty and greasy, I couldn't finish it.",
+      "published_at": "2026-01-26T11:01:00+00:00"
+    },
+    {
+      "source_id": "b52f386b-395a-522b-aba1-1877dba0ede6",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "b52f386b-395a-522b-aba1-1877dba0ede6",
+      "author_name": "Isla Dawson",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Prices have gone up but the portions keep shrinking. Fresh ingredients and a great mac and cheese, we cleaned our plates. The outdoor seating is beautiful in the evening. Service was warm and efficient from the moment we walked in.",
+      "published_at": "2026-01-25T22:42:00+00:00"
+    },
+    {
+      "source_id": "0c9005af-d0fa-5be8-8067-92642137fff7",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "0c9005af-d0fa-5be8-8067-92642137fff7",
+      "author_name": "Logan Santos",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Waiters were polite and refilled our drinks without being asked. Fair prices and the lunch special is a bargain. Loved the pecan pie; portions were generous and everything tasted fresh. No wait at all, we were seated and served within minutes. Can't wait to return.",
+      "published_at": "2026-01-20T16:27:00+00:00"
+    },
+    {
+      "source_id": "1df3c0ba-f13a-57d2-9a50-8f85705ad351",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "1df3c0ba-f13a-57d2-9a50-8f85705ad351",
+      "author_name": "Lucas Fischer",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Honestly cheap for what you get, I'd happily pay more. Staff were friendly, attentive and checked on us often. Fresh ingredients and a great breakfast tacos, we cleaned our plates.",
+      "published_at": "2026-01-18T17:09:00+00:00"
+    },
+    {
+      "source_id": "3814b3c4-6f65-558a-8899-688f7edb82d3",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "3814b3c4-6f65-558a-8899-688f7edb82d3",
+      "author_name": "Tyler Price",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "",
+      "published_at": "2026-01-14T07:41:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "3ccc3bcd-935b-5c03-a9ca-117c09659d91",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "3ccc3bcd-935b-5c03-a9ca-117c09659d91",
+      "author_name": "Mia Hayes",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "",
+      "published_at": "2026-01-07T09:33:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "e6a856f1-bca8-59df-bc3c-0a1398fa8fca",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "e6a856f1-bca8-59df-bc3c-0a1398fa8fca",
+      "author_name": "Isla Hughes",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Quick service, perfect for a lunch break. Prices have gone up but the portions keep shrinking. Fresh ingredients and a great mac and cheese, we cleaned our plates. Highly recommended.",
+      "published_at": "2025-12-30T10:45:00+00:00"
+    },
+    {
+      "source_id": "ad0d0130-f518-5679-9b60-ba525848b87d",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "ad0d0130-f518-5679-9b60-ba525848b87d",
+      "author_name": "Chloe Garza",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Best smoked sausage I've had in a long time, the seasoning was spot on. Music was blasting and the place felt chaotic. Decent overall, but there is room for improvement.",
+      "published_at": "2025-12-26T04:34:00+00:00"
+    },
+    {
+      "source_id": "ab151ae3-ea08-546f-b254-14506a62cca1",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "ab151ae3-ea08-546f-b254-14506a62cca1",
+      "author_name": "Jacob Hughes",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Prices are very reasonable for the quality and the portion size. The tables are packed so close together there is no privacy. Disappointed overall.",
+      "published_at": "2025-12-23T12:11:00+00:00"
+    },
+    {
+      "source_id": "77ee9429-51a0-57ed-b512-2a40bbbca965",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "77ee9429-51a0-57ed-b512-2a40bbbca965",
+      "author_name": "Mia Hughes",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Fresh ingredients and a great beef rib, we cleaned our plates. Cleanliness needs work, the table still had leftovers from the last guests. The team went out of their way to make us feel welcome. Waited forever for the bill, we nearly gave up. Decent overall, but there is room for improvement.",
+      "published_at": "2025-12-19T12:35:00+00:00"
+    },
+    {
+      "source_id": "cec2cbf6-47ef-5e80-986b-f10edfaf7b77",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "cec2cbf6-47ef-5e80-986b-f10edfaf7b77",
+      "author_name": "Ruby Lopez",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Best breakfast tacos I've had in a long time, the seasoning was spot on. Fair prices and the lunch special is a bargain. Highly recommended.",
+      "published_at": "2025-12-18T05:00:00+00:00"
+    },
+    {
+      "source_id": "c8ef310a-0269-5cf2-9b18-eee13d0b7e11",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "c8ef310a-0269-5cf2-9b18-eee13d0b7e11",
+      "author_name": "Emma Whitaker",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Honestly cheap for what you get, I'd happily pay more. Our server seemed distracted and forgot part of our order. Clean cutlery, clean floors, clear attention to detail.",
+      "published_at": "2025-12-16T16:08:00+00:00"
+    },
+    {
+      "source_id": "ec978b1f-b4f4-51ed-8b56-e69ad2e7d1df",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "ec978b1f-b4f4-51ed-8b56-e69ad2e7d1df",
+      "author_name": "Marcus Fischer",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "The atmosphere felt cold and impersonal. Long wait just to be seated, even with a reservation. Hope they improve.",
+      "published_at": "2025-12-12T16:33:00+00:00"
+    },
+    {
+      "source_id": "5d868df2-17af-5bbf-8a34-0d6444080f3c",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "5d868df2-17af-5bbf-8a34-0d6444080f3c",
+      "author_name": "Ethan Reyes",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Ordered the mac and cheese and it came out cold in the middle. Very hygienic kitchen and clean dining area, which I really appreciate. Waited forever for the bill, we nearly gave up. Decent overall, but there is room for improvement.",
+      "published_at": "2025-12-05T15:49:00+00:00"
+    },
+    {
+      "source_id": "ddbdc155-687d-5c14-8d40-31fa5b15dc5b",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "ddbdc155-687d-5c14-8d40-31fa5b15dc5b",
+      "author_name": "Isla Reyes",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "The bill was higher than expected and the quality did not justify it. Fresh ingredients and a great banana pudding, we cleaned our plates. Will definitely come back.",
+      "published_at": "2025-12-04T17:17:00+00:00"
+    },
+    {
+      "source_id": "2370f89a-8234-5a0e-bc09-ab77bbcb7f51",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "2370f89a-8234-5a0e-bc09-ab77bbcb7f51",
+      "author_name": "Amelia Coleman",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "The pecan pie was too salty and greasy, I couldn't finish it. The tables are packed so close together there is no privacy. Good portions for the price, nothing felt overpriced. Cleanliness needs work, the table still had leftovers from the last guests. Wouldn't recommend.",
+      "published_at": "2025-12-04T11:23:00+00:00"
+    },
+    {
+      "source_id": "93d79306-a674-5dc9-be9a-f104f0da5b4e",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "93d79306-a674-5dc9-be9a-f104f0da5b4e",
+      "author_name": "Chloe Patel",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Lovely decor and relaxed music, a really pleasant place to sit. We waited over 45 minutes for our food and nobody explained why. Clean cutlery, clean floors, clear attention to detail.",
+      "published_at": "2025-11-12T03:56:00+00:00"
+    },
+    {
+      "source_id": "d99703b0-ff7c-5214-91d8-10409f742943",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "d99703b0-ff7c-5214-91d8-10409f742943",
+      "author_name": "Elena Sullivan",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The restaurant was spotless, including the restrooms. Waiters were polite and refilled our drinks without being asked. Food came out fast even though the place was full. The atmosphere is cozy and lively, perfect for a group dinner. Can't wait to return.",
+      "published_at": "2025-11-10T10:04:00+00:00"
+    },
+    {
+      "source_id": "044be2bd-6d74-5263-afe5-7ad1b47f3802",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "044be2bd-6d74-5263-afe5-7ad1b47f3802",
+      "author_name": "Liam Foster",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The interior feels dated and the seating is cramped. Loved the pecan pie; portions were generous and everything tasted fresh. Good portions for the price, nothing felt overpriced. Okay experience, might give it another try.",
+      "published_at": "2025-11-03T17:28:00+00:00"
+    },
+    {
+      "source_id": "b22d9175-f25f-50d5-93a3-ec417129ca51",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "b22d9175-f25f-50d5-93a3-ec417129ca51",
+      "author_name": "Cole Garza",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The atmosphere is cozy and lively, perfect for a group dinner. Service was disorganized, we had to flag someone down three times. Okay experience, might give it another try.",
+      "published_at": "2025-11-03T10:28:00+00:00"
+    },
+    {
+      "source_id": "f593da64-5a26-5d08-be9c-ba2e1edeacc4",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "f593da64-5a26-5d08-be9c-ba2e1edeacc4",
+      "author_name": "Tyler Kim",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Great service, they even accommodated our food allergy without fuss. The kitchen was painfully slow, dishes came out one by one.",
+      "published_at": "2025-11-01T20:54:00+00:00"
+    },
+    {
+      "source_id": "cdcc0eca-9ce3-5cf6-986c-138057fd11ae",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "cdcc0eca-9ce3-5cf6-986c-138057fd11ae",
+      "author_name": "Tyler Patel",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Long wait just to be seated, even with a reservation. Very hygienic kitchen and clean dining area, which I really appreciate. Staff were rude and barely acknowledged us. Decent overall, but there is room for improvement.",
+      "published_at": "2025-10-30T00:18:00+00:00"
+    },
+    {
+      "source_id": "7c33df44-df5a-54cd-a80e-490e57aeb265",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "7c33df44-df5a-54cd-a80e-490e57aeb265",
+      "author_name": "Grace Ellis",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "Hidden service charges made the final bill painful. Slow service during the dinner rush, plan for a long wait.",
+      "published_at": "2025-10-27T14:59:00+00:00"
+    },
+    {
+      "source_id": "8c1a9e2e-da8e-5518-8bef-8cba29e499d3",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "8c1a9e2e-da8e-5518-8bef-8cba29e499d3",
+      "author_name": "Olivia Coleman",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Our reservation was honored right away and the food arrived promptly. The pot roast was outstanding, full of flavor and cooked just right. Hidden service charges made the final bill painful. Decent overall, but there is room for improvement.",
+      "published_at": "2025-10-26T21:26:00+00:00"
+    },
+    {
+      "source_id": "f2ba6621-603d-5a49-b681-5ec8e5a2fb7c",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "f2ba6621-603d-5a49-b681-5ec8e5a2fb7c",
+      "author_name": "Tyler Rivera",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The brisket plate arrived hot and the flavors were well balanced. The bill was higher than expected and the quality did not justify it. Long wait just to be seated, even with a reservation. A charming spot with a great view and a good mood. Okay experience, might give it another try.",
+      "published_at": "2025-10-26T03:28:00+00:00"
+    },
+    {
+      "source_id": "41a3448e-7b97-5c96-b2cf-822332b82ea5",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "41a3448e-7b97-5c96-b2cf-822332b82ea5",
+      "author_name": "Amelia Ortiz",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The interior feels dated and the seating is cramped. Everything we ordered was delicious, especially the pork ribs.",
+      "published_at": "2025-10-24T08:22:00+00:00"
+    },
+    {
+      "source_id": "8aad3d10-9edf-5062-b1b4-127aa3b0f8f4",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "8aad3d10-9edf-5062-b1b4-127aa3b0f8f4",
+      "author_name": "Hannah Foster",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Loved the chicken fried steak; portions were generous and everything tasted fresh. It was so loud we could barely hold a conversation. The bill was higher than expected and the quality did not justify it. We waited over 45 minutes for our food and nobody explained why.",
+      "published_at": "2025-10-21T22:03:00+00:00"
+    },
+    {
+      "source_id": "ea24779b-78fc-5193-9aab-0bc06407070c",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "ea24779b-78fc-5193-9aab-0bc06407070c",
+      "author_name": "Grace Webb",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Loved the breakfast tacos; portions were generous and everything tasted fresh. Our reservation was honored right away and the food arrived promptly.",
+      "published_at": "2025-10-21T00:53:00+00:00"
+    },
+    {
+      "source_id": "2423e48c-f969-53ab-9049-2b6772969bfb",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "2423e48c-f969-53ab-9049-2b6772969bfb",
+      "author_name": "Mason Brooks",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Our server seemed distracted and forgot part of our order. Lovely decor and relaxed music, a really pleasant place to sit. Okay experience, might give it another try.",
+      "published_at": "2025-10-20T03:06:00+00:00"
+    },
+    {
+      "source_id": "35979ab9-d594-5a3e-8339-7252d9832cff",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "35979ab9-d594-5a3e-8339-7252d9832cff",
+      "author_name": "Nora Carter",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The outdoor seating is beautiful in the evening. The set menu is excellent value. Five stars from us.",
+      "published_at": "2025-10-12T10:03:00+00:00"
+    },
+    {
+      "source_id": "9970675f-8442-5d1b-afb1-f48006be5e6a",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "9970675f-8442-5d1b-afb1-f48006be5e6a",
+      "author_name": "Cole Hayes",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Service was disorganized, we had to flag someone down three times. The breakfast tacos arrived hot and the flavors were well balanced. The set menu is excellent value.",
+      "published_at": "2025-09-30T01:11:00+00:00"
+    },
+    {
+      "source_id": "37c3c192-ae18-528d-94a0-e38fa6659eaa",
+      "restaurant_source_id": "b2f0d86f-688e-5365-b3b4-ee7a5794e544",
+      "external_review_id": "37c3c192-ae18-528d-94a0-e38fa6659eaa",
+      "author_name": "Hannah Santos",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "",
+      "published_at": "2025-09-29T22:41:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "1d7ab296-8533-5a9f-b979-33c237a7ef44",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "1d7ab296-8533-5a9f-b979-33c237a7ef44",
+      "author_name": "Grace Dawson",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "",
+      "published_at": "2025-09-26T21:30:00+00:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "bac828d2-752f-59d4-936e-2dcf3e2bb1b6",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "bac828d2-752f-59d4-936e-2dcf3e2bb1b6",
+      "author_name": "Cole Hughes",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Fresh ingredients and a great mac and cheese, we cleaned our plates. Our server was knowledgeable and made great recommendations. The restaurant was spotless, including the restrooms. Will definitely come back.",
+      "published_at": "2025-09-20T19:34:00+00:00"
+    },
+    {
+      "source_id": "b2967495-d2ee-5b9c-bfca-faa6dd532893",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "b2967495-d2ee-5b9c-bfca-faa6dd532893",
+      "author_name": "Wyatt Whitaker",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "The outdoor seating is beautiful in the evening. Ingredients did not taste fresh, and the beef rib was disappointing.",
+      "published_at": "2025-09-14T11:43:00+00:00"
+    },
+    {
+      "source_id": "e5189e03-b8c8-591d-b5bc-9e0835e56485",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "e5189e03-b8c8-591d-b5bc-9e0835e56485",
+      "author_name": "Dylan Whitaker",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The tables are packed so close together there is no privacy. The beef rib arrived hot and the flavors were well balanced. Decent overall, but there is room for improvement.",
+      "published_at": "2025-09-11T20:51:00+00:00"
+    },
+    {
+      "source_id": "b2a87f87-809e-555a-b6db-ba5930891bb3",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "b2a87f87-809e-555a-b6db-ba5930891bb3",
+      "author_name": "Ethan Hughes",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Food was just average, the queso tasted like it had been sitting out. Our reservation was honored right away and the food arrived promptly. Service was warm and efficient from the moment we walked in. Will definitely come back.",
+      "published_at": "2025-09-04T03:28:00+00:00"
+    },
+    {
+      "source_id": "c9987c35-aae8-5bca-bacc-c4e5f8ffbacd",
+      "restaurant_source_id": "02a01f92-e5f3-5b74-9459-e27763fa6ac6",
+      "external_review_id": "c9987c35-aae8-5bca-bacc-c4e5f8ffbacd",
+      "author_name": "Dylan Ortiz",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The table was sticky and the floor had not been cleaned. The team went out of their way to make us feel welcome. No wait at all, we were seated and served within minutes. Ordered the burnt ends and it came out cold in the middle. Decent overall, but there is room for improvement.",
+      "published_at": "2025-08-10T21:41:00+00:00"
+    },
+    {
+      "source_id": "b08b6f04-8bb1-5c0c-bb42-0e50c376f200",
+      "restaurant_source_id": "38f75173-ec88-5aab-ae17-1ceb89b170b7",
+      "external_review_id": "b08b6f04-8bb1-5c0c-bb42-0e50c376f200",
+      "author_name": "Wyatt Hayes",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Fresh ingredients and a great banana pudding, we cleaned our plates. Staff were rude and barely acknowledged us. Fair prices and the lunch special is a bargain. Decent overall, but there is room for improvement.",
+      "published_at": "2025-08-10T10:04:00+00:00"
+    },
+    {
+      "source_id": "5f7b1aac-3454-5501-822f-cf5a8b04a396",
+      "restaurant_source_id": "4768dc62-f275-5eb2-9af2-ff75ad306f39",
+      "external_review_id": "5f7b1aac-3454-5501-822f-cf5a8b04a396",
+      "author_name": "Marcus Sullivan",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Our reservation was honored right away and the food arrived promptly. Loved the queso; portions were generous and everything tasted fresh. Service was warm and efficient from the moment we walked in.",
+      "published_at": "2025-07-21T13:12:00+00:00"
+    }
+  ]
+}

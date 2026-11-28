@@ -11,10 +11,12 @@ that are not implemented yet.
 
 ## Why the scope is reduced
 
-The seeded datasets (`api/district2_restaurants_reviews.json`, `api/alaska_moose_tooth_reviews.json`)
+The seeded datasets (`api/district2_restaurants_reviews.json`, `api/alaska_moose_tooth_reviews.json`,
+`api/district1_restaurants_reviews.json`, `api/austin_bbq_reviews.json`)
 only contain name, address, Google rating, Google review count, and review text. They do **not**
-contain coordinates, cuisine/category, or price level, and only 5 of the 21 restaurants have
-collected reviews (5, 5, 5, 2 for HCMC, and 2,833 for Moose's Tooth in Anchorage). Finding real
+contain coordinates, cuisine/category, or price level, and 14 of the 30 seeded restaurants have
+collected reviews (4 in District 2 with 2–5, 5 in District 1 with 30–45, 4 in Austin with 35–70,
+and 1 in Anchorage with 2,833). Finding real
 competitors inside a radius needs the Google Places API, which is not configured yet.
 
 ## What is implemented
