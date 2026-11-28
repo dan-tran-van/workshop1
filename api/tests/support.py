@@ -16,6 +16,7 @@ from unittest.mock import patch
 with patch.dict(os.environ, {
     "DATABASE_URL": "sqlite://", "OPENAI_API_KEY": "", "GOOGLE_PLACES_API_KEY": "",
     "HUGGINGFACE_API_TOKEN": "",
+    "TTS_BASE_URL": "",
     "CORS_ORIGINS": '["http://localhost:5173"]',
 }):
     from app.main import app
@@ -74,6 +75,7 @@ class BackendTestCase(unittest.TestCase):
         self.resources.enter_context(patch.object(settings, "OPENAI_API_KEY", ""))
         self.resources.enter_context(patch.object(settings, "GOOGLE_PLACES_API_KEY", ""))
         self.resources.enter_context(patch.object(settings, "HUGGINGFACE_API_TOKEN", ""))
+        self.resources.enter_context(patch.object(settings, "TTS_BASE_URL", ""))
         clear_tts_cache()
         self.unmocked_requests: list[str] = []
 
