@@ -15,6 +15,9 @@ services:
       - DATABASE_URL=${DATABASE_URL:-sqlite:///./data.db}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - HUGGINGFACE_API_TOKEN=${HUGGINGFACE_API_TOKEN:-}
+      - HUGGINGFACE_TTS_MODEL=${HUGGINGFACE_TTS_MODEL:-facebook/mms-tts-eng}
+      - HUGGINGFACE_TTS_API_URL=${HUGGINGFACE_TTS_API_URL:-https://router.huggingface.co/hf-inference/models}
       - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY:-}
       - AUTH_SECRET_KEY=${AUTH_SECRET_KEY:-}
       - AUTH_BOOTSTRAP_KEY=${AUTH_BOOTSTRAP_KEY:-}
