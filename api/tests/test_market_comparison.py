@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tests.support import BackendTestCase, settings
 from app.models import Review
+from app.services.vector_store import store_review_embedding
 
 PASSWORD = "secure-test-password-123"
 
@@ -182,7 +183,7 @@ class TestMarketComparisonAccess(MarketComparisonTestCase):
         self.assertEqual(self.client.get(f"{url}/gap").status_code, 200)
         self.assertEqual(self.client.put(f"{url}/{rival['id']}", json={"status": "PINNED"}).status_code, 403)
         self.assertEqual(self.client.delete(f"{url}/{rival['id']}").status_code, 403)
-        self.assertEqual(self.client.get(f"{url}/candidates").status_code, 403)
+        self.assertEqual(self.client.get(f"{url}/candidates").status_code, 200)
 
         self.login_as("owner@example.com")
         self.assertEqual(self.client.get(url).status_code, 200)
@@ -305,6 +306,63 @@ class TestCriteriaGap(MarketComparisonTestCase):
         self.assertEqual(body["model"], "heuristic-fallback")
         self.assertNotEqual(body["explanation"], "Invented claim.")
         self.assertTrue(2 <= len(body["evidence"]) <= 3)
+
+
+class TestEmbeddingCompetitorLookup(MarketComparisonTestCase):
+    def test_competitive_set_prefers_semantically_similar_competitors_over_volume(self) -> None:
+        own = self.place("Own Ramen", 500)
+        closer_volume_different_style = self.place("Steakhouse", 495)
+        farther_volume_similar_style = self.place("Ramen House", 120)
+        self.add_reviews(own["id"], "Rich tonkotsu broth and handmade noodles", [5.0])
+        self.add_reviews(closer_volume_different_style["id"], "Dry aged ribeye steak and wine", [4.5])
+        self.add_reviews(farther_volume_similar_style["id"], "Authentic tonkotsu ramen and pork belly", [4.6])
+
+        own_rev = self.db.query(Review).filter(Review.restaurant_id == own["id"]).first()
+        steak_rev = self.db.query(Review).filter(Review.restaurant_id == closer_volume_different_style["id"]).first()
+        ramen_rev = self.db.query(Review).filter(Review.restaurant_id == farther_volume_similar_style["id"]).first()
+
+        model = settings.OPENAI_EMBEDDING_MODEL
+        store_review_embedding(self.db, own_rev.id, [1.0, 0.0, 0.0], model)
+        store_review_embedding(self.db, steak_rev.id, [0.0, 1.0, 0.0], model)
+        store_review_embedding(self.db, ramen_rev.id, [0.95, 0.05, 0.0], model)
+        self.as_owner_of(own["id"])
+
+        body = self.client.get(f"/restaurants/{own['id']}/competitors").json()
+
+        self.assertEqual(
+            [item["restaurant_id"] for item in body["competitors"]],
+            [farther_volume_similar_style["id"], closer_volume_different_style["id"]],
+        )
+        self.assertTrue(
+            any("similar guest review profile" in reason for reason in body["competitors"][0]["reasons"])
+        )
+
+    def test_manual_candidates_combines_lexical_and_semantic_matches(self) -> None:
+        own = self.place("Own Kitchen", 200)
+        lexical_match = self.place("Noodle Bar", 150)
+        semantic_match = self.place("Ichiran Express", 180)
+        unrelated = self.place("Gelato Spot", 180)
+        self.add_reviews(semantic_match["id"], "Spicy miso noodles with crispy garlic", [4.8])
+        self.add_reviews(unrelated["id"], "Creamy pistachio ice cream", [4.9])
+
+        semantic_rev = self.db.query(Review).filter(Review.restaurant_id == semantic_match["id"]).first()
+        unrelated_rev = self.db.query(Review).filter(Review.restaurant_id == unrelated["id"]).first()
+        model = settings.OPENAI_EMBEDDING_MODEL
+        store_review_embedding(self.db, semantic_rev.id, [0.9, 0.1], model)
+        store_review_embedding(self.db, unrelated_rev.id, [0.0, 1.0], model)
+        self.as_owner_of(own["id"])
+
+        with patch("app.services.competitors.embed_texts", return_value=[[1.0, 0.0]]):
+            response = self.client.get(
+                f"/restaurants/{own['id']}/competitors/candidates",
+                params={"q": "noodle"},
+            )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        returned_ids = [item["restaurant_id"] for item in response.json()]
+        self.assertEqual(returned_ids[0], lexical_match["id"])
+        self.assertIn(semantic_match["id"], returned_ids)
+        self.assertNotIn(unrelated["id"], returned_ids)
 
 
 if __name__ == "__main__":

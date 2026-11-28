@@ -55,7 +55,7 @@ def get_manual_candidates(
     q: Optional[str] = Query(None, description="Search by restaurant name or address"),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
-    user: User = Depends(edit_roles),
+    user: User = Depends(view_roles),
 ) -> List[dict]:
     restaurant = _restaurant_for(db, restaurant_id, user)
     return list_manual_candidates(db, restaurant, q.strip() if q else None, limit)

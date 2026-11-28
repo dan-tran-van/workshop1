@@ -24,10 +24,10 @@ competitors inside a radius needs the Google Places API, which is not configured
 | Acceptance criterion | MVP behavior |
 | :--- | :--- |
 | First suggestion: 5-10 competitors with name, distance, rating, review count, cuisine | Up to `COMPETITOR_MAX_SUGGESTIONS` (10) competitors. Distance and cuisine are returned as `null` and shown as "Not available". |
-| Selection criteria: radius, same cuisine, similar price and review volume | **Radius, cuisine, and price are not applied** (no data). Candidates: every other restaurant in the workspace. Ranking: restaurants **with collected reviews first**, then restaurants without reviews; inside each group, the closest **Google review volume** (`user_rating_count`) to the owner's restaurant comes first. |
-| Each competitor shows why it was suggested | `reasons` list, for example "5 collected reviews, compared on the same criteria", "404 Google reviews (yours: 536)", "Pinned by you". |
+| Selection criteria: radius, same cuisine, similar price and review volume | **Radius, cuisine, and price are not applied** (no data). Candidates: every other restaurant in the workspace. Ranking: restaurants **with collected reviews first**, then restaurants without reviews. When both the owner's restaurant and a candidate have stored review embeddings (`review_embeddings`), reviewed competitors are ranked by **cosine similarity of their review centroids** first, falling back to closest **Google review volume** (`user_rating_count`). |
+| Each competitor shows why it was suggested | `reasons` list, for example "92% similar guest review profile", "5 collected reviews, compared on the same criteria", "404 Google reviews (yours: 536)", "Pinned by you". |
 | Pin / Dismiss updates the list immediately; pinned are always kept; dismissed are not suggested again | `PUT /restaurants/{id}/competitors/{competitor_id}` with `PINNED` or `DISMISSED` returns the updated set. Pinned and manual competitors are always listed first and count toward the 10 slots. Dismissed competitors are listed separately and can be restored (`DELETE` resets the choice). |
-| Manual add uses the same comparison criteria | Owners pick from restaurants **already in the workspace** (`GET .../competitors/candidates`, then `PUT` with `MANUAL`). Manual competitors are scored exactly like suggested ones. |
+| Manual add uses the same comparison criteria | Owners pick from restaurants **already in the workspace** (`GET .../competitors/candidates`, then `PUT` with `MANUAL`). Candidate search combines lexical name/address matching with semantic review matching when query embeddings are available. Manual competitors are scored exactly like suggested ones. |
 | Fewer than 5 matching places: show the count, a notice, and suggest widening the radius or cuisine | `notice` reports the found count and the suggestion. A second notice reports when fewer than 5 competitors have collected reviews, because only those can be scored. |
 | Periodic refresh (for example weekly) without losing pin/dismiss choices | **No scheduled job.** Suggestions are recomputed on every request and with the **Refresh suggestions** button. Pin, dismiss, and manual choices are stored in `competitor_selections` and always survive a refresh. |
 
@@ -115,3 +115,28 @@ Requires a `GOOGLE_PLACES_API_KEY` with Places API (New) enabled.
    example ×2) and "any restaurant type" options that re-run discovery.
 8. **Manual add from Google.** Use Text Search (New) to find a place by name and add it as a
    `MANUAL` competitor.
+
+## Manual Testing Guide (Swagger UI & Login)
+
+Note: Restaurant similarity is computed from per-review embeddings (`review_embeddings`), so restaurants without collected reviews fall back to Google review-volume distance.
+
+1. **Seed data and backfill embeddings** (requires `OPENAI_API_KEY` in `.env`):
+   ```bash
+   docker compose up -d --build
+   docker compose run --rm seed
+   docker compose run --rm backfill-embeddings
+   # Optional targeted backfill:
+   # docker compose run --rm backfill-embeddings --restaurant-id 1
+   # docker compose run --rm backfill-embeddings --review-id 10 --review-id 11
+   ```
+2. **Create demo accounts** (prints random passwords once; the `OWNER` account is assigned to restaurant ID `1`):
+   ```bash
+   docker compose exec api python seed_demo_users.py
+   ```
+3. **Log in via Swagger UI (`http://localhost:8000/docs`)**:
+   - Open `POST /auth/login` → **Try it out** → enter the `OWNER` (or `ANALYST`) email and password → **Execute**.
+   - Copy the `access_token` from the response.
+   - Click **Authorize** at the top of Swagger UI, paste the token, and click **Authorize**.
+4. **Test semantic competitor lookup**:
+   - **Competitive set (`GET /restaurants/1/competitors`)**: Execute with `restaurant_id = 1`. Competitors with collected reviews are ranked by review-profile cosine similarity first and include `"<pct>% similar guest review profile"` in `reasons`.
+   - **Manual candidate search (`GET /restaurants/1/competitors/candidates`)**: Execute as `OWNER` or `ANALYST` with a semantic query such as `q=truffle pasta` or `q=slow service` to see restaurants matched by their review content even when the query is not in their name or address.

@@ -18,6 +18,7 @@ services:
       - HUGGINGFACE_API_TOKEN=${HUGGINGFACE_API_TOKEN:-}
       - HUGGINGFACE_TTS_MODEL=${HUGGINGFACE_TTS_MODEL:-facebook/mms-tts-eng}
       - HUGGINGFACE_TTS_API_URL=${HUGGINGFACE_TTS_API_URL:-https://router.huggingface.co/hf-inference/models}
+      - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
       - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY:-}
       - AUTH_SECRET_KEY=${AUTH_SECRET_KEY:-}
       - AUTH_BOOTSTRAP_KEY=${AUTH_BOOTSTRAP_KEY:-}
@@ -54,11 +55,32 @@ services:
       - DATABASE_URL=${DATABASE_URL:-sqlite:///./data.db}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
     volumes:
       - ./api:/app
       - /app/.venv
       - /app/__pycache__
     command: python seed.py
+    profiles:
+      - tools
+
+  # Review Embedding Backfill Service (Run with: docker compose run --rm backfill-embeddings)
+  backfill-embeddings:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: workshop1-backfill-embeddings
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./data.db}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
+    volumes:
+      - ./api:/app
+      - /app/.venv
+      - /app/__pycache__
+    entrypoint: ["python", "backfill_embeddings.py"]
     profiles:
       - tools
 
