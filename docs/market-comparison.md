@@ -118,6 +118,13 @@ Requires a `GOOGLE_PLACES_API_KEY` with Places API (New) enabled.
 8. **Manual add from Google.** Use Text Search (New) to find a place by name and add it as a
    `MANUAL` competitor.
 
+## Vector Storage Decision & Upgrade Path
+
+- **Current decision (SQLite + `ReviewEmbedding`)**: Review vectors are stored in SQLite (`review_embeddings`, `JSON` column) and scanned in-process via [`api/app/services/vector_store.py`](../api/app/services/vector_store.py). At current scale (~3,245 reviews across 30 restaurants), this keeps ACID transactions and `ondelete="CASCADE"` with `reviews`, avoids dual-store sync issues on `db.rollback()`, and requires zero extra Docker services or heavy dependencies.
+- **Upgrade path**:
+  1. **5k–50k reviews (stay on SQLite)**: Store packed `float32` `BLOB`s (or `sqlite-vec`) and use vectorized dot products (`numpy`) to eliminate JSON parsing overhead.
+  2. **100k+ reviews / multi-tenant production**: Migrate from SQLite to **PostgreSQL + `pgvector`** (or a dedicated vector DB such as Qdrant if high-QPS ANN search is needed) behind the existing `vector_store.py` interface without changing routers or frontend code.
+
 ## Manual Testing Guide (Swagger UI & Login)
 
 Note: Restaurant similarity is computed from per-review embeddings (`review_embeddings`), so restaurants without collected reviews fall back to Google review-volume distance.
