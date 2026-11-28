@@ -272,3 +272,15 @@ OK (skipped=2)
         self.assertEqual(fields["Expected"], "Not available in unittest output")
         self.assertEqual(fields["Actual"], "Not available in unittest output")
         self.assertEqual(fields["Message"], "RuntimeError: unavailable")
+
+    def test_docstring_descriptions_are_parsed(self) -> None:
+        log = (
+            "test_doc_pass (test_api.Example.test_doc_pass)\n"
+            "Verify docstring description ... ok\n"
+            "test_doc_skip (test_api.Example.test_doc_skip)\n"
+            "Verify skipped docstring ... skipped 'reason'\n"
+            "Ran 2 tests in 0.001s\n"
+            "OK (skipped=1)\n"
+        )
+        records = parse_results(log)
+        self.assertEqual(counts(records), dict(total=2, passed=1, failed=0, error=0, skipped=1, not_executed=0))
