@@ -15,6 +15,7 @@ from unittest.mock import patch
 # Set test configuration BEFORE importing the app. Never read developer keys.
 with patch.dict(os.environ, {
     "DATABASE_URL": "sqlite://", "OPENAI_API_KEY": "", "GOOGLE_PLACES_API_KEY": "",
+    "HUGGINGFACE_API_TOKEN": "",
     "CORS_ORIGINS": '["http://localhost:5173"]',
 }):
     from app.main import app
@@ -26,6 +27,7 @@ from app.config import settings
 from app.database import Base, get_db
 from app.models import Analysis, Restaurant, User
 from app.services.auth import create_access_token, hash_password
+from app.services.tts import clear_tts_cache
 
 EXPECTED_ANALYSIS = {
     "overall_sentiment": "MIXED",
@@ -71,6 +73,8 @@ class BackendTestCase(unittest.TestCase):
         self.resources.enter_context(patch("app.main.engine", self.engine))
         self.resources.enter_context(patch.object(settings, "OPENAI_API_KEY", ""))
         self.resources.enter_context(patch.object(settings, "GOOGLE_PLACES_API_KEY", ""))
+        self.resources.enter_context(patch.object(settings, "HUGGINGFACE_API_TOKEN", ""))
+        clear_tts_cache()
         self.unmocked_requests: list[str] = []
 
         def deny_provider(*args, **kwargs):
@@ -79,6 +83,7 @@ class BackendTestCase(unittest.TestCase):
 
         self.openai_guard = self.resources.enter_context(patch("openai.OpenAI", side_effect=deny_provider))
         self.google_guard = self.resources.enter_context(patch("app.services.sync.httpx.get", side_effect=deny_provider))
+        self.hf_guard = self.resources.enter_context(patch("app.services.tts.httpx.post", side_effect=deny_provider))
         original_connect = socket.socket.connect
         original_connect_ex = socket.socket.connect_ex
         original_create_connection = socket.create_connection

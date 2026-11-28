@@ -72,6 +72,9 @@ type RestaurantDetail = Restaurant & {
 type MockOptions = {
   beforeListResponse?: () => Promise<void>;
   analysisDelayMs?: number;
+  ttsDelayMs?: number;
+  ttsErrorStatus?: number;
+  ttsErrorDetail?: string;
   failFirstRestaurantList?: boolean;
   details?: Record<number, Partial<RestaurantDetail>>;
   initialAnalysis?: Analysis | null;
@@ -450,6 +453,26 @@ export async function installApiMocks(page: Page, options: MockOptions = {}) {
       return;
     }
 
+    const ttsMatch = path.match(/^\/restaurants\/(\d+)\/analyses\/(\d+)\/tts$/);
+    if (ttsMatch && request.method() === "POST") {
+      if (options.ttsDelayMs) await page.waitForTimeout(options.ttsDelayMs);
+      if (options.ttsErrorStatus) {
+        await json(
+          route,
+          { detail: options.ttsErrorDetail ?? "Text-to-speech is not configured on the server." },
+          options.ttsErrorStatus,
+        );
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: "audio/wav",
+        headers: { "access-control-allow-origin": "*" },
+        body: createSilentWavBuffer(),
+      });
+      return;
+    }
+
     await json(route, { detail: `Unmocked endpoint: ${request.method()} ${path}` }, 404);
   });
 }
@@ -478,4 +501,25 @@ async function json(route: Route, body: unknown, status = 200) {
     headers: { "access-control-allow-origin": "*" },
     body: JSON.stringify(body),
   });
+}
+
+function createSilentWavBuffer(durationSeconds = 2): Buffer {
+  const sampleRate = 8000;
+  const numSamples = sampleRate * durationSeconds;
+  const header = Buffer.alloc(44);
+  header.write("RIFF", 0);
+  header.writeUInt32LE(36 + numSamples, 4);
+  header.write("WAVE", 8);
+  header.write("fmt ", 12);
+  header.writeUInt32LE(16, 16); // PCM chunk size
+  header.writeUInt16LE(1, 20); // Audio format = PCM
+  header.writeUInt16LE(1, 22); // Mono
+  header.writeUInt32LE(sampleRate, 24);
+  header.writeUInt32LE(sampleRate, 28); // Byte rate (8-bit mono)
+  header.writeUInt16LE(1, 32); // Block align
+  header.writeUInt16LE(8, 34); // Bits per sample
+  header.write("data", 36);
+  header.writeUInt32LE(numSamples, 40);
+  const samples = Buffer.alloc(numSamples, 128); // Silence for unsigned 8-bit PCM
+  return Buffer.concat([header, samples]);
 }

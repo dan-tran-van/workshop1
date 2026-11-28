@@ -55,6 +55,7 @@ import {
   type ComparisonViewMode,
 } from "./components/CriteriaComparison";
 import { MarketComparisonPage } from "./components/MarketComparison";
+import { ReadAloudButton } from "./components/ReadAloudButton";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
@@ -142,6 +143,31 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(message);
   }
   return response.json() as Promise<T>;
+}
+
+async function requestBlob(path: string, init?: RequestInit): Promise<Blob> {
+  const headers = new Headers(init?.headers);
+  if (authToken) headers.set("Authorization", `Bearer ${authToken}`);
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...init,
+    headers,
+  });
+  if (!response.ok) {
+    if (response.status === 401 && authToken) {
+      authToken = "";
+      window.sessionStorage.removeItem("gather-access-token");
+      window.location.reload();
+    }
+    let message = `Request failed (${response.status})`;
+    try {
+      const body = await response.json();
+      message = typeof body.detail === "string" ? body.detail : message;
+    } catch {
+      // Keep the HTTP status message when the server does not return JSON.
+    }
+    throw new Error(message);
+  }
+  return response.blob();
 }
 
 function formatDate(value: string | null | undefined) {
@@ -429,6 +455,15 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
     setPage("overview");
   }
 
+  const fetchAnalysisAudio = useCallback(
+    (restaurantId: number, analysisId: number, signal?: AbortSignal) =>
+      requestBlob(`/restaurants/${restaurantId}/analyses/${analysisId}/tts`, {
+        method: "POST",
+        signal,
+      }),
+    [],
+  );
+
   async function runAnalysis(forceRefresh = false) {
     if (!selectedId) return;
     const previousLatestId = detail?.latest_analysis?.id ?? null;
@@ -664,6 +699,7 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
               onSort={setSortBy}
               onSelect={setSelectedId}
               onAnalyze={runAnalysis}
+              onFetchAnalysisAudio={fetchAnalysisAudio}
               onSelectBaseline={handleSelectBaseline}
               onChangeComparisonViewMode={setComparisonViewMode}
               onGoToRestaurants={() => setPage("restaurants")}
@@ -683,6 +719,7 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
               onSelect={(id) => { setSelectedId(id); setPage("overview"); }}
               onCompare={handleCompareFromHistory}
               onAnalyze={runAnalysis}
+              onFetchAnalysisAudio={fetchAnalysisAudio}
               analyzing={analyzing}
             />
           )}
@@ -889,6 +926,7 @@ function RestaurantWorkspace(props: {
   onSort: (value: "rating" | "reviews") => void;
   onSelect: (id: number) => void;
   onAnalyze: (refresh?: boolean) => void;
+  onFetchAnalysisAudio: (restaurantId: number, analysisId: number, signal?: AbortSignal) => Promise<Blob>;
   onSelectBaseline: (value: number | "none") => void;
   onChangeComparisonViewMode: (mode: ComparisonViewMode) => void;
   onGoToRestaurants: () => void;
@@ -956,6 +994,7 @@ function RestaurantWorkspace(props: {
                   comparisonViewMode={props.comparisonViewMode}
                   analyzing={props.analyzing}
                   onAnalyze={props.onAnalyze}
+                  onFetchAnalysisAudio={props.onFetchAnalysisAudio}
                   onSelectBaseline={props.onSelectBaseline}
                   onChangeComparisonViewMode={props.onChangeComparisonViewMode}
                 />
@@ -995,6 +1034,7 @@ function RestaurantDetails({
   comparisonViewMode,
   analyzing,
   onAnalyze,
+  onFetchAnalysisAudio,
   onSelectBaseline,
   onChangeComparisonViewMode,
 }: {
@@ -1009,6 +1049,7 @@ function RestaurantDetails({
   comparisonViewMode: ComparisonViewMode;
   analyzing: boolean;
   onAnalyze: (refresh?: boolean) => void;
+  onFetchAnalysisAudio: (restaurantId: number, analysisId: number, signal?: AbortSignal) => Promise<Blob>;
   onSelectBaseline: (value: number | "none") => void;
   onChangeComparisonViewMode: (mode: ComparisonViewMode) => void;
 }) {
@@ -1042,7 +1083,23 @@ function RestaurantDetails({
 
       {analysis ? (
         <div className="analysis-section">
-          <div className="section-title-row"><div><div className="section-kicker"><Sparkles size={13} /> AI REVIEW ANALYSIS</div><h3>At a glance</h3></div><span className={`sentiment-pill ${sentimentClass(analysis.overall_sentiment)}`}>{titleCase(analysis.overall_sentiment)}</span></div>
+          <div className="section-title-row">
+            <div>
+              <div className="section-kicker"><Sparkles size={13} /> AI REVIEW ANALYSIS</div>
+              <h3>At a glance</h3>
+            </div>
+            <div className="section-title-actions">
+              {detail.latest_analysis && analysis.summary?.trim() && (
+                <ReadAloudButton
+                  restaurantId={detail.id}
+                  analysisId={detail.latest_analysis.id}
+                  disabled={analyzing}
+                  fetchAudio={onFetchAnalysisAudio}
+                />
+              )}
+              <span className={`sentiment-pill ${sentimentClass(analysis.overall_sentiment)}`}>{titleCase(analysis.overall_sentiment)}</span>
+            </div>
+          </div>
           <p className="analysis-summary">{analysis.summary}</p>
           <div className="trend-line"><span className={`trend-badge ${analysis.estimated_rating_trend.toLowerCase()}`}><TrendIcon trend={analysis.estimated_rating_trend} />{titleCase(analysis.estimated_rating_trend)}</span><span>Estimated rating trend</span><span className="trend-spacer" /><span className="analysis-count">Based on {detail.latest_analysis?.review_count ?? reviews.length} reviews</span></div>
           {analysis.aspect_breakdown?.length > 0 && (
@@ -1177,6 +1234,7 @@ function InsightsPage({
   onSelect,
   onCompare,
   onAnalyze,
+  onFetchAnalysisAudio,
   analyzing,
 }: {
   restaurants: Restaurant[];
@@ -1190,6 +1248,7 @@ function InsightsPage({
   onSelect: (id: number) => void;
   onCompare: (restaurantId: number, baselineId: number) => void;
   onAnalyze: (refresh?: boolean) => void;
+  onFetchAnalysisAudio: (restaurantId: number, analysisId: number, signal?: AbortSignal) => Promise<Blob>;
   analyzing: boolean;
 }) {
   const analyzed = restaurants.filter((restaurant) => restaurant.id === detail?.id && detail.latest_analysis);
@@ -1216,7 +1275,21 @@ function InsightsPage({
         <div className="panel-heading"><div><h2>Location insights</h2><p>Your latest analysis, by restaurant</p></div><span className="insight-info"><ShieldCheck size={14} /> Private to your workspace</span></div>
         {loading ? <LoadingState label="Loading selected analysis..." /> : detail?.latest_analysis ? (
           <div className="insight-result">
-            <div className="insight-result-top"><RestaurantAvatar name={detail.name} /><div className="insight-result-copy"><strong>{detail.name}</strong><span>Analyzed {formatDate(detail.latest_analysis.created_at)} · {detail.latest_analysis.review_count} reviews</span></div><span className={`sentiment-pill ${sentimentClass(detail.latest_analysis.overall_sentiment)}`}>{titleCase(detail.latest_analysis.overall_sentiment)}</span></div>
+            <div className="insight-result-top">
+              <RestaurantAvatar name={detail.name} />
+              <div className="insight-result-copy"><strong>{detail.name}</strong><span>Analyzed {formatDate(detail.latest_analysis.created_at)} · {detail.latest_analysis.review_count} reviews</span></div>
+              <div className="section-title-actions">
+                {detail.latest_analysis.result_json.summary?.trim() && (
+                  <ReadAloudButton
+                    restaurantId={detail.id}
+                    analysisId={detail.latest_analysis.id}
+                    disabled={analyzing}
+                    fetchAudio={onFetchAnalysisAudio}
+                  />
+                )}
+                <span className={`sentiment-pill ${sentimentClass(detail.latest_analysis.overall_sentiment)}`}>{titleCase(detail.latest_analysis.overall_sentiment)}</span>
+              </div>
+            </div>
             <p className="analysis-summary">{detail.latest_analysis.result_json.summary}</p>
             <div className="insight-result-footer"><span><TrendingLabel trend={detail.latest_analysis.result_json.estimated_rating_trend} /></span><button type="button" className="text-button" onClick={() => onSelect(detail.id)}>Open restaurant <ArrowRight size={14} /></button></div>
           </div>

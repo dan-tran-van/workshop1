@@ -1,6 +1,6 @@
 import logging
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -16,6 +16,13 @@ from app.schemas import (
     TriggerAnalysisRequest
 )
 from app.services.analysis import get_or_run_restaurant_analysis
+from app.services.tts import (
+    TTSModelLoadingError,
+    TTSNotConfiguredError,
+    TTSTimeoutError,
+    TTSUpstreamError,
+    synthesize_speech,
+)
 
 router = APIRouter(prefix="/restaurants", tags=["Restaurants"])
 logger = logging.getLogger(__name__)
@@ -165,3 +172,45 @@ def get_restaurant_analyses_history(
         .all()
     )
     return analyses
+
+
+@router.post("/{restaurant_id}/analyses/{analysis_id}/tts")
+def synthesize_analysis_summary_tts(
+    restaurant_id: int,
+    analysis_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    restaurant = db.query(Restaurant).filter(Restaurant.id == restaurant_id).first()
+    if not restaurant:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Restaurant not found")
+    ensure_restaurant_access(restaurant, current_user)
+
+    analysis = (
+        db.query(Analysis)
+        .filter(Analysis.id == analysis_id, Analysis.restaurant_id == restaurant_id)
+        .first()
+    )
+    if not analysis:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Analysis not found")
+
+    summary = (analysis.result_json or {}).get("summary") or ""
+    if not isinstance(summary, str) or not summary.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Analysis summary is empty")
+
+    try:
+        audio_bytes, media_type = synthesize_speech(summary)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except (TTSNotConfiguredError, TTSModelLoadingError) as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+    except TTSTimeoutError as exc:
+        raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail=str(exc)) from exc
+    except TTSUpstreamError as exc:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+
+    return Response(
+        content=audio_bytes,
+        media_type=media_type,
+        headers={"Cache-Control": "private, max-age=3600"},
+    )
