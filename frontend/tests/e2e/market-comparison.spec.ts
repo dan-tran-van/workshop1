@@ -45,7 +45,10 @@ async function installMarketMocks(page: Page, role: "OWNER" | "ANALYST") {
       price_level: null,
       source,
       scorable: place.collected_review_count > 0,
-      reasons: [source === "PINNED" ? "Pinned by you" : `${place.collected_review_count} collected reviews, compared on the same criteria`],
+      reasons: [
+        ...(place.restaurant_id === 2 ? ["91% similar guest review profile"] : []),
+        source === "PINNED" ? "Pinned by you" : `${place.collected_review_count} collected reviews, compared on the same criteria`,
+      ],
     }));
     return {
       restaurant_id: 1,
@@ -132,6 +135,7 @@ test("owners see suggested competitors with reasons and a low-match notice", asy
   const rows = page.getByTestId("competitor-row");
   await expect(rows).toHaveCount(3);
   await expect(rows.first()).toContainText("Lotus Garden");
+  await expect(rows.first()).toContainText("91% review match");
   await expect(rows.first()).toContainText("6 collected reviews, compared on the same criteria");
   await expect(rows.first()).toContainText("Not available");
   await expect(page.getByRole("status").filter({ hasText: "Only 3 matching places" })).toContainText("expanding the radius");
