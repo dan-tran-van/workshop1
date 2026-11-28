@@ -1,5 +1,5 @@
 
-from sqlalchemy import Column, Integer, String, Float, Text, Boolean, DateTime, ForeignKey, JSON, Table, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, Text, Boolean, DateTime, ForeignKey, JSON, Table, UniqueConstraint, Index
 
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -61,6 +61,26 @@ class Review(Base):
 
     # Relationships
     restaurant = relationship("Restaurant", back_populates="reviews")
+    embeddings = relationship("ReviewEmbedding", back_populates="review", cascade="all, delete-orphan")
+
+
+class ReviewEmbedding(Base):
+    __tablename__ = "review_embeddings"
+    __table_args__ = (
+        UniqueConstraint("review_id", "model", name="uq_review_embedding_review_model"),
+        Index("ix_review_embeddings_model_dimensions", "model", "dimensions"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    review_id = Column(Integer, ForeignKey("reviews.id", ondelete="CASCADE"), nullable=False, index=True)
+    model = Column(String(100), nullable=False)
+    dimensions = Column(Integer, nullable=False)
+    embedding = Column(JSON, nullable=False)
+    content_hash = Column(String(64), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    review = relationship("Review", back_populates="embeddings")
 
 
 class Analysis(Base):
