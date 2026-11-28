@@ -41,6 +41,7 @@ workshop1/
 │   ├── .dockerignore     # Docker build exclusion rules
 │   ├── requirements.txt  # Python package dependencies
 │   ├── seed.py           # Database seeding script
+│   ├── backfill_embeddings.py # Bulk review embedding backfill CLI
 │   └── README.md         # Backend API documentation
 ├── frontend/             # Client-side web application
 ├── docker-compose.yml    # Multi-container local development orchestration
@@ -90,6 +91,11 @@ Get started with zero local Python dependency configuration:
 
    # Or executing inside the running api container:
    docker compose exec api python seed.py
+   ```
+
+   Optionally backfill review embeddings for semantic competitor lookup (requires `OPENAI_API_KEY` in `.env`):
+   ```bash
+   docker compose run --rm backfill-embeddings
    ```
 
 5. **Optionally create local demo accounts:**

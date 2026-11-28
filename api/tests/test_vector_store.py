@@ -1,13 +1,20 @@
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 # Support invocation both from the repository root and from api/.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from tests.support import BackendTestCase
+from tests.support import BackendTestCase, settings
 from app.models import Review, ReviewEmbedding
-from app.services.vector_store import search_similar_reviews, store_review_embedding
+from backfill_embeddings import backfill_embeddings
+from app.services.vector_store import (
+    ensure_restaurant_embeddings,
+    rank_restaurants_by_embedding_similarity,
+    search_similar_reviews,
+    store_review_embedding,
+)
 
 
 class VectorStoreTestCase(BackendTestCase):
@@ -66,6 +73,151 @@ class VectorStoreTestCase(BackendTestCase):
             search_similar_reviews(self.db, [1, 0], "test-model", min_similarity=1.1)
         with self.assertRaises(ValueError):
             store_review_embedding(self.db, review["id"], [1, 0, 0], "test-model")
+
+    def test_restaurant_centroid_similarity_and_ensure_embeddings(self) -> None:
+        r1 = self.review(self.restaurant_a["id"], text="Great ramen")
+        r2 = self.review(self.restaurant_b["id"], text="Rich broth")
+        c = self.restaurant(google_place_id="vector-place-c", name="Place C")
+        r3 = self.review(c["id"], text="Sweet pastries")
+
+        # Without API key, ensure_restaurant_embeddings is a safe no-op.
+        with patch.object(settings, "OPENAI_API_KEY", ""):
+            self.assertEqual(ensure_restaurant_embeddings(self.db, [self.restaurant_a["id"]]), 0)
+
+        # With API key, only missing/stale reviews are embedded.
+        with patch.object(settings, "OPENAI_API_KEY", "test-key"), patch(
+            "app.services.vector_store.embed_texts",
+            side_effect=[[[1.0, 0.0]], [[0.9, 0.1], [0.0, 1.0]]],
+        ) as mocked_embed:
+            self.assertEqual(ensure_restaurant_embeddings(self.db, [self.restaurant_a["id"]], model="test-model"), 1)
+            self.assertEqual(ensure_restaurant_embeddings(self.db, [self.restaurant_a["id"]], model="test-model"), 0)
+            self.assertEqual(
+                ensure_restaurant_embeddings(
+                    self.db, [self.restaurant_b["id"], c["id"]], model="test-model"
+                ),
+                2,
+            )
+            self.assertEqual(mocked_embed.call_count, 2)
+
+        scores = rank_restaurants_by_embedding_similarity(
+            self.db, self.restaurant_a["id"], [self.restaurant_b["id"], c["id"]], model="test-model"
+        )
+        self.assertGreater(scores[self.restaurant_b["id"]], 0.99)
+        self.assertAlmostEqual(scores[c["id"]], 0.0)
+
+        # Stale review text excludes the outdated embedding from centroid ranking.
+        self.db.query(Review).filter_by(id=r2["id"]).update({"text": "Changed text"})
+        self.db.commit()
+        updated_scores = rank_restaurants_by_embedding_similarity(
+            self.db, self.restaurant_a["id"], [self.restaurant_b["id"], c["id"]], model="test-model"
+        )
+        self.assertNotIn(self.restaurant_b["id"], updated_scores)
+        self.assertIn(c["id"], updated_scores)
+
+    def test_backfill_embeddings_script_handles_missing_key_and_targets(self) -> None:
+        rev_a = self.review(self.restaurant_a["id"], text="Crispy duck")
+        rev_b = self.review(self.restaurant_b["id"], text="Matcha latte")
+
+        with patch.object(settings, "OPENAI_API_KEY", ""):
+            with self.assertRaises(RuntimeError):
+                backfill_embeddings(self.db)
+
+        # Backfill only a specific review ID.
+        with patch.object(settings, "OPENAI_API_KEY", "test-key"), patch(
+            "app.services.vector_store.embed_texts",
+            return_value=[[1.0, 0.0]],
+        ):
+            self.assertEqual(backfill_embeddings(self.db, review_ids=[rev_a["id"]], model="test-model"), 1)
+        self.assertEqual(self.db.query(ReviewEmbedding).count(), 1)
+
+        # Backfill a restaurant + review ID together (already-indexed review is skipped).
+        with patch.object(settings, "OPENAI_API_KEY", "test-key"), patch(
+            "app.services.vector_store.embed_texts",
+            return_value=[[0.0, 1.0]],
+        ):
+            self.assertEqual(
+                backfill_embeddings(
+                    self.db,
+                    restaurant_ids=[self.restaurant_b["id"]],
+                    review_ids=[rev_a["id"], rev_b["id"]],
+                    model="test-model",
+                ),
+                1,
+            )
+        self.assertEqual(self.db.query(ReviewEmbedding).count(), 2)
+
+
+class ReviewSearchApiTestCase(BackendTestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.restaurant_a = self.restaurant(google_place_id="search-place-a", name="Ramen Spot")
+        self.restaurant_b = self.restaurant(google_place_id="search-place-b", name="Bistro B")
+        self.rev_cold = self.review(self.restaurant_a["id"], text="The dish arrived stone cold")
+        self.rev_wait = self.review(self.restaurant_a["id"], text="We had a long wait for seating")
+        self.rev_other = self.review(self.restaurant_b["id"], text="Ice cold beer and cold food")
+
+    def test_semantic_search_ranks_by_similarity_and_respects_filters(self) -> None:
+        model = settings.OPENAI_EMBEDDING_MODEL
+        store_review_embedding(self.db, self.rev_cold["id"], [0.95, 0.05], model)
+        store_review_embedding(self.db, self.rev_wait["id"], [0.0, 1.0], model)
+        store_review_embedding(self.db, self.rev_other["id"], [0.85, 0.15], model)
+
+        with patch("app.services.vector_store.embed_texts", return_value=[[1.0, 0.0]]):
+            response = self.client.get(
+                "/reviews/search",
+                params={"q": "cold food", "restaurant_id": self.restaurant_a["id"], "min_similarity": 0.5},
+            )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body["mode"], "semantic")
+        self.assertEqual(body["model"], model)
+        self.assertEqual([item["id"] for item in body["results"]], [self.rev_cold["id"]])
+        self.assertEqual(body["results"][0]["restaurant_name"], "Ramen Spot")
+        self.assertEqual(body["results"][0]["match_type"], "semantic")
+        self.assertGreater(body["results"][0]["similarity"], 0.99)
+
+    def test_search_falls_back_to_keyword_like_when_embeddings_unavailable(self) -> None:
+        with patch("app.services.vector_store.embed_texts", return_value=[]):
+            response = self.client.get("/reviews/search", params={"q": "stone cold"})
+
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body["mode"], "keyword_fallback")
+        self.assertIsNone(body["model"])
+        self.assertEqual([item["id"] for item in body["results"]], [self.rev_cold["id"]])
+        self.assertEqual(body["results"][0]["match_type"], "keyword")
+        self.assertIsNone(body["results"][0]["similarity"])
+
+    def test_owner_search_is_scoped_to_assigned_restaurants(self) -> None:
+        create_res = self.client.post(
+            "/admin/users",
+            json={
+                "email": "search-owner@example.com",
+                "full_name": "Search Owner",
+                "password": "secure-test-password-123",
+                "role": "OWNER",
+                "restaurant_ids": [self.restaurant_a["id"]],
+            },
+        )
+        self.assertEqual(create_res.status_code, 201, create_res.text)
+        login_res = self.client.post(
+            "/auth/login",
+            json={"email": "search-owner@example.com", "password": "secure-test-password-123"},
+        )
+        self.assertEqual(login_res.status_code, 200, login_res.text)
+        self.client.headers.update({"Authorization": f"Bearer {login_res.json()['access_token']}"})
+
+        with patch("app.services.vector_store.embed_texts", return_value=[]):
+            scoped = self.client.get("/reviews/search", params={"q": "cold"})
+            forbidden = self.client.get(
+                "/reviews/search",
+                params={"q": "cold", "restaurant_id": self.restaurant_b["id"]},
+            )
+
+        self.assertEqual(scoped.status_code, 200, scoped.text)
+        self.assertEqual([item["id"] for item in scoped.json()["results"]], [self.rev_cold["id"]])
+        self.assertEqual(forbidden.status_code, 404)
 
 
 if __name__ == "__main__":

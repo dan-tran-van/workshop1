@@ -7,7 +7,7 @@ A FastAPI backend powered by SQLite (and SQLAlchemy) providing restaurant review
 ## Features
 
 - **Restaurant & Review Management**: List, search, and view detailed restaurant profiles with Google reviews.
-- **Review Vector Store**: Persist generated review embeddings in the application database and retrieve reviews by cosine similarity, optionally limited to restaurants. Embedding generation is provided by callers; retrieval ignores embeddings when their source review text has changed. Similarity currently scans matching stored vectors in-process; no external vector database or ANN index is required.
+- **Review Vector Store**: Persist generated review embeddings in the application database and retrieve reviews or rank restaurants by cosine similarity, optionally limited to specific restaurants. Retrieval and centroid computation ignore embeddings when their source review text has changed (`content_hash`). Similarity scans matching stored vectors in-process; no external vector database or ANN index is required. Use `backfill_embeddings.py` (or `docker compose run --rm backfill-embeddings`) to bulk-index existing reviews.
 - **AI Review Intelligence**:
   - Overall sentiment & rating trend estimation.
   - Aspect breakdown across 6 core aspects: `food`, `service`, `wait_time`, `hygiene`, `ambience`, `price` (bilingual English + Vietnamese keyword detection).
@@ -108,6 +108,7 @@ Key variables:
 - `DATABASE_URL`: `sqlite:///./data.db`
 - `OPENAI_API_KEY`: Your OpenAI API key (falls back to heuristic analysis if omitted)
 - `OPENAI_MODEL`: `gpt-4o-mini`
+- `OPENAI_EMBEDDING_MODEL`: `text-embedding-3-small`
 - `GOOGLE_PLACES_API_KEY`: Google Places API Key (optional)
 - `AUTH_SECRET_KEY`: stable random signing key for access tokens; set this in deployments so restarts do not invalidate sessions.
 - `AUTH_BOOTSTRAP_KEY`: one-time key required to create the first administrator. Set a unique value before opening the app, then use it once on the initial setup screen.
@@ -148,6 +149,18 @@ Populate the database with sample restaurants and reviews:
 
 ```bash
 python seed.py
+```
+
+Optionally backfill review embeddings for semantic competitor lookup (requires `OPENAI_API_KEY`):
+
+```bash
+# Local virtualenv (all restaurants):
+python backfill_embeddings.py
+
+# Or via Docker Compose from repo root:
+docker compose run --rm backfill-embeddings
+docker compose run --rm backfill-embeddings --restaurant-id 1
+docker compose run --rm backfill-embeddings --review-id 10 --review-id 11
 ```
 
 #### 4. Run the Development Server
@@ -200,8 +213,9 @@ versions. See [test coverage and documentation](tests/README.md).
 | `GET` | `/restaurants/{id}/analyses` | History of past analyses for restaurant |
 | `GET` | `/auth/me/analysis-history` | The authenticated user's successful analysis requests, including cache hits |
 | `GET` | `/restaurants/{id}/reviews` | List reviews for a restaurant |
-| `GET` | `/restaurants/{id}/competitors` | Suggested competitive set with reasons, pinned/manual/dismissed choices (Owner, Analyst) |
-| `GET` | `/restaurants/{id}/competitors/candidates` | Workspace restaurants that can be added manually as competitors (Owner) |
+| `GET` | `/reviews/search` | Semantic review search using stored embeddings with `ILIKE` keyword fallback (`?q=...&restaurant_id=...`) |
+| `GET` | `/restaurants/{id}/competitors` | Suggested competitive set ranked by review embedding similarity (when indexed) with review-volume fallback, reasons, and pinned/manual/dismissed choices (Owner, Analyst) |
+| `GET` | `/restaurants/{id}/competitors/candidates` | Workspace restaurants that can be added manually as competitors, combining lexical name/address search with semantic review matching when embeddings exist (Owner, Analyst) |
 | `PUT` | `/restaurants/{id}/competitors/{competitor_id}` | Pin, dismiss, or manually add a competitor: `{"status": "PINNED" \| "DISMISSED" \| "MANUAL"}` (Owner) |
 | `DELETE` | `/restaurants/{id}/competitors/{competitor_id}` | Reset a competitor back to a plain suggestion (Owner) |
 | `GET` | `/restaurants/{id}/competitors/gap` | Criteria gap table against the competitive set (Owner, Analyst) |

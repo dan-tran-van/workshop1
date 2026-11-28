@@ -19,6 +19,11 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.models import CompetitorSelection, Restaurant, Review
 from app.services.analysis import ASPECT_ITEMS, ASPECTS_KEYWORDS
+from app.services.vector_store import (
+    embed_texts,
+    rank_restaurants_by_embedding_similarity,
+    search_similar_reviews,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -58,12 +63,20 @@ def _volume_distance(own_volume: Optional[int], other_volume: Optional[int]) -> 
     return float(abs(other_volume - own_volume))
 
 
-def _reasons(restaurant: Restaurant, other: Restaurant, source: str, collected: int) -> List[str]:
+def _reasons(
+    restaurant: Restaurant,
+    other: Restaurant,
+    source: str,
+    collected: int,
+    similarity_score: Optional[float] = None,
+) -> List[str]:
     reasons: List[str] = []
     if source == "PINNED":
         reasons.append("Pinned by you")
     elif source == "MANUAL":
         reasons.append("Added manually")
+    if similarity_score is not None:
+        reasons.append(f"{round(similarity_score * 100)}% similar guest review profile")
     if collected:
         reasons.append(f"{collected} collected reviews, compared on the same criteria")
     else:
@@ -82,8 +95,15 @@ def build_competitive_set(db: Session, restaurant: Restaurant, can_edit: bool) -
     dismissed = [other for other in others if other.id in selections and selections[other.id].status == "DISMISSED"]
     excluded_ids = {other.id for other in kept} | {other.id for other in dismissed}
     pool = [other for other in others if other.id not in excluded_ids]
+
+    similarity_scores = rank_restaurants_by_embedding_similarity(
+        db, restaurant.id, [other.id for other in kept + pool]
+    )
+
     pool.sort(key=lambda other: (
         0 if counts.get(other.id, 0) > 0 else 1,
+        0 if other.id in similarity_scores else 1,
+        -similarity_scores[other.id] if other.id in similarity_scores else 0.0,
         _volume_distance(restaurant.user_rating_count, other.user_rating_count),
         other.id,
     ))
@@ -105,7 +125,7 @@ def build_competitive_set(db: Session, restaurant: Restaurant, can_edit: bool) -
             "price_level": None,
             "source": source,
             "scorable": collected > 0,
-            "reasons": _reasons(restaurant, other, source, collected),
+            "reasons": _reasons(restaurant, other, source, collected, similarity_scores.get(other.id)),
         })
 
     matching_count = len(kept) + len(pool)
@@ -138,17 +158,17 @@ def build_competitive_set(db: Session, restaurant: Restaurant, can_edit: bool) -
 
 
 def list_manual_candidates(db: Session, restaurant: Restaurant, query: Optional[str], limit: int) -> List[Dict[str, Any]]:
-    """Restaurants already in the workspace that can be added manually (no Google lookup yet)."""
+    """Restaurants already in the workspace that can be added manually (name/address + semantic review lookup)."""
     selections = load_selections(db, restaurant.id)
     kept_ids = {competitor_id for competitor_id, row in selections.items() if row.status in KEPT_STATUSES}
-    rows = db.query(Restaurant).filter(Restaurant.id != restaurant.id)
+    base = db.query(Restaurant).filter(Restaurant.id != restaurant.id)
     if kept_ids:
-        rows = rows.filter(Restaurant.id.notin_(kept_ids))
-    if query:
-        rows = rows.filter((Restaurant.name.ilike(f"%{query}%")) | (Restaurant.address.ilike(f"%{query}%")))
+        base = base.filter(Restaurant.id.notin_(kept_ids))
+
     counts = collected_review_counts(db)
-    return [
-        {
+
+    def _serialize(other: Restaurant) -> Dict[str, Any]:
+        return {
             "restaurant_id": other.id,
             "name": other.name,
             "address": other.address,
@@ -156,8 +176,48 @@ def list_manual_candidates(db: Session, restaurant: Restaurant, query: Optional[
             "user_rating_count": other.user_rating_count,
             "collected_review_count": counts.get(other.id, 0),
         }
-        for other in rows.order_by(Restaurant.name.asc()).limit(limit).all()
-    ]
+
+    if not query:
+        return [_serialize(other) for other in base.order_by(Restaurant.name.asc()).limit(limit).all()]
+
+    lexical_rows = (
+        base.filter((Restaurant.name.ilike(f"%{query}%")) | (Restaurant.address.ilike(f"%{query}%")))
+        .order_by(Restaurant.name.asc())
+        .limit(limit)
+        .all()
+    )
+    results: List[Restaurant] = list(lexical_rows)
+    seen_ids = {other.id for other in results}
+
+    if len(results) < limit:
+        eligible_ids = [row.id for row in base.with_entities(Restaurant.id).all() if row.id not in seen_ids]
+        if eligible_ids:
+            query_vectors = embed_texts([query])
+            if query_vectors:
+                matches = search_similar_reviews(
+                    db,
+                    query_vectors[0],
+                    model=settings.OPENAI_EMBEDDING_MODEL,
+                    restaurant_ids=eligible_ids,
+                    limit=limit * 3,
+                    min_similarity=0.25,
+                )
+                semantic_order: List[int] = []
+                for match in matches:
+                    rid = match.review.restaurant_id
+                    if rid not in seen_ids:
+                        seen_ids.add(rid)
+                        semantic_order.append(rid)
+                        if len(results) + len(semantic_order) >= limit:
+                            break
+                if semantic_order:
+                    by_id = {
+                        other.id: other
+                        for other in db.query(Restaurant).filter(Restaurant.id.in_(semantic_order)).all()
+                    }
+                    results.extend(by_id[rid] for rid in semantic_order if rid in by_id)
+
+    return [_serialize(other) for other in results[:limit]]
 
 
 def set_selection(db: Session, restaurant: Restaurant, competitor: Restaurant, status: str, user_id: int) -> None:

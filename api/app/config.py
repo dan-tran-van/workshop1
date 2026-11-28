@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     HUGGINGFACE_TTS_MODEL: str = "facebook/mms-tts-eng"
     HUGGINGFACE_TTS_API_URL: str = "https://router.huggingface.co/hf-inference/models"
     HUGGINGFACE_TTS_TIMEOUT: float = 30.0
+    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
     GOOGLE_PLACES_API_KEY: str = ""
     AUTH_SECRET_KEY: str = secrets.token_urlsafe(32)
     AUTH_BOOTSTRAP_KEY: str = ""

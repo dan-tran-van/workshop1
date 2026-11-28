@@ -107,6 +107,19 @@ class ReviewResponse(ReviewBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ReviewSearchResult(ReviewResponse):
+    restaurant_name: str
+    similarity: Optional[float] = None
+    match_type: Literal["semantic", "keyword"]
+
+
+class ReviewSearchResponse(BaseModel):
+    query: str
+    mode: Literal["semantic", "keyword_fallback"]
+    model: Optional[str] = None
+    results: List[ReviewSearchResult] = Field(default_factory=list)
+
+
 # --------------------------------------------------------
 # Analysis Schemas
 # --------------------------------------------------------
