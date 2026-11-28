@@ -5,13 +5,13 @@ import logging
 import math
 from dataclasses import dataclass
 from numbers import Real
-from typing import Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 from openai import OpenAI
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.models import Review, ReviewEmbedding
+from app.models import Restaurant, Review, ReviewEmbedding
 
 logger = logging.getLogger(__name__)
 
@@ -315,3 +315,98 @@ def rank_restaurants_by_embedding_similarity(
         score = sum(left * right for left, right in zip(source_centroid, candidate_centroid))
         scores[candidate_id] = max(-1.0, min(1.0, score))
     return scores
+
+
+def search_reviews(
+    db: Session,
+    query: str,
+    restaurant_ids: Optional[Sequence[int]] = None,
+    limit: int = 10,
+    min_similarity: Optional[float] = None,
+    model: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Search reviews semantically via embeddings, falling back to SQL ILIKE when unavailable."""
+    cleaned = query.strip()
+    if not cleaned:
+        raise ValueError("Search query must be non-empty")
+
+    if restaurant_ids is not None and not restaurant_ids:
+        return {"query": cleaned, "mode": "semantic", "model": None, "results": []}
+
+    model_name = (model or settings.OPENAI_EMBEDDING_MODEL).strip()
+    query_vectors = embed_texts([cleaned], model=model_name) if model_name else []
+
+    if query_vectors:
+        has_embeddings_query = db.query(ReviewEmbedding.id).join(
+            Review, Review.id == ReviewEmbedding.review_id
+        ).filter(ReviewEmbedding.model == model_name)
+        if restaurant_ids is not None:
+            has_embeddings_query = has_embeddings_query.filter(Review.restaurant_id.in_(restaurant_ids))
+
+        if has_embeddings_query.first() is not None:
+            matches = search_similar_reviews(
+                db,
+                query_vectors[0],
+                model=model_name,
+                restaurant_ids=restaurant_ids,
+                limit=limit,
+                min_similarity=min_similarity,
+            )
+            restaurant_names = {
+                row.id: row.name
+                for row in db.query(Restaurant.id, Restaurant.name)
+                .filter(Restaurant.id.in_([match.review.restaurant_id for match in matches]))
+                .all()
+            } if matches else {}
+            return {
+                "query": cleaned,
+                "mode": "semantic",
+                "model": model_name,
+                "results": [
+                    {
+                        "id": match.review.id,
+                        "restaurant_id": match.review.restaurant_id,
+                        "restaurant_name": restaurant_names.get(match.review.restaurant_id, ""),
+                        "author_name": match.review.author_name,
+                        "author_uri": match.review.author_uri,
+                        "rating": match.review.rating,
+                        "text": match.review.text,
+                        "published_at": match.review.published_at,
+                        "external_review_id": match.review.external_review_id,
+                        "similarity": round(match.similarity, 4),
+                        "match_type": "semantic",
+                    }
+                    for match in matches
+                ],
+            }
+
+    keyword_query = (
+        db.query(Review, Restaurant.name)
+        .join(Restaurant, Restaurant.id == Review.restaurant_id)
+        .filter(Review.text.ilike(f"%{cleaned}%"))
+    )
+    if restaurant_ids is not None:
+        keyword_query = keyword_query.filter(Review.restaurant_id.in_(restaurant_ids))
+    rows = keyword_query.order_by(Review.published_at.desc(), Review.id.desc()).limit(limit).all()
+
+    return {
+        "query": cleaned,
+        "mode": "keyword_fallback",
+        "model": None,
+        "results": [
+            {
+                "id": review.id,
+                "restaurant_id": review.restaurant_id,
+                "restaurant_name": restaurant_name,
+                "author_name": review.author_name,
+                "author_uri": review.author_uri,
+                "rating": review.rating,
+                "text": review.text,
+                "published_at": review.published_at,
+                "external_review_id": review.external_review_id,
+                "similarity": None,
+                "match_type": "keyword",
+            }
+            for review, restaurant_name in rows
+        ],
+    }
