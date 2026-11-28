@@ -17,7 +17,6 @@ from app.schemas import (
 )
 from app.services.analysis import get_or_run_restaurant_analysis
 from app.services.tts import (
-    TTSModelLoadingError,
     TTSNotConfiguredError,
     TTSTimeoutError,
     TTSUpstreamError,
@@ -202,7 +201,7 @@ def synthesize_analysis_summary_tts(
         audio_bytes, media_type = synthesize_speech(summary)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-    except (TTSNotConfiguredError, TTSModelLoadingError) as exc:
+    except TTSNotConfiguredError as exc:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
     except TTSTimeoutError as exc:
         raise HTTPException(status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail=str(exc)) from exc

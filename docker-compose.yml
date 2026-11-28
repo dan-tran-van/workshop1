@@ -15,12 +15,14 @@ services:
       - DATABASE_URL=${DATABASE_URL:-sqlite:///./data.db}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
-      - HUGGINGFACE_API_TOKEN=${HUGGINGFACE_API_TOKEN:-}
-      - HUGGINGFACE_TTS_MODEL=${HUGGINGFACE_TTS_MODEL:-facebook/mms-tts-eng}
-      - HUGGINGFACE_TTS_API_URL=${HUGGINGFACE_TTS_API_URL:-https://router.huggingface.co/hf-inference/models}
+      - TTS_PROVIDER=${TTS_PROVIDER:-openai}
       - TTS_BASE_URL=${TTS_BASE_URL:-}
       - TTS_MODEL=${TTS_MODEL:-kokoro}
       - TTS_VOICE=${TTS_VOICE:-af_heart}
+      - OPENAI_TTS_MODEL=${OPENAI_TTS_MODEL:-gpt-4o-mini-tts}
+      - OPENAI_TTS_VOICE=${OPENAI_TTS_VOICE:-coral}
+      - OPENAI_TTS_TIMEOUT=${OPENAI_TTS_TIMEOUT:-30}
+      - TTS_ENDPOINT_TIMEOUT=${TTS_ENDPOINT_TIMEOUT:-30}
       - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
       - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY:-}
       - AUTH_SECRET_KEY=${AUTH_SECRET_KEY:-}
