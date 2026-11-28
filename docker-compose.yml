@@ -18,6 +18,9 @@ services:
       - HUGGINGFACE_API_TOKEN=${HUGGINGFACE_API_TOKEN:-}
       - HUGGINGFACE_TTS_MODEL=${HUGGINGFACE_TTS_MODEL:-facebook/mms-tts-eng}
       - HUGGINGFACE_TTS_API_URL=${HUGGINGFACE_TTS_API_URL:-https://router.huggingface.co/hf-inference/models}
+      - TTS_BASE_URL=${TTS_BASE_URL:-}
+      - TTS_MODEL=${TTS_MODEL:-kokoro}
+      - TTS_VOICE=${TTS_VOICE:-af_heart}
       - OPENAI_EMBEDDING_MODEL=${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
       - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY:-}
       - AUTH_SECRET_KEY=${AUTH_SECRET_KEY:-}
