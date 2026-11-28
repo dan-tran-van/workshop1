@@ -55,6 +55,7 @@ import {
   type ComparisonViewMode,
 } from "./components/CriteriaComparison";
 import { MarketComparisonPage } from "./components/MarketComparison";
+import { ReviewSearchPage } from "./components/ReviewSearch";
 import { ReadAloudButton } from "./components/ReadAloudButton";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
@@ -105,7 +106,7 @@ type SyncRun = {
   error_message: string | null;
 };
 
-type Page = "overview" | "restaurants" | "insights" | "market" | "sync" | "users";
+type Page = "overview" | "restaurants" | "insights" | "search" | "market" | "sync" | "users";
 type UserRole = "OWNER" | "ANALYST" | "ADMIN";
 type AuthUser = {
   id: number;
@@ -603,6 +604,7 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
     overview: { title: "Good morning", subtitle: "Here’s what your guests are saying." },
     restaurants: { title: "Restaurants", subtitle: "Explore locations and understand every guest experience." },
     insights: { title: "Review insights", subtitle: "Turn customer feedback into your next best move." },
+    search: { title: "Review search", subtitle: "Search guest reviews by meaning or keyword across your locations." },
     market: { title: "Market comparison", subtitle: "See where you lead or trail your competitors, and why." },
     sync: { title: "Data sync", subtitle: "Manage Google Maps review collection and sync activity." },
     users: { title: "User access", subtitle: "Manage workspace accounts and their permissions." },
@@ -626,6 +628,7 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
           <NavItem active={page === "overview"} onClick={() => setPage("overview")} icon={<LayoutDashboard size={18} />} label="Overview" />
           <NavItem active={page === "restaurants"} onClick={() => setPage("restaurants")} icon={<Store size={18} />} label="Restaurants" count={restaurants.length} />
           <NavItem active={page === "insights"} onClick={() => setPage("insights")} icon={<BarChart3 size={18} />} label="Review insights" />
+          <NavItem active={page === "search"} onClick={() => setPage("search")} icon={<Search size={18} />} label="Review search" />
           {currentUser.role !== "ADMIN" && <NavItem active={page === "market"} onClick={() => setPage("market")} icon={<Swords size={17} />} label="Market comparison" />}
           {currentUser.role === "ADMIN" && <NavItem active={page === "sync"} onClick={() => setPage("sync")} icon={<RefreshCw size={17} />} label="Data sync" />}
           {currentUser.role === "ADMIN" && <NavItem active={page === "users"} onClick={() => setPage("users")} icon={<Users size={17} />} label="User access" />}
@@ -721,6 +724,14 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
               onAnalyze={runAnalysis}
               onFetchAnalysisAudio={fetchAnalysisAudio}
               analyzing={analyzing}
+            />
+          )}
+
+          {page === "search" && (
+            <ReviewSearchPage
+              restaurants={restaurants}
+              initialRestaurantId={selectedId}
+              request={request}
             />
           )}
 

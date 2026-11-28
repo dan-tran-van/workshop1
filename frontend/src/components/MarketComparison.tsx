@@ -232,17 +232,27 @@ export function MarketComparisonPage({
                   {competitiveSet.competitors.map((competitor) => {
                     const kept = competitor.source !== "SUGGESTED";
                     const busy = busyCompetitorId === competitor.restaurant_id;
+                    const similarityReason = competitor.reasons.find((r) => r.includes("similar guest review profile"));
+                    const otherReasons = competitor.reasons.filter((r) => r !== similarityReason);
+                    const similarityMatch = similarityReason?.match(/^(\d+%)/);
                     return (
                       <tr key={competitor.restaurant_id} data-testid="competitor-row">
                         <td>
                           <strong className="market-name">{competitor.name}</strong>
-                          {kept && <span className="market-source">{competitor.source === "PINNED" ? "Pinned" : "Added manually"}</span>}
+                          <div className="market-badges">
+                            {kept && <span className="market-source">{competitor.source === "PINNED" ? "Pinned" : "Added manually"}</span>}
+                            {similarityMatch && (
+                              <span className="market-similarity-badge" title={similarityReason}>
+                                <Sparkles size={11} /> {similarityMatch[1]} review match
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="muted">{competitor.distance_m === null ? "Not available" : `${Math.round(competitor.distance_m)} m`}</td>
                         <td>{competitor.google_rating === null ? "—" : <span className="market-rating"><Star size={12} />{competitor.google_rating.toFixed(1)}</span>}</td>
                         <td>{(competitor.user_rating_count ?? 0).toLocaleString()} <span className="muted">Google · {competitor.collected_review_count.toLocaleString()} collected</span></td>
                         <td className="muted">{competitor.cuisine ?? "Not available"}</td>
-                        <td><ul className="market-reasons">{competitor.reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul></td>
+                        <td><ul className="market-reasons">{otherReasons.map((reason) => <li key={reason}>{reason}</li>)}</ul></td>
                         {canEdit && (
                           <td>
                             <div className="table-row-actions">
@@ -393,10 +403,10 @@ function AddCompetitorDialog({ restaurantId, request, onClose, onAdd }: {
     <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section className="add-dialog" role="dialog" aria-modal="true" aria-labelledby="add-competitor-title">
         <div className="dialog-heading">
-          <div><span className="section-kicker">COMPETITIVE SET</span><h2 id="add-competitor-title">Add a competitor</h2><p>Choose a restaurant already in the workspace. Searching Google Maps is not available yet.</p></div>
+          <div><span className="section-kicker">COMPETITIVE SET</span><h2 id="add-competitor-title">Add a competitor</h2><p>Search workspace restaurants by name, address, or guest review topic (semantic search).</p></div>
           <button type="button" className="quiet-icon-button" aria-label="Close dialog" onClick={onClose}>×</button>
         </div>
-        <label className="search-field market-search"><Search size={14} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by name or address" aria-label="Search restaurants" /></label>
+        <label className="search-field market-search"><Search size={14} /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder='Search by name, address, or review topic (e.g. "truffle pasta")' aria-label="Search restaurants" /></label>
         {error && <div className="error-banner"><CircleHelp size={16} /><span>{error}</span></div>}
         {loading ? (
           <div className="loading-state"><LoaderCircle size={16} className="spin" /><span>Loading restaurants...</span></div>
