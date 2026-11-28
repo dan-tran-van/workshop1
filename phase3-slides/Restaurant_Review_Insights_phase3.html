@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Restaurant Review Insights: Phase 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  --bg: #EEF0F5;
+  --surface: #FFFFFF;
+  --ink: #17172B;
+  --muted: #565A70;
+  --indigo: #3B3485;
+  --indigo-soft: #E7E5F8;
+  --green: #0A6B50;
+  --green-soft: #DCF0E8;
+  --amber: #C98300;
+  --amber-soft: #FBEFD2;
+  --coral: #B93A2E;
+  --coral-soft: #F9E1DD;
+  --line: #D6D9E4;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12131A;
+    --surface: #1C1E2A;
+    --ink: #ECEDF6;
+    --muted: #A3A7BC;
+    --indigo: #A29BF2;
+    --indigo-soft: #2A2761;
+    --green: #5FD3A8;
+    --green-soft: #0F3A30;
+    --amber: #F2B84B;
+    --amber-soft: #3E2F0E;
+    --coral: #F28B7E;
+    --coral-soft: #471D18;
+    --line: #34374B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12131A;
+  --surface: #1C1E2A;
+  --ink: #ECEDF6;
+  --muted: #A3A7BC;
+  --indigo: #A29BF2;
+  --indigo-soft: #2A2761;
+  --green: #5FD3A8;
+  --green-soft: #0F3A30;
+  --amber: #F2B84B;
+  --amber-soft: #3E2F0E;
+  --coral: #F28B7E;
+  --coral-soft: #471D18;
+  --line: #34374B;
+  color-scheme: dark;
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+h1, h2, h3 { font-family: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif; margin: 0; letter-spacing: -0.02em; }
+button { font: inherit; color: inherit; }
+
+#viewport { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+#frame { position: relative; }
+#stage { width: 1280px; height: 720px; position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.slide {
+  position: absolute; inset: 0; box-sizing: border-box;
+  padding: 56px 72px 48px;
+  background: var(--surface);
+  border-radius: 20px;
+  display: none; flex-direction: column;
+  box-shadow: 0 0 0 1px var(--line);
+}
+.slide.active { display: flex; }
+.slide h2 { font-size: 46px; line-height: 1.08; font-weight: 800; max-width: 980px; }
+.slide .lede { font-size: 22px; line-height: 1.45; color: var(--muted); margin: 14px 0 0; max-width: 860px; }
+.body { flex: 1; display: flex; gap: 40px; margin-top: 30px; min-height: 0; }
+.tag { display: inline-block; font-size: 16px; font-weight: 600; color: var(--indigo); background: var(--indigo-soft); padding: 5px 14px; border-radius: 999px; margin-bottom: 16px; align-self: flex-start; }
+
+/* nav bar */
+#bar { display: flex; align-items: center; gap: 14px; padding: 10px 20px; flex: none; }
+#bar .brand { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 15px; color: var(--muted); margin-right: auto; }
+#dots { display: flex; gap: 6px; }
+#dots button { width: 10px; height: 10px; border-radius: 50%; border: 0; padding: 0; background: var(--line); cursor: pointer; }
+#dots button[aria-current="true"] { background: var(--indigo); width: 26px; border-radius: 6px; }
+.nav { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 6px 14px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.nav:hover { border-color: var(--indigo); }
+:focus-visible { outline: 3px solid var(--indigo); outline-offset: 2px; }
+#count { font-size: 14px; color: var(--muted); min-width: 48px; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* slide 1 */
+.s1 { flex-direction: row; gap: 56px; align-items: center; }
+.s1.active { display: flex; }
+.s1 .left { flex: 1.05; }
+.s1 h1 { font-size: 80px; line-height: 0.98; font-weight: 800; }
+.s1 .sub { font-size: 26px; line-height: 1.4; color: var(--muted); margin-top: 24px; max-width: 520px; }
+.s1 .meta { margin-top: 36px; font-size: 18px; color: var(--muted); }
+.s1 .right { flex: 0.95; display: flex; flex-direction: column; gap: 14px; }
+.rv { background: var(--bg); border-radius: 14px; padding: 14px 18px; font-size: 18px; line-height: 1.35; }
+.rv .st, .stars { color: var(--amber); letter-spacing: 2px; }
+.rv:nth-child(2) { margin-left: 36px; } .rv:nth-child(3) { margin-left: 12px; }
+.arrowdown { text-align: center; color: var(--indigo); font-size: 28px; line-height: 1; }
+.fixcard { background: var(--indigo); color: #fff; border-radius: 16px; padding: 18px 22px; font-size: 20px; line-height: 1.35; }
+.fixcard b { font-family: "Bricolage Grotesque", sans-serif; font-size: 24px; display: block; margin-bottom: 4px; }
+:root[data-theme="dark"] .fixcard, :root:not([data-theme="light"]) .fixcard { color: #14122E; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .fixcard { color: #fff; } }
+
+/* generic cards */
+.card { background: var(--bg); border-radius: 16px; padding: 22px 24px; }
+.card h3 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+.card p, .card li { font-size: 19px; line-height: 1.45; color: var(--muted); margin: 0; }
+.card ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.card.ind { background: var(--indigo-soft); } .card.grn { background: var(--green-soft); }
+.card.amb { background: var(--amber-soft); } .card.cor { background: var(--coral-soft); }
+.card.ind h3 { color: var(--indigo); } .card.grn h3 { color: var(--green); }
+.card.amb h3 { color: var(--amber); } .card.cor h3 { color: var(--coral); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; flex: 1; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; flex: 1; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.chip { background: var(--surface); border-radius: 999px; padding: 4px 12px; font-size: 16px; font-weight: 600; color: var(--ink); }
+.value { display: flex; gap: 14px; margin-top: 18px; }
+.value div { flex: 1; font-size: 18px; font-weight: 600; border-top: 3px solid var(--green); padding-top: 10px; line-height: 1.3; }
+.value span { display: block; font-weight: 400; color: var(--muted); font-size: 16px; margin-top: 3px; }
+
+/* problem */
+mark { background: var(--coral-soft); color: var(--coral); font-weight: 700; padding: 0 3px; border-radius: 4px; }
+.revlist { display: flex; flex-direction: column; gap: 10px; flex: 1.15; }
+.revlist .rv { background: var(--bg); }
+.pains { flex: 0.85; display: flex; flex-direction: column; gap: 16px; justify-content: center; }
+.pains div { border-left: 4px solid var(--coral); padding-left: 16px; font-size: 21px; line-height: 1.35; }
+.pains b { display: block; font-size: 22px; margin-bottom: 2px; }
+.caption { font-size: 17px; color: var(--muted); margin-top: 4px; }
+
+/* flows */
+.pipe { display: flex; align-items: stretch; gap: 10px; }
+.pipe .box { flex: 1; background: var(--green-soft); border-radius: 12px; padding: 12px 14px; font-size: 17px; font-weight: 600; color: var(--green); line-height: 1.25; }
+.pipe .box span { display: block; font-weight: 400; color: var(--muted); font-size: 15px; margin-top: 2px; }
+.pipe .box.ind { background: var(--indigo-soft); color: var(--indigo); }
+.pipe .box.amb { background: var(--amber-soft); color: var(--amber); }
+.pipe .ar { align-self: center; color: var(--muted); font-size: 22px; }
+.bignum { font-family: "Bricolage Grotesque", sans-serif; font-size: 72px; font-weight: 800; color: var(--coral); line-height: 1; white-space: nowrap; }
+
+/* labels */
+.labels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.lab { border-radius: 14px; padding: 16px 18px; }
+.lab b { font-family: "Bricolage Grotesque", sans-serif; font-size: 22px; display: block; margin-bottom: 4px; }
+.lab p { margin: 0; font-size: 17px; line-height: 1.4; color: var(--ink); }
+.lab.learn { background: var(--coral-soft); } .lab.learn b { color: var(--coral); }
+.lab.keep { background: var(--amber-soft); } .lab.keep b { color: var(--amber); }
+.lab.attack { background: var(--green-soft); } .lab.attack b { color: var(--green); }
+
+/* safety */
+.safegrid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr 1fr; gap: 16px; flex: 1; }
+.scard { background: var(--bg); border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; }
+.scard i { font-style: normal; font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 30px; color: var(--indigo); line-height: 1; margin-bottom: 8px; }
+.scard h3 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.scard p { margin: 0; font-size: 17px; line-height: 1.4; color: var(--muted); }
+.scard.sum { background: var(--indigo-soft); justify-content: center; }
+.scard.sum h3 { color: var(--indigo); font-size: 32px; line-height: 1.12; margin: 0; }
+
+/* demo title */
+.sdemo { align-items: center; justify-content: center; background: var(--indigo); box-shadow: none; }
+.sdemo h1 { font-size: 200px; line-height: 1; font-weight: 800; color: #fff; }
+:root[data-theme="dark"] .sdemo h1 { color: #14122E; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sdemo h1 { color: #14122E; } }
+.sdemo p { font-size: 30px; margin: 18px 0 0; color: #fff; opacity: 0.85; }
+:root[data-theme="dark"] .sdemo p { color: #14122E; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sdemo p { color: #14122E; } }
+
+/* testing */
+.ttable { display: grid; grid-template-columns: 215px 1fr 1.5fr; gap: 8px 10px; flex: 1; grid-template-rows: auto 1fr 1fr 1fr 1fr; }
+.th { font-size: 14px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); padding: 0 14px; }
+.tp, .tc { background: var(--bg); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; font-size: 16.5px; line-height: 1.35; color: var(--muted); }
+.tp { font-family: "Bricolage Grotesque", sans-serif; font-weight: 700; font-size: 19px; color: var(--ink); gap: 10px; }
+.tp i { font-style: normal; color: var(--indigo); font-size: 24px; }
+.tc:nth-child(3n) { background: var(--green-soft); color: var(--ink); }
+.tstats { display: flex; gap: 14px; flex: none; }
+.tstats div { flex: 1; background: var(--green-soft); border-radius: 14px; padding: 10px 18px; display: flex; align-items: baseline; gap: 12px; }
+.tstats b { font-family: "Bricolage Grotesque", sans-serif; font-size: 40px; font-weight: 800; color: var(--green); line-height: 1; }
+.tstats span { font-size: 18px; color: var(--ink); font-weight: 600; }
+
+/* conclusion */
+.sumlist { display: flex; flex-direction: column; gap: 12px; flex: 1.1; }
+.sumlist div { font-size: 21px; line-height: 1.35; padding: 12px 18px; background: var(--bg); border-radius: 12px; }
+.sumlist b { font-family: "Bricolage Grotesque", sans-serif; }
+.team { flex: 0.9; background: var(--indigo-soft); border-radius: 16px; padding: 20px 24px; }
+.team h3 { font-size: 22px; color: var(--indigo); margin-bottom: 10px; }
+.team table { border-collapse: collapse; width: 100%; font-size: 16px; }
+.team td { padding: 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.team td:first-child { font-weight: 600; padding-right: 14px; }
+.team td:last-child { color: var(--muted); text-align: right; }
+
+@media (prefers-reduced-motion: reduce) { .spin { animation-duration: 3s; } }
+</style>
+</head>
+<body>
+<div id="viewport"><div id="frame"><div id="stage">
+
+<!-- 1 TITLE -->
+<section class="slide s1" id="slide-1" aria-label="Title">
+  <div class="left">
+    <h1>Restaurant Review Insights</h1>
+    <p class="sub">Phase 3: see how you compare with your competitive set, and hear the AI summary aloud.</p>
+    <p class="meta">Project demo &nbsp;|&nbsp; FastAPI + OpenAI + Hugging Face</p>
+  </div>
+  <div class="right">
+    <div class="rv"><span class="st">★★★★★</span> Great grilled pork, but we waited 40 minutes for a table.</div>
+    <div class="rv"><span class="st">★★★</span> Tasty food. Staff were rushed at lunch.</div>
+    <div class="rv"><span class="st">★★</span> Long wait again. Won’t come at noon.</div>
+    <div class="arrowdown">↓</div>
+    <div class="fixcard"><b>Learn from rivals: wait time</b>Competitors get higher ratings on wait time. The AI explains why, with real review quotes.</div>
+  </div>
+</section>
+
+<!-- 2 PHASE 3 GOALS -->
+<section class="slide" id="slide-2" aria-label="Phase 3 goals">
+  <span class="tag">Phase 3</span>
+  <h2>Three new capabilities on top of the analysis MVP</h2>
+  <p class="lede">The MVP analyzes one restaurant at a time. Phase 3 compares it with its competitors on the same criteria and reads the summary aloud.</p>
+  <div class="body">
+    <div class="grid3">
+      <div class="card ind"><h3>Competitive set</h3><p>Suggest up to 10 competitors, ranked by review similarity. Owners can pin, dismiss or add restaurants by hand.</p></div>
+      <div class="card grn"><h3>Criteria gap table</h3><p>Compare six criteria against competitors and label each one: Learn, Keep or Attack.</p></div>
+      <div class="card amb"><h3>Read aloud summary</h3><p>Play the AI summary with a Hugging Face text-to-speech model. Text stays on screen.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 PROBLEM -->
+<section class="slide" id="slide-3" aria-label="Problem">
+  <span class="tag">Problem</span>
+  <h2>Owners judge themselves in isolation and read everything on screen</h2>
+  <div class="body">
+    <div class="revlist">
+      <div class="rv"><span class="st">★★★★</span> Love the noodles. Had to <mark>wait 30 minutes</mark> though.</div>
+      <div class="rv"><span class="st">★★★★★</span> Best broth in the district, and the staff were lovely.</div>
+      <div class="rv"><span class="st">★★</span> Food was cold by the time it arrived after a <mark>long wait</mark>.</div>
+      <div class="rv"><span class="st">★★★★</span> Fair prices, cozy place. Parking is hard.</div>
+      <div class="rv"><span class="st">★★★</span> Good, but <mark>waited ages</mark> to order at peak hour.</div>
+      <div class="caption">A star rating says little without knowing how competitors score on the same aspects.</div>
+    </div>
+    <div class="pains">
+      <div><b>No benchmark</b>An owner can’t tell if a 30-minute wait is normal for the area.</div>
+      <div><b>Reading takes time</b>Long summaries are hard to absorb between shifts or while on the move.</div>
+      <div><b>Hard to act on</b>Insights stay on the dashboard instead of reaching the people who run service.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 WHAT IS NEW -->
+<section class="slide" id="slide-4" aria-label="What is new">
+  <span class="tag">Solution</span>
+  <h2>What is new: a competitive set, a gap table and a spoken summary</h2>
+  <div class="body" style="flex-direction:column; gap:0;">
+    <div class="grid2" style="flex:none;">
+      <div class="card ind"><h3>Pick the competitive set</h3><p>Restaurants with reviews rank first, then by how similar their guest reviews are. Pin, dismiss or add manually, and the choice survives refresh.</p></div>
+      <div class="card grn"><h3>See the gap on six criteria</h3><p>Food, service, wait time, hygiene, ambience and price. Each row is colored and sortable by gap.</p></div>
+      <div class="card amb"><h3>Ask why, with evidence</h3><p>The AI explains a gap in at most two sentences, citing 2 to 3 real review quotes. No quote, no claim.</p></div>
+      <div class="card"><h3>Listen to the summary</h3><p>A read-aloud button plays the cached analysis summary. Text stays available if audio fails.</p></div>
+    </div>
+    <div class="value">
+      <div>Benchmark<span>Against your competitive set</span></div>
+      <div>Clear labels<span>Learn, Keep or Attack</span></div>
+      <div>Evidence<span>Quotes from stored reviews</span></div>
+      <div>Hands-free<span>Listen while you work</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 DIAGRAM (reserved) -->
+<section class="slide" id="slide-diagram" aria-label="Diagram">
+  <span class="tag">Diagram</span>
+  <h2>Embeddings and semantic competitor lookup</h2>
+  <div class="body" style="margin-top:18px;">
+    <img src="phase3-assets/embeddings-diagram.png" alt="Diagram: indexing reviews into the ReviewEmbedding table, then competitor lookup through centroids, cosine similarity and merged candidate search" style="flex:1; min-height:0; width:100%; object-fit:contain; border-radius:16px;">
+  </div>
+</section>
+
+<!-- 6 GAP TABLE FLOW -->
+<section class="slide" id="slide-6" aria-label="How the gap table is built">
+  <span class="tag">Market comparison</span>
+  <h2>How the gap table is built</h2>
+  <div class="body" style="flex-direction:column; gap:22px;">
+    <div class="pipe">
+      <div class="box">Stored reviews<span>Own and competitor reviews</span></div><div class="ar">→</div>
+      <div class="box ind">Criteria tagging<span>Keyword match, EN and VI</span></div><div class="ar">→</div>
+      <div class="box ind">Average rating<span>Per criterion, 1 to 5 scale</span></div><div class="ar">→</div>
+      <div class="box">Gap<span>Own score minus competitor average</span></div><div class="ar">→</div>
+      <div class="box amb">Label<span>Computed in code, not by AI</span></div>
+    </div>
+    <div class="labels">
+      <div class="lab learn"><b>Learn</b><p>Gap below −0.3. Rivals rate this criterion higher.</p></div>
+      <div class="lab keep"><b>Keep</b><p>Level with rivals, or ahead without a clear attack lead.</p></div>
+      <div class="lab attack"><b>Attack</b><p>Gap above +0.3 and competitor average below 3.5.</p></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>Only qualified competitors count</h3><p>A competitor needs at least 3 reviews mentioning a criterion (demo setting; 20 planned for production).</p></div>
+      <div class="card amb"><h3>Too little data shows a message</h3><p>Below the minimum, the criterion shows “Not enough data” and the AI is not asked for a conclusion.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 READ ALOUD FLOW -->
+<section class="slide" id="slide-7" aria-label="Read aloud summary">
+  <span class="tag">Hugging Face</span>
+  <h2>The summary is sent to a text-to-speech model and played back</h2>
+  <div class="body" style="flex-direction:column; gap:22px;">
+    <div class="pipe">
+      <div class="box">Analysis summary<span>Saved with the analysis</span></div><div class="ar">→</div>
+      <div class="box ind">FastAPI endpoint<span>POST …/analyses/{id}/tts</span></div><div class="ar">→</div>
+      <div class="box amb">Hugging Face<span>facebook/mms-tts-eng</span></div><div class="ar">→</div>
+      <div class="box">Audio player<span>Plays in the browser</span></div>
+    </div>
+    <div class="grid2">
+      <div class="card amb"><h3>Only the text leaves our server</h3><p>The browser never calls Hugging Face. The API token stays on the server.</p></div>
+      <div class="card"><h3>Clear errors and a short cache</h3><p>A cold model gets one retry if it warms up within 5 seconds. Otherwise the user sees a clear message. Up to 64 clips are cached in memory.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 VECTOR STORE -->
+<section class="slide" id="slide-8" aria-label="Vector store status">
+  <span class="tag">Embeddings</span>
+  <h2>The vector store is built, but not yet connected to the screens</h2>
+  <div class="body" style="flex-direction:column; gap:22px;">
+    <div class="pipe">
+      <div class="box">Review text<span>Stored in the DB</span></div><div class="ar">→</div>
+      <div class="box ind">Embedding<span>OpenAI text-embedding-3-small</span></div><div class="ar">→</div>
+      <div class="box ind">review_embeddings<span>Vector plus content hash</span></div><div class="ar">→</div>
+      <div class="box amb">Restaurant centroid<span>Average of review vectors</span></div><div class="ar">→</div>
+      <div class="box">Ranking and search<span>Competitive set, manual add, review search</span></div>
+    </div>
+    <div class="grid2">
+      <div class="card ind"><h3>What works</h3><p>Competitors with reviews are ranked by centroid similarity. GET /reviews/search matches a free-text query to review content, and falls back to keyword match when no embeddings exist. Stale vectors are skipped.</p></div>
+      <div class="card amb"><h3>What is still manual</h3><p>Embeddings are generated by the backfill CLI (docker compose run --rm backfill-embeddings), not during sync or analysis. Restaurants without embeddings are ranked by review volume.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 DATA -->
+<section class="slide" id="slide-9" aria-label="Data and constraints">
+  <span class="tag">Data</span>
+  <h2>What the comparison can use today, and what limits it</h2>
+  <div class="body" style="flex-direction:column; gap:22px;">
+    <div class="pipe">
+      <div class="box">Seeded datasets<span>District 2, District 1, Austin BBQ, Moose’s Tooth (mock)</span></div><div class="ar">→</div>
+      <div class="box">Workspace restaurants<span>Name, address, Google rating and count</span></div><div class="ar">→</div>
+      <div class="box ind">Competitive set<span>Every other restaurant is a candidate, ranked by similarity</span></div><div class="ar">→</div>
+      <div class="box">Gap table<span>Six criteria, AI explanation</span></div>
+    </div>
+    <div class="grid2">
+      <div class="card cor" style="display:flex; gap:22px; align-items:center;">
+        <div class="bignum">14/30</div>
+        <div><h3>Restaurants with reviews</h3><p>Only 14 of 30 seeded restaurants have reviews, so only those can be scored in the gap table.</p></div>
+      </div>
+      <div class="card amb"><h3>No location, cuisine or price</h3><p>Radius, cuisine and price filters are not applied yet, and the Places API is not configured. Distance and price show “Not available”.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 DATABASE CHANGES -->
+<section class="slide" id="slide-10" aria-label="Database changes">
+  <span class="tag">Design</span>
+  <h2>Database changes in Phase 3</h2>
+  <p class="lede">Two new tables. Both are created automatically; no existing table changes.</p>
+  <div class="body">
+    <div class="grid2">
+      <div class="card ind"><h3>competitor_selections</h3><ul><li>restaurant_id and competitor_id (unique pair)</li><li>status: PINNED, DISMISSED or MANUAL</li><li>created_by_user_id</li><li>No row means a system suggestion</li></ul></div>
+      <div class="card grn"><h3>review_embeddings</h3><ul><li>review_id and model (unique pair)</li><li>embedding as JSON, with dimensions</li><li>content_hash to detect changed text</li><li>Read aloud has no table; audio is cached in memory</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 SAFETY -->
+<section class="slide" id="slide-11" aria-label="Safety principles">
+  <span class="tag">Safety principles</span>
+  <h2>Phase 3 keeps the same safety rules</h2>
+  <div class="body" style="margin-top:22px;">
+    <div class="safegrid">
+      <div class="scard"><i>1</i><h3>Keys on the server</h3><p>OpenAI and Hugging Face tokens are read from the server environment only.</p></div>
+      <div class="scard"><i>2</i><h3>Quotes must be real</h3><p>The AI must cite review IDs from the given quotes. Otherwise a rule-based text is used.</p></div>
+      <div class="scard"><i>3</i><h3>Roles</h3><p>Owners edit the competitive set. Analysts view it and can search candidates. Admins get 403.</p></div>
+      <div class="scard"><i>4</i><h3>Insufficient data</h3><p>Below the minimum review count, no AI conclusion. The UI says “Not enough data”.</p></div>
+      <div class="scard"><i>5</i><h3>Fallback</h3><p>Every OpenAI, embedding and speech call has error handling. On failure, the server falls back to volume ranking.</p></div>
+      <div class="scard"><i>6</i><h3>Privacy</h3><p>Evidence shows rating, text and date. Reviewer names are not shown.</p></div>
+      <div class="scard"><i>7</i><h3>Open question</h3><p>Owners see up to 3 quotes from competitor reviews. This still needs sign-off.</p></div>
+      <div class="scard sum"><h3>AI advises.<br>People decide.</h3></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 TESTING -->
+<section class="slide" id="slide-12" aria-label="Test coverage">
+  <span class="tag">Testing</span>
+  <h2>Test coverage: each new feature has its own checks</h2>
+  <div class="body" style="flex-direction:column; gap:12px; margin-top:20px;">
+    <div class="ttable">
+      <div class="th">Feature</div><div class="th">What goes in</div><div class="th">What meets expectations</div>
+      <div class="tp"><i>1</i>Competitive set</div>
+      <div class="tc">Pin, dismiss, manual add, restaurants with and without reviews</div>
+      <div class="tc">Pinned and manual first, dismissed hidden, reviewed restaurants ranked by similarity. RBAC enforced.</div>
+      <div class="tp"><i>2</i>Gap table and AI</div>
+      <div class="tc">Few reviews, competitors below the minimum, invalid AI replies</div>
+      <div class="tc">Correct labels and sorting. Insufficient data is flagged. Bad AI output falls back to the template.</div>
+      <div class="tp"><i>3</i>Read aloud</div>
+      <div class="tc">Empty summary, missing token, timeouts, cold model, bad content type</div>
+      <div class="tc">Clear error code per case. Audio returned once, then served from cache.</div>
+      <div class="tp"><i>4</i>Vector store</div>
+      <div class="tc">Invalid vectors, changed review text, mixed dimensions, backfill CLI</div>
+      <div class="tc">Invalid input rejected. Stale vectors skipped. Semantic search and keyword fallback return results. Owners see only their restaurants.</div>
+    </div>
+    <div class="tstats">
+      <div><b>119</b><span>API unit tests, all passing in the last run</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section class="slide sdemo" id="slide-13" aria-label="Demo">
+  <h1>Demo</h1>
+</section>
+
+<!-- 13 EXPAND -->
+<section class="slide" id="slide-14" aria-label="Expand">
+  <span class="tag">Expand</span>
+  <h2>What comes after Phase 3</h2>
+  <p class="lede">Our plan for the next release, from the market comparison roadmap.</p>
+  <div class="body">
+    <div class="grid3">
+      <div class="card grn"><h3>Radius-based discovery</h3><p>Find real nearby competitors with the Google Places API, using coordinates and a configurable radius.</p></div>
+      <div class="card ind"><h3>Embeddings on sync</h3><p>Generate embeddings during sync and analysis, so new reviews are ranked without running the backfill CLI.</p></div>
+      <div class="card amb"><h3>Weekly refresh and cache</h3><p>Run discovery on a schedule and cache AI explanations, so repeat views load instantly.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 CONCLUSION -->
+<section class="slide" id="slide-15" aria-label="Conclusion and summary">
+  <span class="tag">Conclusion and summary</span>
+  <h2>From a pile of reviews to a plan, with rivals and a voice</h2>
+  <div class="body">
+    <div class="sumlist">
+      <div><b>Problem.</b> Owners judge themselves in isolation and read long summaries on screen.</div>
+      <div><b>Delivered.</b> Competitive set, six-criteria gap table with labels, AI explanations with quotes, and read aloud.</div>
+      <div><b>Limits.</b> Competitors come from the workspace only, 14 of 30 restaurants have reviews, and embeddings need a manual backfill.</div>
+      <div><b>Next.</b> Real nearby competitors through Google Places, then cuisine and price data.</div>
+    </div>
+    <div class="team">
+      <h3>Team</h3>
+      <table>
+        <tr><td>Web UI</td><td>ManhHN</td></tr>
+        <tr><td>API</td><td>DanTV9, NghiaBV3</td></tr>
+        <tr><td>Data crawl</td><td>MinhNN</td></tr>
+        <tr><td>Flow chart</td><td>MinhNQ89</td></tr>
+        <tr><td>Database design</td><td>LoiPB</td></tr>
+        <tr><td>Test cases</td><td>MinhNHC, LinhLB</td></tr>
+        <tr><td>Prompt evaluation</td><td>LocPT</td></tr>
+        <tr><td>Slides and presenting</td><td>NguyenDTD</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 15 Q&A -->
+<section class="slide sdemo" id="slide-16" aria-label="Questions and answers">
+  <h1>Q&amp;A</h1>
+  <p>Thank you for listening</p>
+</section>
+
+</div></div></div>
+
+<div id="bar">
+  <span class="brand">Restaurant Review Insights: Phase 3</span>
+  <button class="nav" id="prev" aria-label="Previous slide">Back</button>
+  <div id="dots" role="tablist" aria-label="Slides"></div>
+  <span id="count" aria-live="polite">1 / 16</span>
+  <button class="nav" id="next" aria-label="Next slide">Next</button>
+  <button class="nav" id="fs" aria-label="Toggle full screen">Full screen</button>
+</div>
+
+<script>
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+  var total = slides.length, cur = 0;
+  var frame = document.getElementById("frame"), stage = document.getElementById("stage"), vp = document.getElementById("viewport");
+  var dots = document.getElementById("dots"), count = document.getElementById("count");
+
+  function fit() {
+    var k = Math.min(vp.clientWidth / 1280, vp.clientHeight / 720);
+    if (!(k > 0)) k = 1;
+    stage.style.transform = "scale(" + k + ")";
+    frame.style.width = 1280 * k + "px";
+    frame.style.height = 720 * k + "px";
+  }
+  window.addEventListener("resize", fit);
+
+  slides.forEach(function (s, i) {
+    var b = document.createElement("button");
+    b.setAttribute("aria-label", "Go to slide " + (i + 1));
+    b.addEventListener("click", function () { go(i); });
+    dots.appendChild(b);
+  });
+
+  function go(i, fromHash) {
+    cur = Math.max(0, Math.min(total - 1, i));
+    slides.forEach(function (s, j) { s.classList.toggle("active", j === cur); });
+    Array.prototype.forEach.call(dots.children, function (b, j) {
+      if (j === cur) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current");
+    });
+    count.textContent = (cur + 1) + " / " + total;
+    if (!fromHash) { try { history.replaceState(null, "", "#slide-" + (cur + 1)); } catch (e) {} }
+  }
+  function fromHash() {
+    var m = /^#slide-(\d+)$/.exec(location.hash);
+    go(m ? parseInt(m[1], 10) - 1 : 0, true);
+  }
+  window.addEventListener("hashchange", fromHash);
+
+  document.getElementById("prev").addEventListener("click", function () { go(cur - 1); });
+  document.getElementById("next").addEventListener("click", function () { go(cur + 1); });
+  document.getElementById("fs").addEventListener("click", function () {
+    try {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    } catch (e) {}
+  });
+  document.addEventListener("keydown", function (e) {
+    var t = e.target && e.target.tagName;
+    if (t === "INPUT" || t === "SELECT" || t === "TEXTAREA") return;
+    if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); go(cur + 1); }
+    else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); go(cur - 1); }
+    else if (e.key === "Home") go(0);
+    else if (e.key === "End") go(total - 1);
+    else if (e.key === "f" || e.key === "F") document.getElementById("fs").click();
+  });
+
+  /* init */
+  fit();
+  fromHash();
+})();
+</script>
+</body>
+</html>
