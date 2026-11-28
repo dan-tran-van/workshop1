@@ -125,3 +125,13 @@ services:
     depends_on:
       api:
         condition: service_healthy
+
+  # Local OpenAI-compatible TTS Service (Run with: docker compose --profile tts up)
+  kokoro-tts:
+    image: ghcr.io/remsky/kokoro-fastapi-cpu:latest
+    container_name: workshop1-kokoro-tts
+    restart: unless-stopped
+    ports:
+      - "8880:8880"
+    profiles:
+      - tts
