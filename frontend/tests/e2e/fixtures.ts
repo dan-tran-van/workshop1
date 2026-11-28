@@ -58,6 +58,12 @@ type Analysis = {
   created_at: string;
 };
 
+type AnalysisHistoryEntry = {
+  id: number;
+  created_at: string;
+  analysis: Analysis;
+};
+
 type RestaurantDetail = Restaurant & {
   reviews: Review[];
   latest_analysis: Analysis | null;
@@ -70,6 +76,8 @@ type MockOptions = {
   details?: Record<number, Partial<RestaurantDetail>>;
   initialAnalysis?: Analysis | null;
   analysisResult?: AnalysisResult;
+  analysisHistory?: AnalysisHistoryEntry[];
+  restaurantAnalyses?: Record<number, Analysis[]>;
   role?: "OWNER" | "ANALYST" | "ADMIN";
 };
 
@@ -180,9 +188,108 @@ export const analysis: Analysis = {
   created_at: "2026-11-14T09:00:00Z",
 };
 
+export const pastAnalysisResult: AnalysisResult = {
+  overall_sentiment: "MIXED",
+  summary: "Earlier feedback noted slower evening pacing alongside solid food.",
+  estimated_rating_trend: "STABLE",
+  aspect_breakdown: [
+    { aspect: "food", sentiment: "POSITIVE", score: 4.4, summary: "Good seasonal ingredients.", highlights: [] },
+    { aspect: "service", sentiment: "POSITIVE", score: 4.6, summary: "Friendly team.", highlights: [] },
+    { aspect: "wait_time", sentiment: "NEGATIVE", score: 2.6, summary: "Noticeable weekend wait times.", highlights: [] },
+    { aspect: "hygiene", sentiment: "POSITIVE", score: 4.8, summary: "Spotless dining room.", highlights: [] },
+    { aspect: "ambience", sentiment: "POSITIVE", score: 4.4, summary: "Cozy lighting and decor.", highlights: [] },
+    { aspect: "price", sentiment: "MIXED", score: 3.2, summary: "Some guests felt prices were high.", highlights: [] },
+  ],
+  prioritized_improvements: [],
+  strengths_to_keep: [],
+};
+
+export const pastAnalysis: Analysis = {
+  id: 85,
+  restaurant_id: 1,
+  overall_sentiment: pastAnalysisResult.overall_sentiment,
+  result_json: pastAnalysisResult,
+  review_count: 1,
+  last_review_at: "2026-11-08T10:00:00Z",
+  model: "test-fixture",
+  created_at: "2026-11-08T09:00:00Z",
+};
+
+export const olderAnalysisResult: AnalysisResult = {
+  overall_sentiment: "MIXED",
+  summary: "Initial baseline snapshot before menu updates.",
+  estimated_rating_trend: "STABLE",
+  aspect_breakdown: [
+    { aspect: "food", sentiment: "POSITIVE", score: 4.0, summary: "Reliable dishes.", highlights: [] },
+    { aspect: "service", sentiment: "POSITIVE", score: 4.2, summary: "Polite service.", highlights: [] },
+    { aspect: "wait_time", sentiment: "MIXED", score: 3.5, summary: "Moderate wait times.", highlights: [] },
+    { aspect: "hygiene", sentiment: "POSITIVE", score: 4.5, summary: "Clean seating area.", highlights: [] },
+    { aspect: "ambience", sentiment: "POSITIVE", score: 4.1, summary: "Warm ambiance.", highlights: [] },
+    { aspect: "price", sentiment: "NEUTRAL", score: 3.9, summary: "Reasonable pricing.", highlights: [] },
+  ],
+  prioritized_improvements: [],
+  strengths_to_keep: [],
+};
+
+export const olderAnalysis: Analysis = {
+  id: 80,
+  restaurant_id: 1,
+  overall_sentiment: olderAnalysisResult.overall_sentiment,
+  result_json: olderAnalysisResult,
+  review_count: 1,
+  last_review_at: "2026-11-01T10:00:00Z",
+  model: "test-fixture",
+  created_at: "2026-11-01T09:00:00Z",
+};
+
+const analysisResultLotus: AnalysisResult = {
+  ...analysisResult,
+  overall_sentiment: "MIXED",
+  summary: "Fresh food and a welcoming atmosphere, with occasional pacing concerns.",
+  estimated_rating_trend: "STABLE",
+};
+
+const analysisLotus: Analysis = {
+  id: 88,
+  restaurant_id: 2,
+  overall_sentiment: analysisResultLotus.overall_sentiment,
+  result_json: analysisResultLotus,
+  review_count: 1,
+  last_review_at: "2026-11-11T10:00:00Z",
+  model: "test-fixture",
+  created_at: "2026-11-12T08:00:00Z",
+};
+
+export const analysisHistory: AnalysisHistoryEntry[] = [
+  {
+    id: 3,
+    created_at: "2026-11-14T11:00:00Z",
+    analysis,
+  },
+  {
+    id: 2,
+    created_at: "2026-11-13T15:30:00Z",
+    analysis: analysisLotus,
+  },
+  {
+    id: 1,
+    created_at: "2026-11-12T09:15:00Z",
+    analysis,
+  },
+];
+
 export async function installApiMocks(page: Page, options: MockOptions = {}) {
   let listRequests = 0;
+  let nextHistoryId = 100;
   const role = options.role ?? "ADMIN";
+  const historyRuns = [...(options.analysisHistory ?? [])];
+  const analysesByRestaurant: Record<number, Analysis[]> = {};
+  for (const [key, list] of Object.entries(options.restaurantAnalyses ?? {})) {
+    analysesByRestaurant[Number(key)] = [...list];
+  }
+  if (options.initialAnalysis && !analysesByRestaurant[options.initialAnalysis.restaurant_id]) {
+    analysesByRestaurant[options.initialAnalysis.restaurant_id] = [options.initialAnalysis];
+  }
 
   await page.route("**/*", async (route) => {
     const request = route.request();
@@ -241,6 +348,15 @@ export async function installApiMocks(page: Page, options: MockOptions = {}) {
         is_active: true,
         restaurant_ids: role === "OWNER" ? [1] : [],
       });
+      return;
+    }
+
+    if (path === "/auth/me/analysis-history" && request.method() === "GET") {
+      const visibleRuns = historyRuns.filter((entry) => {
+        if (role !== "OWNER") return true;
+        return entry.analysis.restaurant_id === 1;
+      });
+      await json(route, visibleRuns);
       return;
     }
 
@@ -305,19 +421,32 @@ export async function installApiMocks(page: Page, options: MockOptions = {}) {
       const result = refresh
         ? { ...baseResult, summary: "Refreshed analysis: service remains a guest favorite." }
         : baseResult;
-      await json(route, {
+      const snapshot: Analysis = {
         ...analysis,
         id: refresh ? 92 : analysis.id,
         restaurant_id: id,
         overall_sentiment: result.overall_sentiment,
         result_json: result,
         created_at: refresh ? "2026-11-14T10:00:00Z" : analysis.created_at,
+      };
+      nextHistoryId += 1;
+      historyRuns.unshift({
+        id: nextHistoryId,
+        created_at: new Date().toISOString(),
+        analysis: snapshot,
       });
+      const existingList = analysesByRestaurant[id] ?? [];
+      if (!existingList.some((item) => item.id === snapshot.id)) {
+        analysesByRestaurant[id] = [snapshot, ...existingList];
+      }
+      await json(route, snapshot);
       return;
     }
 
-    if (path.match(/^\/restaurants\/\d+\/analyses$/)) {
-      await json(route, []);
+    const analysesMatch = path.match(/^\/restaurants\/(\d+)\/analyses$/);
+    if (analysesMatch) {
+      const id = Number(analysesMatch[1]);
+      await json(route, analysesByRestaurant[id] ?? []);
       return;
     }
 

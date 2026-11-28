@@ -32,6 +32,27 @@ import {
   Waves,
   Zap,
 } from "lucide-react";
+import type {
+  Analysis,
+  AnalysisHistoryEntry,
+  AnalysisResult,
+  Aspect,
+  Improvement,
+} from "./types/analysis";
+import {
+  buildCriteriaComparison,
+  getPastAnalyses,
+  normalizeAspectKey,
+  type AspectComparisonItem,
+  type CriteriaComparisonSummary,
+} from "./utils/criteriaComparison";
+import {
+  AspectDeltaBadge,
+  ComparisonSummaryStrip,
+  ComparisonToolbar,
+  CriteriaComparisonChart,
+  type ComparisonViewMode,
+} from "./components/CriteriaComparison";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
@@ -55,48 +76,6 @@ type Review = {
   rating: number;
   text: string;
   published_at: string;
-};
-
-type Aspect = {
-  aspect: string;
-  sentiment: string;
-  score: number | null;
-  summary: string;
-  highlights: string[];
-};
-
-type Improvement = {
-  priority: string;
-  aspect: string;
-  issue: string;
-  recommended_action: string;
-  expected_impact: string;
-};
-
-type Strength = {
-  aspect: string;
-  strength: string;
-  marketing_tip: string | null;
-};
-
-type AnalysisResult = {
-  overall_sentiment: string;
-  summary: string;
-  estimated_rating_trend: string;
-  aspect_breakdown: Aspect[];
-  prioritized_improvements: Improvement[];
-  strengths_to_keep: Strength[];
-};
-
-type Analysis = {
-  id: number;
-  restaurant_id: number;
-  overall_sentiment: string;
-  result_json: AnalysisResult;
-  review_count: number;
-  last_review_at: string | null;
-  model: string;
-  created_at: string;
 };
 
 type RestaurantDetail = Restaurant & {
@@ -270,6 +249,11 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
   const [adminUsersNotice, setAdminUsersNotice] = useState("");
   const [adminUserCreating, setAdminUserCreating] = useState(false);
   const [adminUserUpdating, setAdminUserUpdating] = useState<number | null>(null);
+  const [analysisHistory, setAnalysisHistory] = useState<AnalysisHistoryEntry[]>([]);
+  const [analysisHistoryLoading, setAnalysisHistoryLoading] = useState(false);
+  const [analysisHistoryError, setAnalysisHistoryError] = useState("");
+  const [selectedBaselineByRestaurant, setSelectedBaselineByRestaurant] = useState<Record<number, number | "none">>({});
+  const [comparisonViewMode, setComparisonViewMode] = useState<ComparisonViewMode>("cards");
 
   const loadRestaurants = useCallback(async (query: string, signal?: AbortSignal) => {
     setLoadingRestaurants(true);
@@ -316,6 +300,7 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
     const controller = new AbortController();
     setLoadingDetail(true);
     setDetailError("");
+
     request<RestaurantDetail>(`/restaurants/${selectedId}`, { signal: controller.signal })
       .then(setDetail)
       .catch((error: unknown) => {
@@ -325,6 +310,7 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
       .finally(() => {
         if (!controller.signal.aborted) setLoadingDetail(false);
       });
+
     return () => controller.abort();
   }, [selectedId]);
 
@@ -357,6 +343,18 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
     }
   }, []);
 
+  const loadAnalysisHistory = useCallback(async () => {
+    setAnalysisHistoryLoading(true);
+    setAnalysisHistoryError("");
+    try {
+      setAnalysisHistory(await request<AnalysisHistoryEntry[]>("/auth/me/analysis-history"));
+    } catch (error) {
+      setAnalysisHistoryError(error instanceof Error ? error.message : "Unable to load analysis activity.");
+    } finally {
+      setAnalysisHistoryLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (page === "sync") void loadSyncData();
   }, [loadSyncData, page]);
@@ -364,6 +362,14 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
   useEffect(() => {
     if (page === "users" && currentUser.role === "ADMIN") void loadAdminUsers();
   }, [currentUser.role, loadAdminUsers, page]);
+
+  useEffect(() => {
+    void loadAnalysisHistory();
+  }, [loadAnalysisHistory]);
+
+  useEffect(() => {
+    if (page === "insights") void loadAnalysisHistory();
+  }, [loadAnalysisHistory, page]);
 
   const sortedRestaurants = useMemo(() => [...restaurants].sort((a, b) => {
     if (sortBy === "reviews") return (b.review_count ?? 0) - (a.review_count ?? 0);
@@ -380,8 +386,50 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] ?? null;
   const analysis = detail?.latest_analysis?.result_json;
 
+  const userRestaurantAnalyses = useMemo(
+    () =>
+      selectedId === null
+        ? []
+        : analysisHistory
+            .filter((entry) => entry.analysis.restaurant_id === selectedId)
+            .map((entry) => entry.analysis),
+    [analysisHistory, selectedId],
+  );
+  const pastAnalyses = useMemo(
+    () => getPastAnalyses(detail?.latest_analysis, userRestaurantAnalyses),
+    [detail?.latest_analysis, userRestaurantAnalyses],
+  );
+  const baselineChoice = selectedId !== null ? selectedBaselineByRestaurant[selectedId] : undefined;
+  const baselineAnalysis = useMemo(() => {
+    if (!detail?.latest_analysis || baselineChoice === "none" || !pastAnalyses.length) return null;
+    if (typeof baselineChoice === "number") {
+      return pastAnalyses.find((item) => item.id === baselineChoice) ?? pastAnalyses[0];
+    }
+    return pastAnalyses[0];
+  }, [baselineChoice, detail?.latest_analysis, pastAnalyses]);
+  const selectedBaselineId: number | "none" = baselineChoice === "none"
+    ? "none"
+    : (baselineAnalysis?.id ?? "none");
+  const comparisonSummary = useMemo(() => {
+    if (!detail?.latest_analysis || !baselineAnalysis) return null;
+    if (!detail.latest_analysis.result_json?.aspect_breakdown?.length) return null;
+    return buildCriteriaComparison(detail.latest_analysis, baselineAnalysis);
+  }, [baselineAnalysis, detail?.latest_analysis]);
+
+  function handleSelectBaseline(value: number | "none") {
+    if (selectedId === null) return;
+    setSelectedBaselineByRestaurant((current) => ({ ...current, [selectedId]: value }));
+  }
+
+  function handleCompareFromHistory(restaurantId: number, baselineId: number) {
+    setSelectedBaselineByRestaurant((current) => ({ ...current, [restaurantId]: baselineId }));
+    setSelectedId(restaurantId);
+    setPage("overview");
+  }
+
   async function runAnalysis(forceRefresh = false) {
     if (!selectedId) return;
+    const previousLatestId = detail?.latest_analysis?.id ?? null;
     setAnalyzing(true);
     setDetailError("");
     try {
@@ -390,6 +438,15 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
         body: JSON.stringify({ force_refresh: forceRefresh }),
       });
       setDetail((current) => current ? { ...current, latest_analysis: result } : current);
+      if (previousLatestId !== null && previousLatestId !== result.id) {
+        setSelectedBaselineByRestaurant((current) => {
+          if (current[selectedId] === "none") return current;
+          const next = { ...current };
+          delete next[selectedId];
+          return next;
+        });
+      }
+      await loadAnalysisHistory();
     } catch (error) {
       setDetailError(error instanceof Error ? error.message : "Unable to analyze reviews.");
     } finally {
@@ -578,6 +635,13 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
               restaurants={sortedRestaurants}
               detail={detail}
               analysis={analysis}
+              pastAnalyses={pastAnalyses}
+              loadingAnalyses={analysisHistoryLoading}
+              analysesError={analysisHistoryError}
+              selectedBaselineId={selectedBaselineId}
+              baselineAnalysis={baselineAnalysis}
+              comparisonSummary={comparisonSummary}
+              comparisonViewMode={comparisonViewMode}
               selectedId={selectedId}
               search={search}
               sortBy={sortBy}
@@ -593,6 +657,8 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
               onSort={setSortBy}
               onSelect={setSelectedId}
               onAnalyze={runAnalysis}
+              onSelectBaseline={handleSelectBaseline}
+              onChangeComparisonViewMode={setComparisonViewMode}
               onGoToRestaurants={() => setPage("restaurants")}
             />
           )}
@@ -603,7 +669,12 @@ function Dashboard({ currentUser, onSignOut }: { currentUser: AuthUser; onSignOu
               detail={detail}
               loading={loadingDetail}
               error={detailError}
+              history={analysisHistory}
+              historyLoading={analysisHistoryLoading}
+              historyError={analysisHistoryError}
+              onHistoryRefresh={() => void loadAnalysisHistory()}
               onSelect={(id) => { setSelectedId(id); setPage("overview"); }}
+              onCompare={handleCompareFromHistory}
               onAnalyze={runAnalysis}
               analyzing={analyzing}
             />
@@ -781,6 +852,13 @@ function RestaurantWorkspace(props: {
   restaurants: Restaurant[];
   detail: RestaurantDetail | null;
   analysis: AnalysisResult | undefined;
+  pastAnalyses: Analysis[];
+  loadingAnalyses: boolean;
+  analysesError: string;
+  selectedBaselineId: number | "none";
+  baselineAnalysis: Analysis | null;
+  comparisonSummary: CriteriaComparisonSummary | null;
+  comparisonViewMode: ComparisonViewMode;
   selectedId: number | null;
   search: string;
   sortBy: "rating" | "reviews";
@@ -796,6 +874,8 @@ function RestaurantWorkspace(props: {
   onSort: (value: "rating" | "reviews") => void;
   onSelect: (id: number) => void;
   onAnalyze: (refresh?: boolean) => void;
+  onSelectBaseline: (value: number | "none") => void;
+  onChangeComparisonViewMode: (mode: ComparisonViewMode) => void;
   onGoToRestaurants: () => void;
 }) {
   const isOverview = props.search === "" && props.restaurants.length > 0;
@@ -848,7 +928,23 @@ function RestaurantWorkspace(props: {
         <section className="panel detail-panel" aria-live="polite">
           {props.loadingDetail ? <LoadingState label="Loading restaurant details..." /> :
             props.detailError ? <ErrorBanner message={props.detailError} /> :
-              props.detail ? <RestaurantDetails detail={props.detail} analysis={props.analysis} analyzing={props.analyzing} onAnalyze={props.onAnalyze} /> :
+              props.detail ? (
+                <RestaurantDetails
+                  detail={props.detail}
+                  analysis={props.analysis}
+                  pastAnalyses={props.pastAnalyses}
+                  loadingAnalyses={props.loadingAnalyses}
+                  analysesError={props.analysesError}
+                  selectedBaselineId={props.selectedBaselineId}
+                  baselineAnalysis={props.baselineAnalysis}
+                  comparisonSummary={props.comparisonSummary}
+                  comparisonViewMode={props.comparisonViewMode}
+                  analyzing={props.analyzing}
+                  onAnalyze={props.onAnalyze}
+                  onSelectBaseline={props.onSelectBaseline}
+                  onChangeComparisonViewMode={props.onChangeComparisonViewMode}
+                />
+              ) :
                 <EmptyState title="Choose a restaurant" description="Select a location to see its reviews and insights." />}
         </section>
       </section>
@@ -872,8 +968,45 @@ function RestaurantAvatar({ name, large = false }: { name: string; large?: boole
   return <span className={`restaurant-avatar ${tone}${large ? " large" : ""}`}><Utensils size={large ? 22 : 17} strokeWidth={1.8} /><span>{initial}</span></span>;
 }
 
-function RestaurantDetails({ detail, analysis, analyzing, onAnalyze }: { detail: RestaurantDetail; analysis: AnalysisResult | undefined; analyzing: boolean; onAnalyze: (refresh?: boolean) => void }) {
+function RestaurantDetails({
+  detail,
+  analysis,
+  pastAnalyses,
+  loadingAnalyses,
+  analysesError,
+  selectedBaselineId,
+  baselineAnalysis,
+  comparisonSummary,
+  comparisonViewMode,
+  analyzing,
+  onAnalyze,
+  onSelectBaseline,
+  onChangeComparisonViewMode,
+}: {
+  detail: RestaurantDetail;
+  analysis: AnalysisResult | undefined;
+  pastAnalyses: Analysis[];
+  loadingAnalyses: boolean;
+  analysesError: string;
+  selectedBaselineId: number | "none";
+  baselineAnalysis: Analysis | null;
+  comparisonSummary: CriteriaComparisonSummary | null;
+  comparisonViewMode: ComparisonViewMode;
+  analyzing: boolean;
+  onAnalyze: (refresh?: boolean) => void;
+  onSelectBaseline: (value: number | "none") => void;
+  onChangeComparisonViewMode: (mode: ComparisonViewMode) => void;
+}) {
   const reviews = detail.reviews ?? [];
+  const comparisonByAspect = useMemo(() => {
+    const map = new Map<string, AspectComparisonItem>();
+    if (!comparisonSummary) return map;
+    for (const item of comparisonSummary.items) {
+      map.set(normalizeAspectKey(item.aspect), item);
+    }
+    return map;
+  }, [comparisonSummary]);
+
   return (
     <div className="detail-content">
       <div className="detail-hero">
@@ -897,10 +1030,38 @@ function RestaurantDetails({ detail, analysis, analyzing, onAnalyze }: { detail:
           <div className="section-title-row"><div><div className="section-kicker"><Sparkles size={13} /> AI REVIEW ANALYSIS</div><h3>At a glance</h3></div><span className={`sentiment-pill ${sentimentClass(analysis.overall_sentiment)}`}>{titleCase(analysis.overall_sentiment)}</span></div>
           <p className="analysis-summary">{analysis.summary}</p>
           <div className="trend-line"><span className={`trend-badge ${analysis.estimated_rating_trend.toLowerCase()}`}><TrendIcon trend={analysis.estimated_rating_trend} />{titleCase(analysis.estimated_rating_trend)}</span><span>Estimated rating trend</span><span className="trend-spacer" /><span className="analysis-count">Based on {detail.latest_analysis?.review_count ?? reviews.length} reviews</span></div>
-          <div className="aspects-grid">
-            {(analysis.aspect_breakdown ?? []).slice(0, 6).map((aspect) => <AspectCard key={aspect.aspect} aspect={aspect} />)}
-            {!analysis.aspect_breakdown?.length && <p className="empty-inline">Not enough review data for an aspect breakdown yet.</p>}
-          </div>
+          {analysis.aspect_breakdown?.length > 0 && (
+            <ComparisonToolbar
+              pastAnalyses={pastAnalyses}
+              selectedBaselineId={selectedBaselineId}
+              onSelectBaseline={onSelectBaseline}
+              viewMode={comparisonViewMode}
+              onChangeViewMode={onChangeComparisonViewMode}
+              loading={loadingAnalyses}
+              error={analysesError}
+            />
+          )}
+          {comparisonSummary && baselineAnalysis && (
+            <ComparisonSummaryStrip summary={comparisonSummary} baseline={baselineAnalysis} />
+          )}
+          {comparisonSummary && baselineAnalysis && detail.latest_analysis && comparisonViewMode === "chart" ? (
+            <CriteriaComparisonChart
+              summary={comparisonSummary}
+              current={detail.latest_analysis}
+              baseline={baselineAnalysis}
+            />
+          ) : (
+            <div className="aspects-grid">
+              {(analysis.aspect_breakdown ?? []).slice(0, 6).map((aspect) => (
+                <AspectCard
+                  key={aspect.aspect}
+                  aspect={aspect}
+                  comparison={comparisonByAspect.get(normalizeAspectKey(aspect.aspect))}
+                />
+              ))}
+              {!analysis.aspect_breakdown?.length && <p className="empty-inline">Not enough review data for an aspect breakdown yet.</p>}
+            </div>
+          )}
           {analysis.prioritized_improvements?.length > 0 && <div className="recommendations">
             <div className="section-title-row compact"><div><div className="section-kicker"><Zap size={13} /> WHAT TO FOCUS ON</div><h3>Room to improve</h3></div><span className="tiny-count">{analysis.prioritized_improvements.length} suggestions</span></div>
             {analysis.prioritized_improvements.slice(0, 2).map((item, index) => <ImprovementCard key={`${item.aspect}-${index}`} item={item} />)}
@@ -923,13 +1084,39 @@ function RestaurantDetails({ detail, analysis, analyzing, onAnalyze }: { detail:
   );
 }
 
-function AspectCard({ aspect }: { aspect: Aspect }) {
+function AspectCard({ aspect, comparison }: { aspect: Aspect; comparison?: AspectComparisonItem }) {
   const score = aspect.score === null ? 0 : Math.max(0, Math.min(5, aspect.score));
   return (
     <article className="aspect-card">
       <div className="aspect-top"><span>{titleCase(aspect.aspect)}</span><span className={`aspect-mood ${sentimentClass(aspect.sentiment)}`}>{titleCase(aspect.sentiment)}</span></div>
-      <div className="aspect-score">{aspect.score === null ? "—" : score.toFixed(1)}<span>/5</span></div>
-      <div className="score-track"><span style={{ width: `${score * 20}%` }} className={score >= 4 ? "score-good" : score >= 3 ? "score-mid" : "score-low"} /></div>
+      <div className="aspect-score-row">
+        <div className="aspect-score">{aspect.score === null ? "—" : score.toFixed(1)}<span>/5</span></div>
+        {comparison && <AspectDeltaBadge comparison={comparison} />}
+      </div>
+      <div className="score-track">
+        <span style={{ width: `${score * 20}%` }} className={score >= 4 ? "score-good" : score >= 3 ? "score-mid" : "score-low"} />
+        {comparison?.baselineScore !== null && comparison?.baselineScore !== undefined && (
+          <i
+            className="score-track-baseline"
+            style={{ left: `${comparison.baselineScore * 20}%` }}
+            title={`Past score: ${comparison.baselineScore.toFixed(1)}/5`}
+          />
+        )}
+      </div>
+      {comparison && (
+        <div className="aspect-compare-meta">
+          <span>
+            {comparison.baselineScore !== null
+              ? `vs ${comparison.baselineScore.toFixed(1)} past`
+              : "Not in past run"}
+          </span>
+          {comparison.sentimentChanged && comparison.baseline && (
+            <span className="aspect-sentiment-shift">
+              {titleCase(comparison.baseline.sentiment)} → {titleCase(aspect.sentiment)}
+            </span>
+          )}
+        </div>
+      )}
       <p>{aspect.summary}</p>
     </article>
   );
@@ -953,8 +1140,56 @@ function ReviewRow({ review }: { review: Review }) {
   );
 }
 
-function InsightsPage({ restaurants, detail, loading, error, onSelect, onAnalyze, analyzing }: { restaurants: Restaurant[]; detail: RestaurantDetail | null; loading: boolean; error: string; onSelect: (id: number) => void; onAnalyze: (refresh?: boolean) => void; analyzing: boolean }) {
+function truncateText(value: string, maxLength: number) {
+  const trimmed = value.trim();
+  if (trimmed.length <= maxLength) return trimmed;
+  return `${trimmed.slice(0, maxLength - 1).trimEnd()}…`;
+}
+
+function restaurantName(restaurants: Restaurant[], restaurantId: number) {
+  return restaurants.find((item) => item.id === restaurantId)?.name ?? `Restaurant #${restaurantId}`;
+}
+
+function InsightsPage({
+  restaurants,
+  detail,
+  loading,
+  error,
+  history,
+  historyLoading,
+  historyError,
+  onHistoryRefresh,
+  onSelect,
+  onCompare,
+  onAnalyze,
+  analyzing,
+}: {
+  restaurants: Restaurant[];
+  detail: RestaurantDetail | null;
+  loading: boolean;
+  error: string;
+  history: AnalysisHistoryEntry[];
+  historyLoading: boolean;
+  historyError: string;
+  onHistoryRefresh: () => void;
+  onSelect: (id: number) => void;
+  onCompare: (restaurantId: number, baselineId: number) => void;
+  onAnalyze: (refresh?: boolean) => void;
+  analyzing: boolean;
+}) {
   const analyzed = restaurants.filter((restaurant) => restaurant.id === detail?.id && detail.latest_analysis);
+  const latestAnalysisIdByRestaurant = useMemo(() => {
+    const map = new Map<number, number>();
+    if (detail?.latest_analysis) {
+      map.set(detail.id, detail.latest_analysis.id);
+    }
+    for (const entry of history) {
+      if (!map.has(entry.analysis.restaurant_id)) {
+        map.set(entry.analysis.restaurant_id, entry.analysis.id);
+      }
+    }
+    return map;
+  }, [detail?.id, detail?.latest_analysis, history]);
   return (
     <div className="insights-layout">
       <div className="insights-intro panel">
@@ -972,6 +1207,76 @@ function InsightsPage({ restaurants, detail, loading, error, onSelect, onAnalyze
           </div>
         ) : <EmptyState title="Your insights are one click away" description={restaurants.length ? "Select a restaurant and generate an analysis to see what your guests are telling you." : "Add restaurants and reviews to start understanding your guest experience."} />}
       </div>
+      {historyError && <ErrorBanner message={historyError} />}
+      <section className="panel insights-results" role="region" aria-label="Your analysis activity">
+        <div className="panel-heading">
+          <div>
+            <h2>Your analysis activity</h2>
+            <p>Runs you&apos;ve triggered across your workspace</p>
+          </div>
+          <button type="button" className="text-button" onClick={onHistoryRefresh}>Refresh <RefreshCw size={13} /></button>
+        </div>
+        {historyLoading ? (
+          <LoadingState label="Loading your analysis activity..." />
+        ) : history.length ? (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Restaurant</th>
+                  <th>Requested</th>
+                  <th>Sentiment</th>
+                  <th>Reviews</th>
+                  <th>Model</th>
+                  <th>Summary</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((entry) => (
+                  <tr key={entry.id}>
+                    <td>{restaurantName(restaurants, entry.analysis.restaurant_id)}</td>
+                    <td>{formatDate(entry.created_at)}</td>
+                    <td>
+                      <span className={`sentiment-pill ${sentimentClass(entry.analysis.overall_sentiment)}`}>
+                        {titleCase(entry.analysis.overall_sentiment)}
+                      </span>
+                    </td>
+                    <td>{entry.analysis.review_count}</td>
+                    <td>{entry.analysis.model}</td>
+                    <td>{truncateText(entry.analysis.result_json.summary, 120)}</td>
+                    <td>
+                      <div className="table-row-actions">
+                        {(() => {
+                          const latestId = latestAnalysisIdByRestaurant.get(entry.analysis.restaurant_id);
+                          const canCompare = latestId !== undefined && latestId !== entry.analysis.id;
+                          return canCompare ? (
+                            <button
+                              type="button"
+                              className="text-button compare-history-button"
+                              onClick={() => onCompare(entry.analysis.restaurant_id, entry.analysis.id)}
+                            >
+                              Compare
+                            </button>
+                          ) : null;
+                        })()}
+                        <button type="button" className="text-button" onClick={() => onSelect(entry.analysis.restaurant_id)}>
+                          Open restaurant <ArrowRight size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <EmptyState
+            title="No analysis runs yet"
+            description="Trigger an analysis from a restaurant or the button above to see your history here."
+          />
+        )}
+      </section>
       <div className="insights-note"><ShieldCheck size={17} /><span><strong>Insights are a starting point, not the whole story.</strong> AI recommendations are advisory and depend on the reviews available.</span></div>
       {analyzed.length > 0 && <span className="sr-only">Analysis available for {analyzed.length} location</span>}
     </div>
