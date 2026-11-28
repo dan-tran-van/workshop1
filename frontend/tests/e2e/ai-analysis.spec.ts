@@ -298,6 +298,7 @@ test.describe("FE-03 AI analysis", () => {
 
     const readButton = page.getByRole("button", { name: "Read analysis summary aloud" });
     await expect(readButton).toBeVisible();
+    await expect(page.getByText("This voice is AI-generated.").first()).toBeVisible();
     await readButton.click();
 
     const loadingButton = page.getByRole("button", { name: "Loading audio..." });

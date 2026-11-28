@@ -15,6 +15,7 @@ A FastAPI backend powered by SQLite (and SQLAlchemy) providing restaurant review
   - **Two-Stage Hybrid Context Compression**: Handles large review datasets (1k–10k+ reviews) with 100% data coverage by combining an $O(N)$ deterministic statistical engine with high-signal stratified sampling (capturing pain points, praises, and recency), reducing token context by 98%+ while executing in ~1.5s with a single LLM call. See [detailed architecture](docs/analysis-context-compression.md).
   - Automatic analysis caching for instant loading and low token costs.
   - Intelligent fallback analyzer if OpenAI API key is not configured.
+- **Analysis Read Aloud**: Generate audio with the OpenAI Speech API by default, or use a Kokoro endpoint. Both options keep the same protected API endpoint and cache generated audio in memory.
 - **Sync Jobs**:
   - Google Places API integration (`place_id` lookups) with mock fallback for local testing.
   - Tracking of `sync_targets` and `sync_runs`.
@@ -108,12 +109,29 @@ Key variables:
 - `DATABASE_URL`: `sqlite:///./data.db`
 - `OPENAI_API_KEY`: Your OpenAI API key (falls back to heuristic analysis if omitted)
 - `OPENAI_MODEL`: `gpt-4o-mini`
+- `TTS_PROVIDER`: `openai` by default; set to `kokoro` to use a Kokoro `/v1/audio/speech` endpoint
+- `TTS_BASE_URL`: Base URL for the Kokoro endpoint (required by that provider)
+- `TTS_MODEL` / `TTS_VOICE`: `kokoro` / `af_heart` by default for Kokoro
+- `TTS_ENDPOINT_TIMEOUT`: `30` seconds by default for Kokoro
+- `OPENAI_TTS_MODEL`: `gpt-4o-mini-tts` by default
+- `OPENAI_TTS_VOICE`: `coral` by default
+- `OPENAI_TTS_TIMEOUT`: `30` seconds by default
 - `OPENAI_EMBEDDING_MODEL`: `text-embedding-3-small`
 - `GOOGLE_PLACES_API_KEY`: Google Places API Key (optional)
 - `AUTH_SECRET_KEY`: stable random signing key for access tokens; set this in deployments so restarts do not invalidate sessions.
 - `AUTH_BOOTSTRAP_KEY`: one-time key required to create the first administrator. Set a unique value before opening the app, then use it once on the initial setup screen.
 - `BAD_REVIEW_NOTIFICATIONS_ENABLED`: `true` by default; set `false` to stop recording bad review notifications.
 - `BAD_REVIEW_RATING_THRESHOLD`: `2.0` by default; new Google reviews rated at or below this value create a notification.
+
+The Dashboard's **Read aloud** button calls
+`POST /restaurants/{restaurant_id}/analyses/{analysis_id}/tts`. It uses OpenAI by
+default and requires `OPENAI_API_KEY`; alternatively, set `TTS_PROVIDER=kokoro` and configure
+`TTS_BASE_URL` for the Kokoro endpoint. Provider selection is explicit: an OpenAI error does not
+silently switch to the other provider. Both preserve the existing authentication
+and restaurant-access checks. The voice is AI-generated, not a human voice.
+OpenAI currently lists `gpt-4o-mini-tts` for shutdown on January 6, 2027; this
+model is used for the current educational demo and should be revisited before
+that date if the demo remains in use.
 
 The first account is provisioned through the one-time `/auth/bootstrap` endpoint; public self-registration is disabled. Choose a password of at least 12 characters. Administrators can create and deactivate accounts and assign restaurant IDs to owners from the **User access** screen. Use unique, private keys in deployed environments.
 

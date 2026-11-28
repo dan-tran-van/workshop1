@@ -15,8 +15,7 @@ from unittest.mock import patch
 # Set test configuration BEFORE importing the app. Never read developer keys.
 with patch.dict(os.environ, {
     "DATABASE_URL": "sqlite://", "OPENAI_API_KEY": "", "GOOGLE_PLACES_API_KEY": "",
-    "HUGGINGFACE_API_TOKEN": "",
-    "TTS_BASE_URL": "",
+    "TTS_PROVIDER": "openai", "TTS_BASE_URL": "",
     "CORS_ORIGINS": '["http://localhost:5173"]',
 }):
     from app.main import app
@@ -74,7 +73,7 @@ class BackendTestCase(unittest.TestCase):
         self.resources.enter_context(patch("app.main.engine", self.engine))
         self.resources.enter_context(patch.object(settings, "OPENAI_API_KEY", ""))
         self.resources.enter_context(patch.object(settings, "GOOGLE_PLACES_API_KEY", ""))
-        self.resources.enter_context(patch.object(settings, "HUGGINGFACE_API_TOKEN", ""))
+        self.resources.enter_context(patch.object(settings, "TTS_PROVIDER", "openai"))
         self.resources.enter_context(patch.object(settings, "TTS_BASE_URL", ""))
         clear_tts_cache()
         self.unmocked_requests: list[str] = []
@@ -84,8 +83,8 @@ class BackendTestCase(unittest.TestCase):
             raise AssertionError("External providers must be mocked in tests")
 
         self.openai_guard = self.resources.enter_context(patch("openai.OpenAI", side_effect=deny_provider))
+        self.tts_openai_guard = self.resources.enter_context(patch("app.services.tts.OpenAI", side_effect=deny_provider))
         self.google_guard = self.resources.enter_context(patch("app.services.sync.httpx.get", side_effect=deny_provider))
-        self.hf_guard = self.resources.enter_context(patch("app.services.tts.httpx.post", side_effect=deny_provider))
         original_connect = socket.socket.connect
         original_connect_ex = socket.socket.connect_ex
         original_create_connection = socket.create_connection

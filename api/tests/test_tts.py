@@ -1,28 +1,41 @@
+import io
 from datetime import datetime
 from pathlib import Path
 import sys
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
+import wave
 
 # Support invocation both from the repository root and from api/.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import httpx
+from openai import APITimeoutError, OpenAIError
 from tests.support import BackendTestCase, EXPECTED_ANALYSIS, settings
 from app.models import Analysis
 
 
-class _FakeHFResponse:
-    def __init__(self, status_code: int, content: bytes = b"", headers: dict | None = None, json_data: dict | None = None):
+class _FakeEndpointResponse:
+    def __init__(self, status_code: int, content: bytes = b"", headers: dict | None = None):
         self.status_code = status_code
         self.content = content
         self.headers = headers or {}
-        self._json_data = json_data
 
-    def json(self):
-        if self._json_data is None:
-            raise ValueError("No JSON payload")
-        return self._json_data
+
+def _mock_openai_wav() -> bytes:
+    output = io.BytesIO()
+    with wave.open(output, "wb") as wav:
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(24000)
+        wav.writeframes(b"\x00\x00" * 16)
+
+    audio = bytearray(output.getvalue())
+    audio[4:8] = b"\xff\xff\xff\xff"
+    data_size_offset = audio.index(b"data") + 4
+    audio[data_size_offset:data_size_offset + 4] = b"\xff\xff\xff\xff"
+    return bytes(audio)
 
 
 class TestTextToSpeechEndpoint(BackendTestCase):
@@ -48,29 +61,57 @@ class TestTextToSpeechEndpoint(BackendTestCase):
     def test_tts_synthesizes_summary_and_caches_audio(self) -> None:
         restaurant = self.restaurant()
         analysis = self.analysis_row(restaurant["id"], datetime(2025, 1, 1))
-        fake_audio = b"fLaCmock-audio-stream"
+        fake_audio = _mock_openai_wav()
+        expected_audio = bytearray(fake_audio)
+        expected_audio[4:8] = (len(fake_audio) - 8).to_bytes(4, "little")
+        data_size_offset = expected_audio.index(b"data") + 4
+        expected_audio[data_size_offset:data_size_offset + 4] = (
+            len(fake_audio) - data_size_offset - 4
+        ).to_bytes(4, "little")
 
-        with patch.object(settings, "HUGGINGFACE_API_TOKEN", "hf_secret_test_token"), \
-             patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(
-                 200,
-                 content=fake_audio,
-                 headers={"content-type": "audio/flac"},
-             )) as mock_post:
+        with patch.object(settings, "OPENAI_API_KEY", "test-openai-key"), \
+             patch("app.services.tts.OpenAI") as mock_openai:
+            speech_create = mock_openai.return_value.audio.speech.create
+            speech_create.return_value = SimpleNamespace(content=fake_audio)
             first = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
             second = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
 
         self.assertEqual(first.status_code, 200, first.text)
         self.assertEqual(second.status_code, 200, second.text)
-        self.assertTrue(first.headers["content-type"].startswith("audio/flac"))
-        self.assertEqual(first.content, fake_audio)
-        self.assertEqual(second.content, fake_audio)
-        self.assertEqual(mock_post.call_count, 1)
+        self.assertTrue(first.headers["content-type"].startswith("audio/wav"))
+        self.assertEqual(first.content, bytes(expected_audio))
+        self.assertEqual(second.content, bytes(expected_audio))
+        with wave.open(io.BytesIO(first.content), "rb") as wav:
+            self.assertEqual(wav.getnframes(), 16)
+        self.assertEqual(speech_create.call_count, 1)
+        self.assertEqual(
+            speech_create.call_args.kwargs,
+            {
+                "model": settings.OPENAI_TTS_MODEL,
+                "voice": settings.OPENAI_TTS_VOICE,
+                "input": EXPECTED_ANALYSIS["summary"],
+                "response_format": "wav",
+            },
+        )
+        mock_openai.assert_called_once_with(
+            api_key="test-openai-key",
+            timeout=settings.OPENAI_TTS_TIMEOUT,
+        )
 
-        called_url = mock_post.call_args.args[0]
-        called_kwargs = mock_post.call_args.kwargs
-        self.assertIn(settings.HUGGINGFACE_TTS_MODEL, called_url)
-        self.assertEqual(called_kwargs["headers"]["Authorization"], "Bearer hf_secret_test_token")
-        self.assertEqual(called_kwargs["json"], {"inputs": EXPECTED_ANALYSIS["summary"]})
+    def test_tts_voice_is_part_of_cache_key(self) -> None:
+        restaurant = self.restaurant()
+        analysis = self.analysis_row(restaurant["id"], datetime(2025, 1, 1))
+
+        with patch.object(settings, "OPENAI_API_KEY", "test-openai-key"), \
+             patch("app.services.tts.OpenAI") as mock_openai:
+            mock_openai.return_value.audio.speech.create.return_value = SimpleNamespace(content=_mock_openai_wav())
+            first = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
+            with patch.object(settings, "OPENAI_TTS_VOICE", "alloy"):
+                second = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
+
+        self.assertEqual(first.status_code, 200, first.text)
+        self.assertEqual(second.status_code, 200, second.text)
+        self.assertEqual(mock_openai.return_value.audio.speech.create.call_count, 2)
 
     def test_tts_rbac_enforcement(self) -> None:
         assigned = self.restaurant()
@@ -88,12 +129,9 @@ class TestTextToSpeechEndpoint(BackendTestCase):
             401,
         )
 
-        with patch.object(settings, "HUGGINGFACE_API_TOKEN", "hf_secret_test_token"), \
-             patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(
-                 200,
-                 content=b"fLaCaudio",
-                 headers={"content-type": "audio/flac"},
-             )):
+        with patch.object(settings, "OPENAI_API_KEY", "test-openai-key"), \
+             patch("app.services.tts.OpenAI") as mock_openai:
+            mock_openai.return_value.audio.speech.create.return_value = SimpleNamespace(content=_mock_openai_wav())
             self._login_as("tts-owner@example.com")
             self.assertEqual(
                 self.client.post(f"/restaurants/{assigned['id']}/analyses/{assigned_analysis.id}/tts").status_code,
@@ -144,89 +182,58 @@ class TestTextToSpeechEndpoint(BackendTestCase):
         response = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{empty_analysis.id}/tts")
         self.assertEqual(response.status_code, 400)
 
-    def test_tts_unconfigured_token_returns_503(self) -> None:
+    def test_tts_unconfigured_api_key_returns_503(self) -> None:
         restaurant = self.restaurant()
         analysis = self.analysis_row(restaurant["id"], datetime(2025, 1, 1))
 
-        with patch.object(settings, "HUGGINGFACE_API_TOKEN", ""):
+        with patch.object(settings, "OPENAI_API_KEY", ""):
             response = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
 
         self.assertEqual(response.status_code, 503)
         self.assertIn("not configured", response.json()["detail"].lower())
 
-    def test_tts_cold_start_503_retries_and_handles_loading(self) -> None:
+    def test_tts_rejects_non_wav_openai_response(self) -> None:
         restaurant = self.restaurant()
         analysis = self.analysis_row(restaurant["id"], datetime(2025, 1, 1))
 
-        with patch.object(settings, "HUGGINGFACE_API_TOKEN", "hf_secret_test_token"), \
-             patch("app.services.tts.time.sleep") as mock_sleep, \
-             patch("app.services.tts.httpx.post", side_effect=[
-                 _FakeHFResponse(503, json_data={"error": "Model is loading", "estimated_time": 1.5}),
-                 _FakeHFResponse(200, content=b"fLaCready", headers={"content-type": "audio/flac"}),
-             ]) as mock_post:
-            res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
+        with patch.object(settings, "OPENAI_API_KEY", "test-openai-key"), \
+             patch("app.services.tts.OpenAI") as mock_openai:
+            mock_openai.return_value.audio.speech.create.return_value = SimpleNamespace(content=b"not-a-wav")
+            response = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
 
-        self.assertEqual(res.status_code, 200, res.text)
-        self.assertEqual(res.content, b"fLaCready")
-        self.assertEqual(mock_post.call_count, 2)
-        mock_sleep.assert_called_once_with(1.5)
+        self.assertEqual(response.status_code, 502)
+        self.assertIn("invalid WAV", response.json()["detail"])
 
-        # Now test long cold start (> 5s) without retrying
-        other_restaurant = self.restaurant(google_place_id="cold-place", name="Cold Cafe")
-        other_analysis = Analysis(
-            restaurant_id=other_restaurant["id"],
-            overall_sentiment="MIXED",
-            result_json={**EXPECTED_ANALYSIS, "summary": "Unique summary for long cold start test."},
-            review_count=1,
-            model="test-model",
-            created_at=datetime(2025, 1, 2),
-        )
-        self.db.add(other_analysis)
-        self.db.commit()
-
-        with patch.object(settings, "HUGGINGFACE_API_TOKEN", "hf_secret_test_token"), \
-             patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(
-                 503,
-                 json_data={"error": "Model is loading", "estimated_time": 25.0},
-             )):
-            cold_res = self.client.post(f"/restaurants/{other_restaurant['id']}/analyses/{other_analysis.id}/tts")
-
-        self.assertEqual(cold_res.status_code, 503)
-        self.assertIn("warming up", cold_res.json()["detail"].lower())
-
-    def test_tts_upstream_error_and_timeout_do_not_leak_token(self) -> None:
+    def test_tts_timeout_and_upstream_errors_do_not_leak_api_key(self) -> None:
         restaurant = self.restaurant()
         analysis = self.analysis_row(restaurant["id"], datetime(2025, 1, 1))
-        secret = "hf_secret_test_token"
+        api_key = "test-openai-secret"
+        request = httpx.Request("POST", "https://api.openai.com/v1/audio/speech")
 
-        with patch.object(settings, "HUGGINGFACE_API_TOKEN", secret):
-            with patch("app.services.tts.httpx.post", side_effect=httpx.ReadTimeout("timeout")):
-                timeout_res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
-                self.assertEqual(timeout_res.status_code, 504)
-                self.assertNotIn(secret, timeout_res.text)
+        with patch.object(settings, "OPENAI_API_KEY", api_key), \
+             patch("app.services.tts.OpenAI") as mock_openai:
+            speech_create = mock_openai.return_value.audio.speech.create
+            speech_create.side_effect = [
+                APITimeoutError(request=request),
+                OpenAIError("upstream failure"),
+            ]
 
-            with patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(500, content=b"internal error")):
-                upstream_res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
-                self.assertEqual(upstream_res.status_code, 502)
-                self.assertNotIn(secret, upstream_res.text)
+            timeout_response = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
+            self.assertEqual(timeout_response.status_code, 504)
+            self.assertNotIn(api_key, timeout_response.text)
 
-            with patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(
-                200,
-                content=b'{"error":"bad payload"}',
-                headers={"content-type": "application/json"},
-            )):
-                json_res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
-                self.assertEqual(json_res.status_code, 502)
-                self.assertNotIn(secret, json_res.text)
+            upstream_response = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
+            self.assertEqual(upstream_response.status_code, 502)
+            self.assertNotIn(api_key, upstream_response.text)
 
     def test_tts_custom_base_url_calls_openai_speech_endpoint_and_caches(self) -> None:
         restaurant = self.restaurant()
         analysis = self.analysis_row(restaurant["id"], datetime(2025, 1, 1))
         fake_mp3 = b"ID3\x04\x00mock-kokoro-mp3"
 
-        with patch.object(settings, "TTS_BASE_URL", "https://tts.example.trycloudflare.com/"), \
-             patch.object(settings, "HUGGINGFACE_API_TOKEN", ""), \
-             patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(
+        with patch.object(settings, "TTS_PROVIDER", "kokoro"), \
+             patch.object(settings, "TTS_BASE_URL", "https://tts.example.trycloudflare.com/"), \
+             patch("app.services.tts.httpx.post", return_value=_FakeEndpointResponse(
                  200,
                  content=fake_mp3,
                  headers={"content-type": "audio/mpeg"},
@@ -258,16 +265,17 @@ class TestTextToSpeechEndpoint(BackendTestCase):
         restaurant = self.restaurant()
         analysis = self.analysis_row(restaurant["id"], datetime(2025, 1, 1))
 
-        with patch.object(settings, "TTS_BASE_URL", "http://localhost:8880"):
+        with patch.object(settings, "TTS_PROVIDER", "kokoro"), \
+             patch.object(settings, "TTS_BASE_URL", "http://localhost:8880"):
             with patch("app.services.tts.httpx.post", side_effect=httpx.ReadTimeout("timeout")):
                 timeout_res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
                 self.assertEqual(timeout_res.status_code, 504)
 
-            with patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(500, content=b"internal error")):
+            with patch("app.services.tts.httpx.post", return_value=_FakeEndpointResponse(500, content=b"internal error")):
                 upstream_res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
                 self.assertEqual(upstream_res.status_code, 502)
 
-            with patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(
+            with patch("app.services.tts.httpx.post", return_value=_FakeEndpointResponse(
                 200,
                 content=b'{"error":"bad payload"}',
                 headers={"content-type": "application/json"},

@@ -168,6 +168,7 @@ export function ReadAloudButton({
           </button>
         )}
       </div>
+      <p className="read-aloud-disclosure">This voice is AI-generated.</p>
       {error && (
         <p className="read-aloud-error" role="alert">
           {error}
