@@ -1,5 +1,5 @@
 
-from sqlalchemy import Column, Integer, String, Float, Text, Boolean, DateTime, ForeignKey, JSON, Table, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Float, Text, Boolean, DateTime, ForeignKey, JSON, Table, UniqueConstraint, Index
 
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -61,6 +61,26 @@ class Review(Base):
 
     # Relationships
     restaurant = relationship("Restaurant", back_populates="reviews")
+    embeddings = relationship("ReviewEmbedding", back_populates="review", cascade="all, delete-orphan")
+
+
+class ReviewEmbedding(Base):
+    __tablename__ = "review_embeddings"
+    __table_args__ = (
+        UniqueConstraint("review_id", "model", name="uq_review_embedding_review_model"),
+        Index("ix_review_embeddings_model_dimensions", "model", "dimensions"),
+    )
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    review_id = Column(Integer, ForeignKey("reviews.id", ondelete="CASCADE"), nullable=False, index=True)
+    model = Column(String(100), nullable=False)
+    dimensions = Column(Integer, nullable=False)
+    embedding = Column(JSON, nullable=False)
+    content_hash = Column(String(64), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    review = relationship("Review", back_populates="embeddings")
 
 
 class Analysis(Base):
@@ -88,6 +108,26 @@ class AnalysisRun(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     analysis = relationship("Analysis")
+
+
+class CompetitorSelection(Base):
+    """An owner's explicit choice about one competitor of one of their restaurants.
+
+    No row means the competitor is only a system suggestion. PINNED and MANUAL rows are
+    always kept in the competitive set; DISMISSED rows are never suggested again.
+    """
+    __tablename__ = "competitor_selections"
+    __table_args__ = (UniqueConstraint("restaurant_id", "competitor_id", name="uq_competitor_selection_pair"),)
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    restaurant_id = Column(Integer, ForeignKey("restaurants.id", ondelete="CASCADE"), nullable=False, index=True)
+    competitor_id = Column(Integer, ForeignKey("restaurants.id", ondelete="CASCADE"), nullable=False, index=True)
+    status = Column(String(20), nullable=False)  # PINNED, DISMISSED, MANUAL
+    created_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    competitor = relationship("Restaurant", foreign_keys=[competitor_id])
 
 
 class SyncTarget(Base):

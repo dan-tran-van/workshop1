@@ -216,6 +216,109 @@ class SyncRunResponse(BaseModel):
 
 
 # --------------------------------------------------------
+# Market Comparison Schemas (US-01 competitive set, US-02 gap)
+# --------------------------------------------------------
+CompetitorSelectionStatus = Literal["PINNED", "DISMISSED", "MANUAL"]
+CompetitorSource = Literal["SUGGESTED", "PINNED", "MANUAL"]
+GapStatus = Literal["LEARN", "KEEP", "ATTACK", "INSUFFICIENT_DATA"]
+
+
+class CompetitorSelectionRequest(BaseModel):
+    status: CompetitorSelectionStatus
+
+
+class CompetitorItem(BaseModel):
+    restaurant_id: int
+    name: str
+    address: Optional[str] = None
+    google_rating: Optional[float] = None
+    user_rating_count: Optional[int] = None
+    collected_review_count: int
+    # Not available in the current datasets; kept in the contract for the radius/cuisine roadmap.
+    distance_m: Optional[float] = None
+    cuisine: Optional[str] = None
+    price_level: Optional[int] = None
+    source: CompetitorSource
+    scorable: bool
+    reasons: List[str] = Field(default_factory=list)
+
+
+class DismissedCompetitor(BaseModel):
+    restaurant_id: int
+    name: str
+
+
+class CompetitiveSetResponse(BaseModel):
+    restaurant_id: int
+    generated_at: datetime
+    competitors: List[CompetitorItem]
+    dismissed: List[DismissedCompetitor] = Field(default_factory=list)
+    matching_count: int
+    scored_competitor_count: int
+    min_suggestions: int
+    max_suggestions: int
+    can_edit: bool
+    notice: Optional[str] = None
+    data_limitations: List[str] = Field(default_factory=list)
+
+
+class CompetitorCandidate(BaseModel):
+    restaurant_id: int
+    name: str
+    address: Optional[str] = None
+    google_rating: Optional[float] = None
+    user_rating_count: Optional[int] = None
+    collected_review_count: int
+
+
+class GapLeader(BaseModel):
+    restaurant_id: int
+    name: str
+    score: float
+
+
+class GapRow(BaseModel):
+    aspect: str
+    own_score: Optional[float] = None
+    own_mentions: int
+    competitor_avg: Optional[float] = None
+    competitors_scored: int
+    leader: Optional[GapLeader] = None
+    gap_vs_avg: Optional[float] = None
+    gap_vs_leader: Optional[float] = None
+    status: GapStatus
+    insufficient_reason: Optional[str] = None
+
+
+class GapTableResponse(BaseModel):
+    restaurant_id: int
+    generated_at: datetime
+    min_reviews_per_criterion: int
+    tie_margin: float
+    weak_competitor_avg: float
+    competitors_considered: int
+    rows: List[GapRow]
+
+
+class GapEvidence(BaseModel):
+    review_id: int
+    restaurant_id: int
+    restaurant_name: str
+    is_own: bool
+    rating: float
+    text: str
+    published_at: datetime
+
+
+class GapExplanationResponse(BaseModel):
+    aspect: str
+    status: GapStatus
+    explanation: str
+    evidence: List[GapEvidence]
+    model: str
+
+
+# --------------------------------------------------------
 # Notification Schemas
 # --------------------------------------------------------
 class NotificationResponse(BaseModel):

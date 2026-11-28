@@ -7,6 +7,7 @@ A FastAPI backend powered by SQLite (and SQLAlchemy) providing restaurant review
 ## Features
 
 - **Restaurant & Review Management**: List, search, and view detailed restaurant profiles with Google reviews.
+- **Review Vector Store**: Persist generated review embeddings in the application database and retrieve reviews by cosine similarity, optionally limited to restaurants. Embedding generation is provided by callers; retrieval ignores embeddings when their source review text has changed. Similarity currently scans matching stored vectors in-process; no external vector database or ANN index is required.
 - **AI Review Intelligence**:
   - Overall sentiment & rating trend estimation.
   - Aspect breakdown across 6 core aspects: `food`, `service`, `wait_time`, `hygiene`, `ambience`, `price` (bilingual English + Vietnamese keyword detection).
@@ -35,6 +36,7 @@ A FastAPI backend powered by SQLite (and SQLAlchemy) providing restaurant review
 Core Tables:
 - restaurants (id, google_place_id, name, address, google_rating, user_rating_count, last_synced_at, updated_at)
 - reviews     (id, restaurant_id, external_review_id, author_name, author_uri, rating, text, published_at)
+- review_embeddings (id, review_id, model, dimensions, embedding, content_hash, created_at, updated_at) — unique per (review_id, model)
 - analyses    (id, restaurant_id, overall_sentiment, result_json, review_count, last_review_at, model, created_at)
 - analysis_runs (id, user_id, analysis_id, created_at) — authenticated analysis requests, including cache hits
 
@@ -198,6 +200,12 @@ versions. See [test coverage and documentation](tests/README.md).
 | `GET` | `/restaurants/{id}/analyses` | History of past analyses for restaurant |
 | `GET` | `/auth/me/analysis-history` | The authenticated user's successful analysis requests, including cache hits |
 | `GET` | `/restaurants/{id}/reviews` | List reviews for a restaurant |
+| `GET` | `/restaurants/{id}/competitors` | Suggested competitive set with reasons, pinned/manual/dismissed choices (Owner, Analyst) |
+| `GET` | `/restaurants/{id}/competitors/candidates` | Workspace restaurants that can be added manually as competitors (Owner) |
+| `PUT` | `/restaurants/{id}/competitors/{competitor_id}` | Pin, dismiss, or manually add a competitor: `{"status": "PINNED" \| "DISMISSED" \| "MANUAL"}` (Owner) |
+| `DELETE` | `/restaurants/{id}/competitors/{competitor_id}` | Reset a competitor back to a plain suggestion (Owner) |
+| `GET` | `/restaurants/{id}/competitors/gap` | Criteria gap table against the competitive set (Owner, Analyst) |
+| `POST` | `/restaurants/{id}/competitors/gap/{aspect}/explain` | Review-grounded explanation with 2-3 quotes; 422 when the criterion lacks data (Owner, Analyst) |
 | `POST` | `/restaurants/{id}/reviews` | Add a review |
 | `GET` | `/sync/targets` | List sync targets |
 | `POST` | `/sync/targets` | Add sync target |
