@@ -4,7 +4,6 @@ import { authenticateTestUser, installApiMocks } from "./fixtures";
 test.describe("Review search", () => {
   test("displays semantic results, filters by scope and min match, and supports keyword fallback", async ({ page }) => {
     await installApiMocks(page);
-    await authenticateTestUser(page);
 
     const searchCalls: string[] = [];
     await page.route(/localhost:8000\/reviews\/search/, async (route: Route) => {
@@ -96,6 +95,7 @@ test.describe("Review search", () => {
     });
 
     await page.goto("/");
+    await authenticateTestUser(page);
     await page.getByRole("button", { name: "Review search" }).click();
 
     await page.getByRole("button", { name: "cold food" }).click();
@@ -118,9 +118,19 @@ test.describe("Review search", () => {
   test("renders cleanly on mobile viewport without horizontal overflow", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await installApiMocks(page);
-    await authenticateTestUser(page);
 
     await page.route(/localhost:8000\/reviews\/search/, async (route: Route) => {
+      if (route.request().method() === "OPTIONS") {
+        await route.fulfill({
+          status: 204,
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET, OPTIONS",
+            "access-control-allow-headers": "authorization, content-type",
+          },
+        });
+        return;
+      }
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -147,7 +157,7 @@ test.describe("Review search", () => {
     });
 
     await page.goto("/");
-    await page.getByLabel("Open navigation").click().catch(() => {});
+    await authenticateTestUser(page);
     await page.getByRole("button", { name: "Review search" }).click();
     await page.getByRole("button", { name: "friendly staff" }).click();
     await expect(page.getByText("63% match")).toBeVisible();

@@ -15,7 +15,7 @@ import xml.etree.ElementTree as ET
 
 def parse_results(log: str) -> list[dict]:
     log = log.replace("\r\n", "\n")
-    starts = re.findall(r"^test_\w+ \(([^)]+)\) \.\.\.([^\n]*)", log, re.MULTILINE)
+    starts = re.findall(r"^test_\w+ \(([^)]+)\)(?:\n[^\n]*)? \.\.\.([^\n]*)", log, re.MULTILINE)
     records = {}
     for test_id, _tail in starts:
         records[test_id] = {
@@ -25,7 +25,7 @@ def parse_results(log: str) -> list[dict]:
             "status": "passed",
             "details": [],
         }
-    skipped = re.findall(r"^[ \t]*test_\w+ \(([^)]+)\)[^\n]* \.\.\. skipped(?: .*)?$", log, re.MULTILINE)
+    skipped = re.findall(r"^[ \t]*test_\w+ \(([^)]+)\)(?:\n[^\n]*)?[^\n]* \.\.\. skipped(?: .*)?$", log, re.MULTILINE)
     for test_id in skipped:
         if test_id not in records:
             raise ValueError(f"Skip has no matching test start: {test_id}")
