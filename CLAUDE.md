@@ -33,7 +33,8 @@ cd api && pip install -r requirements.txt
   - `app/services/sync.py`: Google Places review sync with mock support.
   - `app/services/notifications.py`: bad review notifications, recorded after a successful sync for new Google reviews rated at or below `BAD_REVIEW_RATING_THRESHOLD`.
   - `app/services/auth.py` and `app/routers/auth.py`: password hashing, bearer tokens, role checks, and admin user management.
-  - `app/routers/`: Modular route handlers (`auth.py`, `restaurants.py`, `reviews.py`, `sync.py`, `notifications.py`).
+  - `app/services/competitors.py` and `app/routers/competitors.py`: market comparison (US-01 competitive set with `CompetitorSelection` pin/dismiss/manual choices, US-02 criteria gap and review-grounded explanation). Scope limits and roadmap: `docs/market-comparison.md`.
+  - `app/routers/`: Modular route handlers (`auth.py`, `restaurants.py`, `reviews.py`, `competitors.py`, `sync.py`, `notifications.py`).
   - `seed.py`: Realistic seed data generator.
 - **Frontend (`frontend/`)**: React + TypeScript dashboard with role-based login and navigation.
 

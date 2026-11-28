@@ -4,6 +4,8 @@ A collaborative project workspace containing backend (`api`) and frontend (`fron
 
 Backend test automation: [25-case coverage, local commands, and manual GitHub Actions runs](api/tests/README.md).
 
+Market comparison (competitive set and criteria gap): [implemented scope, business rules, and radius-search roadmap](docs/market-comparison.md).
+
 ---
 
 ## Table of Contents

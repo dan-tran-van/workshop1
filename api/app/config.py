@@ -15,6 +15,14 @@ class Settings(BaseSettings):
     CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://localhost:5173"]
     BAD_REVIEW_NOTIFICATIONS_ENABLED: bool = True
     BAD_REVIEW_RATING_THRESHOLD: float = 2.0
+    # Market comparison (US-01 competitive set, US-02 criteria gap).
+    COMPETITOR_MIN_SUGGESTIONS: int = 5
+    COMPETITOR_MAX_SUGGESTIONS: int = 10
+    # Demo default is 3 because the mock datasets hold at most 5 reviews per HCMC restaurant.
+    # Production should use 20 (the value named in US-02).
+    MIN_REVIEWS_PER_CRITERION: int = 3
+    GAP_TIE_MARGIN: float = 0.3
+    GAP_WEAK_COMPETITOR_AVG: float = 3.5
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
