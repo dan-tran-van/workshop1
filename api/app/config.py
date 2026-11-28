@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o-mini"
     HUGGINGFACE_API_TOKEN: str = ""
-    HUGGINGFACE_TTS_MODEL: str = "facebook/mms-tts-eng"
-    HUGGINGFACE_TTS_API_URL: str = "https://router.huggingface.co/hf-inference/models"
+    HUGGINGFACE_TTS_MODEL: str = "hexgrad/Kokoro-82M"
+    HUGGINGFACE_TTS_PROVIDER: str = "auto"
     HUGGINGFACE_TTS_TIMEOUT: float = 30.0
     GOOGLE_PLACES_API_KEY: str = ""
     AUTH_SECRET_KEY: str = secrets.token_urlsafe(32)

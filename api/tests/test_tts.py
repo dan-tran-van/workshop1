@@ -2,27 +2,21 @@ from datetime import datetime
 from pathlib import Path
 import sys
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 # Support invocation both from the repository root and from api/.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import httpx
+from huggingface_hub.errors import HfHubHTTPError
 from tests.support import BackendTestCase, EXPECTED_ANALYSIS, settings
 from app.models import Analysis
 
 
-class _FakeHFResponse:
-    def __init__(self, status_code: int, content: bytes = b"", headers: dict | None = None, json_data: dict | None = None):
-        self.status_code = status_code
-        self.content = content
-        self.headers = headers or {}
-        self._json_data = json_data
-
-    def json(self):
-        if self._json_data is None:
-            raise ValueError("No JSON payload")
-        return self._json_data
+def _hf_http_error(status_code: int, json_data: dict | None = None, message: str = "HF error") -> HfHubHTTPError:
+    request = httpx.Request("POST", "https://router.huggingface.co/test")
+    response = httpx.Response(status_code=status_code, json=json_data, request=request)
+    return HfHubHTTPError(message, response=response)
 
 
 class TestTextToSpeechEndpoint(BackendTestCase):
@@ -48,29 +42,59 @@ class TestTextToSpeechEndpoint(BackendTestCase):
     def test_tts_synthesizes_summary_and_caches_audio(self) -> None:
         restaurant = self.restaurant()
         analysis = self.analysis_row(restaurant["id"], datetime(2025, 1, 1))
-        fake_audio = b"fLaCmock-audio-stream"
+        fake_wav = b"RIFF\x24\x00\x00\x00WAVEfmt mock-audio-stream"
+
+        mock_client = MagicMock()
+        mock_client.text_to_speech.return_value = fake_wav
 
         with patch.object(settings, "HUGGINGFACE_API_TOKEN", "hf_secret_test_token"), \
-             patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(
-                 200,
-                 content=fake_audio,
-                 headers={"content-type": "audio/flac"},
-             )) as mock_post:
+             patch("app.services.tts.InferenceClient", return_value=mock_client) as mock_cls:
             first = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
             second = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
 
         self.assertEqual(first.status_code, 200, first.text)
         self.assertEqual(second.status_code, 200, second.text)
-        self.assertTrue(first.headers["content-type"].startswith("audio/flac"))
-        self.assertEqual(first.content, fake_audio)
-        self.assertEqual(second.content, fake_audio)
-        self.assertEqual(mock_post.call_count, 1)
+        self.assertTrue(first.headers["content-type"].startswith("audio/wav"))
+        self.assertEqual(first.content, fake_wav)
+        self.assertEqual(second.content, fake_wav)
+        mock_cls.assert_called_once_with(
+            provider=settings.HUGGINGFACE_TTS_PROVIDER,
+            api_key="hf_secret_test_token",
+            timeout=settings.HUGGINGFACE_TTS_TIMEOUT,
+        )
+        mock_client.text_to_speech.assert_called_once_with(
+            EXPECTED_ANALYSIS["summary"],
+            model=settings.HUGGINGFACE_TTS_MODEL,
+        )
 
-        called_url = mock_post.call_args.args[0]
-        called_kwargs = mock_post.call_args.kwargs
-        self.assertIn(settings.HUGGINGFACE_TTS_MODEL, called_url)
-        self.assertEqual(called_kwargs["headers"]["Authorization"], "Bearer hf_secret_test_token")
-        self.assertEqual(called_kwargs["json"], {"inputs": EXPECTED_ANALYSIS["summary"]})
+    def test_tts_detects_audio_mime_types_from_magic_bytes(self) -> None:
+        samples = [
+            (b"fLaCmock-flac", "audio/flac"),
+            (b"ID3\x03\x00mock-mp3", "audio/mpeg"),
+            (b"OggSmock-ogg", "audio/ogg"),
+        ]
+        for index, (payload, expected_mime) in enumerate(samples):
+            with self.subTest(expected_mime=expected_mime):
+                restaurant = self.restaurant(google_place_id=f"mime-place-{index}", name=f"Mime Cafe {index}")
+                row = Analysis(
+                    restaurant_id=restaurant["id"],
+                    overall_sentiment="POSITIVE",
+                    result_json={**EXPECTED_ANALYSIS, "summary": f"Unique summary {index} for {expected_mime}"},
+                    review_count=1,
+                    model="test-model",
+                    created_at=datetime(2025, 1, 1),
+                )
+                self.db.add(row)
+                self.db.commit()
+
+                mock_client = MagicMock()
+                mock_client.text_to_speech.return_value = payload
+                with patch.object(settings, "HUGGINGFACE_API_TOKEN", "hf_secret_test_token"), \
+                     patch("app.services.tts.InferenceClient", return_value=mock_client):
+                    res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{row.id}/tts")
+
+                self.assertEqual(res.status_code, 200, res.text)
+                self.assertTrue(res.headers["content-type"].startswith(expected_mime))
 
     def test_tts_rbac_enforcement(self) -> None:
         assigned = self.restaurant()
@@ -88,12 +112,11 @@ class TestTextToSpeechEndpoint(BackendTestCase):
             401,
         )
 
+        mock_client = MagicMock()
+        mock_client.text_to_speech.return_value = b"fLaCaudio"
+
         with patch.object(settings, "HUGGINGFACE_API_TOKEN", "hf_secret_test_token"), \
-             patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(
-                 200,
-                 content=b"fLaCaudio",
-                 headers={"content-type": "audio/flac"},
-             )):
+             patch("app.services.tts.InferenceClient", return_value=mock_client):
             self._login_as("tts-owner@example.com")
             self.assertEqual(
                 self.client.post(f"/restaurants/{assigned['id']}/analyses/{assigned_analysis.id}/tts").status_code,
@@ -154,24 +177,45 @@ class TestTextToSpeechEndpoint(BackendTestCase):
         self.assertEqual(response.status_code, 503)
         self.assertIn("not configured", response.json()["detail"].lower())
 
+    def test_tts_quota_402_returns_402_without_leaking_token(self) -> None:
+        restaurant = self.restaurant()
+        analysis = self.analysis_row(restaurant["id"], datetime(2025, 1, 1))
+        secret = "hf_secret_test_token"
+
+        mock_client = MagicMock()
+        mock_client.text_to_speech.side_effect = _hf_http_error(
+            402,
+            json_data={"error": "Purchase pre-paid credits"},
+        )
+
+        with patch.object(settings, "HUGGINGFACE_API_TOKEN", secret), \
+             patch("app.services.tts.InferenceClient", return_value=mock_client):
+            res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
+
+        self.assertEqual(res.status_code, 402)
+        self.assertIn("credits", res.json()["detail"].lower())
+        self.assertNotIn(secret, res.text)
+
     def test_tts_cold_start_503_retries_and_handles_loading(self) -> None:
         restaurant = self.restaurant()
         analysis = self.analysis_row(restaurant["id"], datetime(2025, 1, 1))
 
+        mock_client = MagicMock()
+        mock_client.text_to_speech.side_effect = [
+            _hf_http_error(503, json_data={"error": "Model is loading", "estimated_time": 1.5}),
+            b"fLaCready",
+        ]
+
         with patch.object(settings, "HUGGINGFACE_API_TOKEN", "hf_secret_test_token"), \
              patch("app.services.tts.time.sleep") as mock_sleep, \
-             patch("app.services.tts.httpx.post", side_effect=[
-                 _FakeHFResponse(503, json_data={"error": "Model is loading", "estimated_time": 1.5}),
-                 _FakeHFResponse(200, content=b"fLaCready", headers={"content-type": "audio/flac"}),
-             ]) as mock_post:
+             patch("app.services.tts.InferenceClient", return_value=mock_client):
             res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
 
         self.assertEqual(res.status_code, 200, res.text)
         self.assertEqual(res.content, b"fLaCready")
-        self.assertEqual(mock_post.call_count, 2)
+        self.assertEqual(mock_client.text_to_speech.call_count, 2)
         mock_sleep.assert_called_once_with(1.5)
 
-        # Now test long cold start (> 5s) without retrying
         other_restaurant = self.restaurant(google_place_id="cold-place", name="Cold Cafe")
         other_analysis = Analysis(
             restaurant_id=other_restaurant["id"],
@@ -184,11 +228,13 @@ class TestTextToSpeechEndpoint(BackendTestCase):
         self.db.add(other_analysis)
         self.db.commit()
 
+        cold_client = MagicMock()
+        cold_client.text_to_speech.side_effect = _hf_http_error(
+            503,
+            json_data={"error": "Model is loading", "estimated_time": 25.0},
+        )
         with patch.object(settings, "HUGGINGFACE_API_TOKEN", "hf_secret_test_token"), \
-             patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(
-                 503,
-                 json_data={"error": "Model is loading", "estimated_time": 25.0},
-             )):
+             patch("app.services.tts.InferenceClient", return_value=cold_client):
             cold_res = self.client.post(f"/restaurants/{other_restaurant['id']}/analyses/{other_analysis.id}/tts")
 
         self.assertEqual(cold_res.status_code, 503)
@@ -200,24 +246,26 @@ class TestTextToSpeechEndpoint(BackendTestCase):
         secret = "hf_secret_test_token"
 
         with patch.object(settings, "HUGGINGFACE_API_TOKEN", secret):
-            with patch("app.services.tts.httpx.post", side_effect=httpx.ReadTimeout("timeout")):
+            timeout_client = MagicMock()
+            timeout_client.text_to_speech.side_effect = httpx.ReadTimeout("timeout")
+            with patch("app.services.tts.InferenceClient", return_value=timeout_client):
                 timeout_res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
                 self.assertEqual(timeout_res.status_code, 504)
                 self.assertNotIn(secret, timeout_res.text)
 
-            with patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(500, content=b"internal error")):
+            upstream_client = MagicMock()
+            upstream_client.text_to_speech.side_effect = _hf_http_error(500, message="internal error")
+            with patch("app.services.tts.InferenceClient", return_value=upstream_client):
                 upstream_res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
                 self.assertEqual(upstream_res.status_code, 502)
                 self.assertNotIn(secret, upstream_res.text)
 
-            with patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(
-                200,
-                content=b'{"error":"bad payload"}',
-                headers={"content-type": "application/json"},
-            )):
-                json_res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
-                self.assertEqual(json_res.status_code, 502)
-                self.assertNotIn(secret, json_res.text)
+            empty_client = MagicMock()
+            empty_client.text_to_speech.return_value = b""
+            with patch("app.services.tts.InferenceClient", return_value=empty_client):
+                empty_res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
+                self.assertEqual(empty_res.status_code, 502)
+                self.assertNotIn(secret, empty_res.text)
 
 
 if __name__ == "__main__":

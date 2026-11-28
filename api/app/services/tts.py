@@ -3,9 +3,11 @@ import hashlib
 import logging
 import threading
 import time
-from typing import Tuple
+from typing import Any, Tuple
 
 import httpx
+from huggingface_hub import InferenceClient
+from huggingface_hub.errors import HfHubHTTPError
 
 from app.config import settings
 
@@ -16,7 +18,7 @@ TTS_CACHE_MAX_ITEMS = 64
 COLD_START_MAX_RETRY_WAIT_SECONDS = 5.0
 
 _tts_cache_lock = threading.Lock()
-_tts_cache: "OrderedDict[tuple[str, str], tuple[bytes, str]]" = OrderedDict()
+_tts_cache: "OrderedDict[tuple[str, str, str], tuple[bytes, str]]" = OrderedDict()
 
 
 class TTSError(Exception):
@@ -25,6 +27,10 @@ class TTSError(Exception):
 
 class TTSNotConfiguredError(TTSError):
     """Raised when the Hugging Face API token is missing."""
+
+
+class TTSQuotaError(TTSError):
+    """Raised when Hugging Face Inference Provider credits are exhausted."""
 
 
 class TTSModelLoadingError(TTSError):
@@ -52,7 +58,9 @@ def _normalize_tts_text(text: str) -> str:
     return cleaned[:MAX_TTS_TEXT_LENGTH]
 
 
-def _extract_estimated_time(response: httpx.Response) -> float:
+def _extract_estimated_time(response: Any) -> float:
+    if response is None:
+        return 0.0
     try:
         payload = response.json()
         if isinstance(payload, dict):
@@ -64,10 +72,24 @@ def _extract_estimated_time(response: httpx.Response) -> float:
     return 0.0
 
 
+def _detect_audio_media_type(audio_bytes: bytes) -> str:
+    if audio_bytes.startswith(b"RIFF") and audio_bytes[8:12] == b"WAVE":
+        return "audio/wav"
+    if audio_bytes.startswith(b"fLaC"):
+        return "audio/flac"
+    if audio_bytes.startswith(b"OggS"):
+        return "audio/ogg"
+    if audio_bytes.startswith(b"ID3") or (
+        len(audio_bytes) >= 2 and audio_bytes[0] == 0xFF and (audio_bytes[1] & 0xE0) == 0xE0
+    ):
+        return "audio/mpeg"
+    return "audio/mpeg"
+
+
 def synthesize_speech(text: str) -> Tuple[bytes, str]:
     """
-    Convert analysis summary text to speech bytes using Hugging Face Inference API.
-    Caches synthesized audio in a bounded thread-safe LRU cache keyed by (model, text hash).
+    Convert analysis summary text to speech bytes using Hugging Face InferenceClient.
+    Caches synthesized audio in a bounded thread-safe LRU cache keyed by (provider, model, text hash).
     """
     cleaned = _normalize_tts_text(text)
 
@@ -75,9 +97,10 @@ def synthesize_speech(text: str) -> Tuple[bytes, str]:
     if not token:
         raise TTSNotConfiguredError("Text-to-speech is not configured on the server.")
 
-    model = (settings.HUGGINGFACE_TTS_MODEL or "facebook/mms-tts-eng").strip() or "facebook/mms-tts-eng"
+    provider = (settings.HUGGINGFACE_TTS_PROVIDER or "auto").strip() or "auto"
+    model = (settings.HUGGINGFACE_TTS_MODEL or "hexgrad/Kokoro-82M").strip() or "hexgrad/Kokoro-82M"
     text_hash = hashlib.sha256(cleaned.encode("utf-8")).hexdigest()
-    cache_key = (model, text_hash)
+    cache_key = (provider, model, text_hash)
 
     with _tts_cache_lock:
         cached = _tts_cache.get(cache_key)
@@ -85,51 +108,72 @@ def synthesize_speech(text: str) -> Tuple[bytes, str]:
             _tts_cache.move_to_end(cache_key)
             return cached
 
-    base_url = (settings.HUGGINGFACE_TTS_API_URL or "https://router.huggingface.co/hf-inference/models").rstrip("/")
-    url = f"{base_url}/{model.lstrip('/')}"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "audio/*",
-    }
-    payload = {"inputs": cleaned}
+    client = InferenceClient(
+        provider=provider,
+        api_key=token,
+        timeout=settings.HUGGINGFACE_TTS_TIMEOUT,
+    )
 
-    response: httpx.Response | None = None
+    audio_result: Any = None
     for attempt in range(2):
         try:
-            response = httpx.post(
-                url,
-                headers=headers,
-                json=payload,
-                timeout=settings.HUGGINGFACE_TTS_TIMEOUT,
-            )
-        except httpx.TimeoutException as exc:
-            logger.warning("Hugging Face TTS request timed out for model=%s", model)
+            audio_result = client.text_to_speech(cleaned, model=model)
+            break
+        except (httpx.TimeoutException, TimeoutError) as exc:
+            logger.warning("Hugging Face TTS request timed out for model=%s provider=%s", model, provider)
             raise TTSTimeoutError("Text-to-speech request timed out. Please try again.") from exc
-        except httpx.HTTPError as exc:
-            logger.warning("Hugging Face TTS transport error for model=%s: %s", model, type(exc).__name__)
+        except HfHubHTTPError as exc:
+            status_code = exc.response.status_code if exc.response is not None else None
+            if status_code == 402:
+                logger.warning("Hugging Face TTS credits exhausted for model=%s provider=%s", model, provider)
+                raise TTSQuotaError(
+                    "Hugging Face Inference Provider credits are exhausted. "
+                    "Please check your Hugging Face billing or PRO subscription."
+                ) from exc
+            if status_code == 503:
+                estimated_time = _extract_estimated_time(exc.response)
+                if attempt == 0 and 0 < estimated_time <= COLD_START_MAX_RETRY_WAIT_SECONDS:
+                    logger.info(
+                        "Hugging Face TTS model=%s provider=%s warming up; retrying in %.2fs",
+                        model,
+                        provider,
+                        estimated_time,
+                    )
+                    time.sleep(estimated_time)
+                    continue
+                raise TTSModelLoadingError("Speech model is warming up. Please try again in a few seconds.") from exc
+            if status_code in (401, 403):
+                logger.warning(
+                    "Hugging Face TTS authorization failed for model=%s provider=%s status=%s",
+                    model,
+                    provider,
+                    status_code,
+                )
+                raise TTSUpstreamError(
+                    "Hugging Face API token is invalid or lacks Inference Providers permission."
+                ) from exc
+            logger.warning(
+                "Hugging Face TTS failed for model=%s provider=%s with status=%s",
+                model,
+                provider,
+                status_code,
+            )
+            raise TTSUpstreamError("Text-to-speech service returned an error.") from exc
+        except Exception as exc:
+            logger.warning(
+                "Hugging Face TTS error for model=%s provider=%s: %s",
+                model,
+                provider,
+                type(exc).__name__,
+            )
             raise TTSUpstreamError("Unable to reach text-to-speech provider.") from exc
 
-        if response.status_code == 503:
-            estimated_time = _extract_estimated_time(response)
-            if attempt == 0 and 0 < estimated_time <= COLD_START_MAX_RETRY_WAIT_SECONDS:
-                logger.info("Hugging Face TTS model=%s warming up; retrying in %.2fs", model, estimated_time)
-                time.sleep(estimated_time)
-                continue
-            raise TTSModelLoadingError("Speech model is warming up. Please try again in a few seconds.")
-        break
-
-    assert response is not None
-    if response.status_code != 200:
-        logger.warning("Hugging Face TTS failed for model=%s with status=%s", model, response.status_code)
-        raise TTSUpstreamError("Text-to-speech service returned an error.")
-
-    audio_bytes = response.content or b""
-    raw_content_type = response.headers.get("content-type", "").split(";")[0].strip().lower()
-    if not audio_bytes or raw_content_type.startswith("application/json") or raw_content_type.startswith("text/"):
-        logger.warning("Hugging Face TTS returned non-audio response for model=%s (content_type=%s)", model, raw_content_type)
+    if not isinstance(audio_result, (bytes, bytearray)) or not audio_result:
+        logger.warning("Hugging Face TTS returned empty or invalid audio for model=%s provider=%s", model, provider)
         raise TTSUpstreamError("Unexpected response format from text-to-speech provider.")
 
-    media_type = raw_content_type if raw_content_type.startswith("audio/") else "audio/flac"
+    audio_bytes = bytes(audio_result)
+    media_type = _detect_audio_media_type(audio_bytes)
 
     with _tts_cache_lock:
         _tts_cache[cache_key] = (audio_bytes, media_type)

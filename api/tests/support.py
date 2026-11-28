@@ -83,7 +83,7 @@ class BackendTestCase(unittest.TestCase):
 
         self.openai_guard = self.resources.enter_context(patch("openai.OpenAI", side_effect=deny_provider))
         self.google_guard = self.resources.enter_context(patch("app.services.sync.httpx.get", side_effect=deny_provider))
-        self.hf_guard = self.resources.enter_context(patch("app.services.tts.httpx.post", side_effect=deny_provider))
+        self.hf_guard = self.resources.enter_context(patch("app.services.tts.InferenceClient", side_effect=deny_provider))
         original_connect = socket.socket.connect
         original_connect_ex = socket.socket.connect_ex
         original_create_connection = socket.create_connection
