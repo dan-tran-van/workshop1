@@ -219,6 +219,62 @@ class TestTextToSpeechEndpoint(BackendTestCase):
                 self.assertEqual(json_res.status_code, 502)
                 self.assertNotIn(secret, json_res.text)
 
+    def test_tts_custom_base_url_calls_openai_speech_endpoint_and_caches(self) -> None:
+        restaurant = self.restaurant()
+        analysis = self.analysis_row(restaurant["id"], datetime(2025, 1, 1))
+        fake_mp3 = b"ID3\x04\x00mock-kokoro-mp3"
+
+        with patch.object(settings, "TTS_BASE_URL", "https://tts.example.trycloudflare.com/"), \
+             patch.object(settings, "HUGGINGFACE_API_TOKEN", ""), \
+             patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(
+                 200,
+                 content=fake_mp3,
+                 headers={"content-type": "audio/mpeg"},
+             )) as mock_post:
+            first = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
+            second = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
+
+        self.assertEqual(first.status_code, 200, first.text)
+        self.assertEqual(second.status_code, 200, second.text)
+        self.assertTrue(first.headers["content-type"].startswith("audio/mpeg"))
+        self.assertEqual(first.content, fake_mp3)
+        self.assertEqual(second.content, fake_mp3)
+        self.assertEqual(mock_post.call_count, 1)
+
+        called_url = mock_post.call_args.args[0]
+        called_kwargs = mock_post.call_args.kwargs
+        self.assertEqual(called_url, "https://tts.example.trycloudflare.com/v1/audio/speech")
+        self.assertEqual(
+            called_kwargs["json"],
+            {
+                "model": settings.TTS_MODEL,
+                "input": EXPECTED_ANALYSIS["summary"],
+                "voice": settings.TTS_VOICE,
+                "response_format": "mp3",
+            },
+        )
+
+    def test_tts_custom_base_url_errors_and_timeout(self) -> None:
+        restaurant = self.restaurant()
+        analysis = self.analysis_row(restaurant["id"], datetime(2025, 1, 1))
+
+        with patch.object(settings, "TTS_BASE_URL", "http://localhost:8880"):
+            with patch("app.services.tts.httpx.post", side_effect=httpx.ReadTimeout("timeout")):
+                timeout_res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
+                self.assertEqual(timeout_res.status_code, 504)
+
+            with patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(500, content=b"internal error")):
+                upstream_res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
+                self.assertEqual(upstream_res.status_code, 502)
+
+            with patch("app.services.tts.httpx.post", return_value=_FakeHFResponse(
+                200,
+                content=b'{"error":"bad payload"}',
+                headers={"content-type": "application/json"},
+            )):
+                json_res = self.client.post(f"/restaurants/{restaurant['id']}/analyses/{analysis.id}/tts")
+                self.assertEqual(json_res.status_code, 502)
+
 
 if __name__ == "__main__":
     unittest.main()
