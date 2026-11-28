@@ -1,0 +1,1983 @@
+{
+  "dataset": "district1_restaurants_reviews",
+  "area": "District 1, Ho Chi Minh City (Ben Nghe, Ben Thanh, Da Kao) - mock data",
+  "source": "Synthetic mock data generated for workshop demos. Not real reviews of real businesses.",
+  "snapshot_at": "2026-11-28T09:00:00+07:00",
+  "mock": true,
+  "adaptations": [
+    "All restaurants, addresses and reviews are fictional mock data. Any resemblance to real businesses is coincidental.",
+    "google_place_id is pending:mock:<slug>, so seed.py keeps these restaurants out of sync_targets. Do not send them to the Places API.",
+    "Each restaurant has a quality profile per criterion (food, service, price, ambience, cleanliness, wait), so market comparison and aspect analysis show visible differences.",
+    "google_rating is the mean of the review stars in this dump; user_rating_count is the review count in this dump.",
+    "reviews.text is NOT NULL. Star-only reviews are stored as empty text with text_missing=true, like the Alaska dump.",
+    "source_id / external_review_id are UUIDv5 values derived from dataset, restaurant slug and index, so re-runs upsert instead of duplicating.",
+    "author_uri is null: no real contributor profiles are referenced."
+  ],
+  "restaurants": [
+    {
+      "source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "google_place_id": "pending:mock:pho-ganh-sai-gon",
+      "place_id_resolved": false,
+      "name": "Phở Gánh Sài Gòn",
+      "address": "18 Đinh Tiên Hoàng, Đa Kao, Quận 1, Ho Chi Minh City, Vietnam",
+      "google_rating": 3.8,
+      "user_rating_count": 45,
+      "last_synced_at": "2026-11-28T09:00:00+07:00",
+      "updated_at": "2026-11-28T09:00:00+07:00"
+    },
+    {
+      "source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "google_place_id": "pending:mock:bep-nha-ngoai",
+      "place_id_resolved": false,
+      "name": "Bếp Nhà Ngoại Quán",
+      "address": "42 Nguyễn Thị Minh Khai, Bến Nghé, Quận 1, Ho Chi Minh City, Vietnam",
+      "google_rating": 4.1,
+      "user_rating_count": 40,
+      "last_synced_at": "2026-11-28T09:00:00+07:00",
+      "updated_at": "2026-11-28T09:00:00+07:00"
+    },
+    {
+      "source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "google_place_id": "pending:mock:banh-mi-hem-24",
+      "place_id_resolved": false,
+      "name": "Bánh Mì Hẻm 24",
+      "address": "24/3 Hẻm Lê Thị Riêng, Bến Thành, Quận 1, Ho Chi Minh City, Vietnam",
+      "google_rating": 3.5,
+      "user_rating_count": 35,
+      "last_synced_at": "2026-11-28T09:00:00+07:00",
+      "updated_at": "2026-11-28T09:00:00+07:00"
+    },
+    {
+      "source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "google_place_id": "pending:mock:saigon-rooftop-grill",
+      "place_id_resolved": false,
+      "name": "Saigon Rooftop Grill",
+      "address": "Tầng 18, 76 Lê Lai, Bến Thành, Quận 1, Ho Chi Minh City, Vietnam",
+      "google_rating": 3.7,
+      "user_rating_count": 40,
+      "last_synced_at": "2026-11-28T09:00:00+07:00",
+      "updated_at": "2026-11-28T09:00:00+07:00"
+    },
+    {
+      "source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "google_place_id": "pending:mock:com-tam-co-ba",
+      "place_id_resolved": false,
+      "name": "Cơm Tấm Cô Ba",
+      "address": "9 Nguyễn Văn Nghi, Phường 5, Gò Vấp, Ho Chi Minh City, Vietnam",
+      "google_rating": 3.2,
+      "user_rating_count": 30,
+      "last_synced_at": "2026-11-28T09:00:00+07:00",
+      "updated_at": "2026-11-28T09:00:00+07:00"
+    }
+  ],
+  "reviews": [
+    {
+      "source_id": "bba94181-f521-5398-9955-f4913ed074a2",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "bba94181-f521-5398-9955-f4913ed074a2",
+      "author_name": "M. H. U.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "We waited over 45 minutes for our food and nobody explained why. The tables are packed so close together there is no privacy. The set menu is excellent value. The grilled pork chop rice was bland and arrived lukewarm.",
+      "published_at": "2026-11-17T23:22:00+07:00"
+    },
+    {
+      "source_id": "60ff684f-181b-5c53-a421-9b144ed2097d",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "60ff684f-181b-5c53-a421-9b144ed2097d",
+      "author_name": "N. M. U.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Great value for money, we left full without spending much. Best soy milk I've had in a long time, the seasoning was spot on. Staff looked burnt out and not friendly at all.",
+      "published_at": "2026-11-12T01:20:00+07:00"
+    },
+    {
+      "source_id": "3121c0e9-6b71-5256-86e8-34bd5e784b12",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "3121c0e9-6b71-5256-86e8-34bd5e784b12",
+      "author_name": "S. V. M.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "",
+      "published_at": "2026-11-02T14:48:00+07:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "469b6e15-eb22-5969-8093-a90c2a0d6d06",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "469b6e15-eb22-5969-8093-a90c2a0d6d06",
+      "author_name": "F. H.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Bạn phục vụ rất dễ thương, châm nước liên tục không cần nhắc. Món gỏi cuốn quá mặn và nhiều dầu mỡ, ăn không hết. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-10-28T16:42:00+07:00"
+    },
+    {
+      "source_id": "91f565fa-31ef-564b-a77e-ed47debd0d25",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "91f565fa-31ef-564b-a77e-ed47debd0d25",
+      "author_name": "T. D. M.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Phục vụ nhanh nhẹn, lịch sự, luôn hỏi thăm bàn mình. Phục vụ nhanh, phù hợp bữa trưa văn phòng. Giá mềm, combo trưa rất hời. bánh mì chả lụa nấu quá chín, ăn rất khô. Rất đáng thử.",
+      "published_at": "2026-10-26T16:25:00+07:00"
+    },
+    {
+      "source_id": "c4256dd0-1580-501d-9287-b8819f600380",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "c4256dd0-1580-501d-9287-b8819f600380",
+      "author_name": "T. B.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Nobody checked on our table once the food arrived. Food came out fast even though the place was full. Best chicken pho I've had in a long time, the seasoning was spot on. Can't wait to return.",
+      "published_at": "2026-10-24T09:18:00+07:00"
+    },
+    {
+      "source_id": "050ea9db-af9c-55d2-aec1-ef2f45dbfae3",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "050ea9db-af9c-55d2-aec1-ef2f45dbfae3",
+      "author_name": "E. E.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "",
+      "published_at": "2026-10-22T06:18:00+07:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "84d7d507-0b25-5158-9d13-19ab07c9433a",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "84d7d507-0b25-5158-9d13-19ab07c9433a",
+      "author_name": "G. I. O.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "A charming spot with a great view and a good mood. The fried dough sticks arrived hot and the flavors were well balanced. Will definitely come back.",
+      "published_at": "2026-10-21T02:03:00+07:00"
+    },
+    {
+      "source_id": "4c34015e-adf3-580e-a0fb-ae57f7490ee5",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "4c34015e-adf3-580e-a0fb-ae57f7490ee5",
+      "author_name": "C. G.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Lên món rất nhanh dù quán đang đông. Nhân viên cau có, hỏi gì cũng trả lời cộc lốc.",
+      "published_at": "2026-10-20T01:02:00+07:00"
+    },
+    {
+      "source_id": "a5fc301c-ba09-571a-a320-ce0a1985409a",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "a5fc301c-ba09-571a-a320-ce0a1985409a",
+      "author_name": "B. Q. A.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Nhân viên thiếu nhiệt tình, gọi mấy lần mới có người đến. Đợi mãi mới có chỗ ngồi dù đã đặt trước.",
+      "published_at": "2026-10-18T03:33:00+07:00"
+    },
+    {
+      "source_id": "591cf4ef-89ad-53db-a1f6-f3cb46fdcd8d",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "591cf4ef-89ad-53db-a1f6-f3cb46fdcd8d",
+      "author_name": "T. U.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "",
+      "published_at": "2026-10-15T00:54:00+07:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "db0a6760-6667-5d51-b358-74aa719a4759",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "db0a6760-6667-5d51-b358-74aa719a4759",
+      "author_name": "O. I.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Với mức giá này thì quá tuyệt. Quán hỗ trợ rất chu đáo khi nhóm mình đặt bàn đông người. Quán trang trí đẹp, nhạc nhẹ nhàng, ngồi rất thoải mái.",
+      "published_at": "2026-10-14T18:53:00+07:00"
+    },
+    {
+      "source_id": "cbad89ec-da5b-5885-b859-d8d84b091887",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "cbad89ec-da5b-5885-b859-d8d84b091887",
+      "author_name": "A. K.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Great value for money, we left full without spending much. Food came out fast even though the place was full. The waiter got our order wrong and was dismissive when we pointed it out. Decent overall, but there is room for improvement.",
+      "published_at": "2026-10-14T06:44:00+07:00"
+    },
+    {
+      "source_id": "d3624092-d0db-5870-81da-3f17089630a7",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "d3624092-d0db-5870-81da-3f17089630a7",
+      "author_name": "J. I.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Quán hỗ trợ rất chu đáo khi nhóm mình đặt bàn đông người. Món phở gà nóng hổi, nguyên liệu tươi, phần ăn đầy đặn. Nhạc quá to, không gian hơi lộn xộn. Bếp ra món rất chậm, ngồi đợi muốn bỏ về.",
+      "published_at": "2026-10-14T05:42:00+07:00"
+    },
+    {
+      "source_id": "59040d67-7dbb-5da2-bde9-11adc88e4467",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "59040d67-7dbb-5da2-bde9-11adc88e4467",
+      "author_name": "M. S. V. G.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Đồ ăn ngon, trình bày đẹp mắt, đúng vị. Nhà vệ sinh bẩn, hết xà phòng. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-10-13T02:28:00+07:00"
+    },
+    {
+      "source_id": "d427b09d-0acd-5ea3-b40c-c9d6940f6c9e",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "d427b09d-0acd-5ea3-b40c-c9d6940f6c9e",
+      "author_name": "K. Y. O.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Món bánh mì chả lụa nóng hổi, nguyên liệu tươi, phần ăn đầy đặn. Phục vụ nhanh nhẹn, lịch sự, luôn hỏi thăm bàn mình. Trong quán nóng, máy lạnh yếu.",
+      "published_at": "2026-10-11T02:31:00+07:00"
+    },
+    {
+      "source_id": "c0a0bb2f-6691-5849-b04d-0363eb9d070e",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "c0a0bb2f-6691-5849-b04d-0363eb9d070e",
+      "author_name": "H. G. H.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Với mức giá này thì quá tuyệt. đậu hũ sốt cà rất ngon, đậm đà và nêm nếm vừa miệng. Quán hỗ trợ rất chu đáo khi nhóm mình đặt bàn đông người.",
+      "published_at": "2026-10-09T02:57:00+07:00"
+    },
+    {
+      "source_id": "9e557ffa-1944-5676-83a8-c8e1ce69bd28",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "9e557ffa-1944-5676-83a8-c8e1ce69bd28",
+      "author_name": "T. U. I. Q.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Waiters were polite and refilled our drinks without being asked. The restaurant was spotless, including the restrooms. We waited over 45 minutes for our food and nobody explained why.",
+      "published_at": "2026-10-08T18:03:00+07:00"
+    },
+    {
+      "source_id": "54a734ae-967e-5366-adfe-d10a4771d77a",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "54a734ae-967e-5366-adfe-d10a4771d77a",
+      "author_name": "T. Q. D.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Best fried dough sticks I've had in a long time, the seasoning was spot on. The team went out of their way to make us feel welcome. Can't wait to return.",
+      "published_at": "2026-10-06T16:17:00+07:00"
+    },
+    {
+      "source_id": "dbecb920-acc2-566d-8db1-3123c43934c1",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "dbecb920-acc2-566d-8db1-3123c43934c1",
+      "author_name": "M. O. R.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Nguyên liệu không tươi, chè khúc bạch có mùi khó chịu. Phục vụ nhanh, phù hợp bữa trưa văn phòng. Không gian chật chội, bàn ghế đặt sát nhau. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-10-05T20:24:00+07:00"
+    },
+    {
+      "source_id": "471fb755-e73a-501f-961c-8ed04885a45d",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "471fb755-e73a-501f-961c-8ed04885a45d",
+      "author_name": "X. N. K.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The restaurant was spotless, including the restrooms. The sweet dessert cup was outstanding, full of flavor and cooked just right. Waiters were polite and refilled our drinks without being asked.",
+      "published_at": "2026-10-05T09:10:00+07:00"
+    },
+    {
+      "source_id": "efc5f61b-9059-59ba-8bd9-be1089b75ec0",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "efc5f61b-9059-59ba-8bd9-be1089b75ec0",
+      "author_name": "P. G. M. Q.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Nhân viên cau có, hỏi gì cũng trả lời cộc lốc. Đồ ăn ngon, trình bày đẹp mắt, đúng vị. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-10-02T08:14:00+07:00"
+    },
+    {
+      "source_id": "5c0a0f35-e9cd-5426-aa36-8e3338d626e4",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "5c0a0f35-e9cd-5426-aa36-8e3338d626e4",
+      "author_name": "O. H. D.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "We waited over 45 minutes for our food and nobody explained why. Good portions for the price, nothing felt overpriced.",
+      "published_at": "2026-10-02T07:30:00+07:00"
+    },
+    {
+      "source_id": "27977756-2172-5191-92d8-519a04e7e410",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "27977756-2172-5191-92d8-519a04e7e410",
+      "author_name": "X. D. H.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Phục vụ lên nhầm món và thái độ không vui vẻ. Giá rẻ mà ăn no, rất đáng tiền. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-09-26T22:03:00+07:00"
+    },
+    {
+      "source_id": "18751ac9-93c2-5172-a790-ef80856199e0",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "18751ac9-93c2-5172-a790-ef80856199e0",
+      "author_name": "J. G.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Quán sạch sẽ, nhà vệ sinh cũng rất sạch. Nhạc quá to, không gian hơi lộn xộn. Giá rẻ mà ăn no, rất đáng tiền. Gọi bánh mì chả lụa và rất hài lòng, ăn xong còn muốn gọi thêm.",
+      "published_at": "2026-09-26T16:37:00+07:00"
+    },
+    {
+      "source_id": "9be39406-8cda-556d-9908-131f74b18865",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "9be39406-8cda-556d-9908-131f74b18865",
+      "author_name": "E. J. F.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Everything we ordered was delicious, especially the caesar salad. Great service, they even accommodated our food allergy without fuss. Highly recommended.",
+      "published_at": "2026-09-25T14:35:00+07:00"
+    },
+    {
+      "source_id": "2da39c5f-79fc-5363-9abf-c61077f1ec31",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "2da39c5f-79fc-5363-9abf-c61077f1ec31",
+      "author_name": "T. A. U. H.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Comfortable seating and a warm, welcoming interior. Quick service, perfect for a lunch break.",
+      "published_at": "2026-09-25T02:08:00+07:00"
+    },
+    {
+      "source_id": "26db3ed8-7537-5eeb-90a6-ecb9d89a84b6",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "26db3ed8-7537-5eeb-90a6-ecb9d89a84b6",
+      "author_name": "C. T. Q.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "My lamb chops was overcooked and the portion was smaller than expected. Our reservation was honored right away and the food arrived promptly. Decent overall, but there is room for improvement.",
+      "published_at": "2026-09-24T12:45:00+07:00"
+    },
+    {
+      "source_id": "762ddfe4-24e5-5ed6-814d-f8bb3d6ef59e",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "762ddfe4-24e5-5ed6-814d-f8bb3d6ef59e",
+      "author_name": "Y. F. Y.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Music was blasting and the place felt chaotic. Prices are very reasonable for the quality and the portion size. Restrooms were dirty and out of soap.",
+      "published_at": "2026-09-23T07:52:00+07:00"
+    },
+    {
+      "source_id": "7df7aedf-1313-556f-9278-3f6aa34b8200",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "7df7aedf-1313-556f-9278-3f6aa34b8200",
+      "author_name": "L. E. G.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Great service, they even accommodated our food allergy without fuss. The braised pork with eggs was too salty and greasy, I couldn't finish it. The tables are packed so close together there is no privacy.",
+      "published_at": "2026-09-21T14:49:00+07:00"
+    },
+    {
+      "source_id": "fde40a67-9d95-5b7f-ae17-b5b7a22138ce",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "fde40a67-9d95-5b7f-ae17-b5b7a22138ce",
+      "author_name": "R. C. R.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Nhân viên thân thiện, nhiệt tình và tư vấn món rất tốt. Đồ ăn ngon, trình bày đẹp mắt, đúng vị.",
+      "published_at": "2026-09-21T14:40:00+07:00"
+    },
+    {
+      "source_id": "91bb1b8e-4b8f-5e63-a6ef-fd01e7d6ec4a",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "91bb1b8e-4b8f-5e63-a6ef-fd01e7d6ec4a",
+      "author_name": "P. N. G.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Bạn phục vụ rất dễ thương, châm nước liên tục không cần nhắc. Chỗ ngồi thoải mái và không gian yên tĩnh. Đắt so với mặt bằng chung khu này. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-09-20T11:18:00+07:00"
+    },
+    {
+      "source_id": "9dbb6b11-5259-5c3d-a1af-8fc696b1ae7f",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "9dbb6b11-5259-5c3d-a1af-8fc696b1ae7f",
+      "author_name": "E. L.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Đợi mãi mới có chỗ ngồi dù đã đặt trước. bánh mì xíu mại rất ngon, đậm đà và nêm nếm vừa miệng. Chỗ ngồi thoải mái và không gian yên tĩnh.",
+      "published_at": "2026-09-19T02:54:00+07:00"
+    },
+    {
+      "source_id": "57060f9d-6a36-5f01-b301-3f9db720b457",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "57060f9d-6a36-5f01-b301-3f9db720b457",
+      "author_name": "F. G.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Best caramelized clay-pot fish I've had in a long time, the seasoning was spot on. Staff were friendly, attentive and checked on us often. Prices are very reasonable for the quality and the portion size. Food came out fast even though the place was full. Will definitely come back.",
+      "published_at": "2026-09-18T21:41:00+07:00"
+    },
+    {
+      "source_id": "66e78865-9b43-514c-a7a1-8c738a48e308",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "66e78865-9b43-514c-a7a1-8c738a48e308",
+      "author_name": "S. S. X.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Nhân viên thân thiện, nhiệt tình và tư vấn món rất tốt. Phục vụ nhanh, phù hợp bữa trưa văn phòng. canh chua rất ngon, đậm đà và nêm nếm vừa miệng.",
+      "published_at": "2026-09-17T02:22:00+07:00"
+    },
+    {
+      "source_id": "7117087c-1abc-5b94-9f23-2cbc01b4ee39",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "7117087c-1abc-5b94-9f23-2cbc01b4ee39",
+      "author_name": "R. X. E.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Phục vụ nhanh, phù hợp bữa trưa văn phòng. Giá mềm, combo trưa rất hời. Trong quán nóng, máy lạnh yếu.",
+      "published_at": "2026-09-17T01:52:00+07:00"
+    },
+    {
+      "source_id": "b912b0d4-b40f-5a3e-931d-45dfdae14356",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "b912b0d4-b40f-5a3e-931d-45dfdae14356",
+      "author_name": "P. T. B.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "tiramisu nấu quá chín, ăn rất khô. View buổi tối rất đẹp, đáng để quay lại. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-09-09T18:23:00+07:00"
+    },
+    {
+      "source_id": "459361d1-0db2-54f0-a48a-8ed8953c5764",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "459361d1-0db2-54f0-a48a-8ed8953c5764",
+      "author_name": "P. N. R.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Bạn phục vụ rất dễ thương, châm nước liên tục không cần nhắc. Đắt so với mặt bằng chung khu này.",
+      "published_at": "2026-09-09T06:58:00+07:00"
+    },
+    {
+      "source_id": "8876a12e-2cf1-5ebc-8d21-c59cacc1716a",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "8876a12e-2cf1-5ebc-8d21-c59cacc1716a",
+      "author_name": "K. P. R.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Phục vụ nhanh nhẹn, lịch sự, luôn hỏi thăm bàn mình. Quán trang trí đẹp, nhạc nhẹ nhàng, ngồi rất thoải mái. canh chua rất ngon, đậm đà và nêm nếm vừa miệng. Phục vụ nhanh, phù hợp bữa trưa văn phòng.",
+      "published_at": "2026-09-07T01:54:00+07:00"
+    },
+    {
+      "source_id": "01c7da5f-1ec1-5c3c-a4eb-a502e7c8e641",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "01c7da5f-1ec1-5c3c-a4eb-a502e7c8e641",
+      "author_name": "S. G. Q.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "My sweet dessert cup was overcooked and the portion was smaller than expected. The set menu is excellent value. A charming spot with a great view and a good mood.",
+      "published_at": "2026-09-05T21:53:00+07:00"
+    },
+    {
+      "source_id": "0c66115d-b4f6-5bf6-b5e6-847800d94976",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "0c66115d-b4f6-5bf6-b5e6-847800d94976",
+      "author_name": "A. N. A. H.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "No wait at all, we were seated and served within minutes. Loved the beef ball pho; portions were generous and everything tasted fresh. Nobody checked on our table once the food arrived. The set menu is excellent value. Five stars from us.",
+      "published_at": "2026-09-05T10:31:00+07:00"
+    },
+    {
+      "source_id": "bef22a67-3846-5058-96bb-deba83b27370",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "bef22a67-3846-5058-96bb-deba83b27370",
+      "author_name": "M. D. V.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The team went out of their way to make us feel welcome. Lovely decor and relaxed music, a really pleasant place to sit. The seafood platter arrived hot and the flavors were well balanced. Hidden service charges made the final bill painful. Okay experience, might give it another try.",
+      "published_at": "2026-09-01T07:50:00+07:00"
+    },
+    {
+      "source_id": "a445cadf-a5df-5bea-94a3-d21906d9a400",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "a445cadf-a5df-5bea-94a3-d21906d9a400",
+      "author_name": "E. M.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Comfortable seating and a warm, welcoming interior. Everything we ordered was delicious, especially the grilled ribeye.",
+      "published_at": "2026-09-01T07:28:00+07:00"
+    },
+    {
+      "source_id": "c2356f17-29f4-5e16-8534-c886f9fd2c0b",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "c2356f17-29f4-5e16-8534-c886f9fd2c0b",
+      "author_name": "J. R.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Quán trang trí đẹp, nhạc nhẹ nhàng, ngồi rất thoải mái. Giá rẻ mà ăn no, rất đáng tiền. Bạn phục vụ rất dễ thương, châm nước liên tục không cần nhắc. Rất đáng thử.",
+      "published_at": "2026-08-31T00:05:00+07:00"
+    },
+    {
+      "source_id": "b4a4b16d-c652-50fd-a651-9274997c7188",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "b4a4b16d-c652-50fd-a651-9274997c7188",
+      "author_name": "B. M. O. X.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Đồ ăn ngon, trình bày đẹp mắt, đúng vị. View buổi tối rất đẹp, đáng để quay lại. Giới thiệu cho mọi người.",
+      "published_at": "2026-08-30T19:14:00+07:00"
+    },
+    {
+      "source_id": "46a21b93-d234-58aa-80f0-97e90f998000",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "46a21b93-d234-58aa-80f0-97e90f998000",
+      "author_name": "X. L. K.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Phục vụ nhanh, phù hợp bữa trưa văn phòng. Nhạc quá to, không gian hơi lộn xộn. Với mức giá này thì quá tuyệt. bánh mì thịt nướng làm rất khéo, ăn một lần là nhớ. Chấm 5 sao.",
+      "published_at": "2026-08-29T13:27:00+07:00"
+    },
+    {
+      "source_id": "b82eddd3-6fda-55a1-8b2b-1a354f4d0701",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "b82eddd3-6fda-55a1-8b2b-1a354f4d0701",
+      "author_name": "Q. S.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "",
+      "published_at": "2026-08-28T01:01:00+07:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "870afb86-713e-50d9-ba7b-129025298b77",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "870afb86-713e-50d9-ba7b-129025298b77",
+      "author_name": "T. T. H.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Nhân viên cau có, hỏi gì cũng trả lời cộc lốc. Gọi phở gà và rất hài lòng, ăn xong còn muốn gọi thêm.",
+      "published_at": "2026-08-25T07:05:00+07:00"
+    },
+    {
+      "source_id": "445564c9-e903-54fe-8841-0961ac640219",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "445564c9-e903-54fe-8841-0961ac640219",
+      "author_name": "O. F. E. B.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "The fresh spring rolls was outstanding, full of flavor and cooked just right. Good portions for the price, nothing felt overpriced. Waiters were polite and refilled our drinks without being asked.",
+      "published_at": "2026-08-24T21:45:00+07:00"
+    },
+    {
+      "source_id": "f22be51a-9d82-5e17-89bc-f176edd60478",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "f22be51a-9d82-5e17-89bc-f176edd60478",
+      "author_name": "I. C.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Service was disorganized, we had to flag someone down three times. The outdoor seating is beautiful in the evening. Too expensive for an average meal, I felt a bit ripped off. Decent overall, but there is room for improvement.",
+      "published_at": "2026-08-23T18:28:00+07:00"
+    },
+    {
+      "source_id": "23b2dc41-5620-5565-be24-f6520a8fe90f",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "23b2dc41-5620-5565-be24-f6520a8fe90f",
+      "author_name": "P. Q. D.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "A charming spot with a great view and a good mood. Very hygienic kitchen and clean dining area, which I really appreciate.",
+      "published_at": "2026-08-23T14:38:00+07:00"
+    },
+    {
+      "source_id": "f6e15576-91c4-5488-96e1-fad51a2810c5",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "f6e15576-91c4-5488-96e1-fad51a2810c5",
+      "author_name": "U. L. J.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Lên món rất nhanh dù quán đang đông. Nhân viên cau có, hỏi gì cũng trả lời cộc lốc. Khá thất vọng.",
+      "published_at": "2026-08-22T23:15:00+07:00"
+    },
+    {
+      "source_id": "c69e0bce-f07d-5161-a521-ee541e191398",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "c69e0bce-f07d-5161-a521-ee541e191398",
+      "author_name": "Q. I. A.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Đắt so với mặt bằng chung khu này. Không gian ấm cúng, thoáng mát, hợp đi nhóm bạn hoặc gia đình. Quán hỗ trợ rất chu đáo khi nhóm mình đặt bàn đông người. Rất đáng thử.",
+      "published_at": "2026-08-20T13:12:00+07:00"
+    },
+    {
+      "source_id": "558a859f-0dc5-54e7-a024-0e7c473accbc",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "558a859f-0dc5-54e7-a024-0e7c473accbc",
+      "author_name": "E. Q.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Phần ăn ít hơn mong đợi, chất lượng món chỉ ở mức trung bình. Quán hỗ trợ rất chu đáo khi nhóm mình đặt bàn đông người.",
+      "published_at": "2026-08-19T01:43:00+07:00"
+    },
+    {
+      "source_id": "f22dbf98-302f-5877-a455-74052d2c2882",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "f22dbf98-302f-5877-a455-74052d2c2882",
+      "author_name": "M. E. Q.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "The tables are packed so close together there is no privacy. Loved the lamb chops; portions were generous and everything tasted fresh.",
+      "published_at": "2026-08-18T06:06:00+07:00"
+    },
+    {
+      "source_id": "f98f6ffb-4732-5291-85e3-8129ae540348",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "f98f6ffb-4732-5291-85e3-8129ae540348",
+      "author_name": "T. K. R.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Chỗ ngồi thoải mái và không gian yên tĩnh. rau muống xào tỏi rất ngon, đậm đà và nêm nếm vừa miệng.",
+      "published_at": "2026-08-15T15:57:00+07:00"
+    },
+    {
+      "source_id": "de964a74-fafd-53df-8aa4-c267b593e01f",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "de964a74-fafd-53df-8aa4-c267b593e01f",
+      "author_name": "G. J. B.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Bàn ghế được lau liên tục, dụng cụ ăn sạch sẽ. Nhân viên thân thiện, nhiệt tình và tư vấn món rất tốt. Đồ ăn ngon, trình bày đẹp mắt, đúng vị.",
+      "published_at": "2026-08-15T11:44:00+07:00"
+    },
+    {
+      "source_id": "b3aa8b01-7a60-52ef-9ccc-df7a97f833d8",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "b3aa8b01-7a60-52ef-9ccc-df7a97f833d8",
+      "author_name": "Y. G. H. O.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Bếp mở nhìn rất vệ sinh nên ăn yên tâm. Đồ ăn ngon, trình bày đẹp mắt, đúng vị. Quán hỗ trợ rất chu đáo khi nhóm mình đặt bàn đông người.",
+      "published_at": "2026-08-14T19:55:00+07:00"
+    },
+    {
+      "source_id": "81d1128f-d311-56da-8a6b-d2799feff595",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "81d1128f-d311-56da-8a6b-d2799feff595",
+      "author_name": "H. T.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Waited forever for the bill, we nearly gave up. Best rare beef pho I've had in a long time, the seasoning was spot on. Too expensive for an average meal, I felt a bit ripped off. Wouldn't recommend.",
+      "published_at": "2026-08-14T02:57:00+07:00"
+    },
+    {
+      "source_id": "9add2b46-6e3e-56f5-901b-56b291a87986",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "9add2b46-6e3e-56f5-901b-56b291a87986",
+      "author_name": "O. Y. G.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Lên món rất nhanh dù quán đang đông. Trong quán nóng, máy lạnh yếu. Giá cả hợp lý so với chất lượng và khẩu phần. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-08-10T09:46:00+07:00"
+    },
+    {
+      "source_id": "b73311cb-5d59-59b5-ada5-87ca9d92432f",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "b73311cb-5d59-59b5-ada5-87ca9d92432f",
+      "author_name": "B. T. T. E.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Không gian chật chội, bàn ghế đặt sát nhau. Gọi sữa đậu nành và rất hài lòng, ăn xong còn muốn gọi thêm.",
+      "published_at": "2026-08-07T07:50:00+07:00"
+    },
+    {
+      "source_id": "27886585-bdcd-55ca-b983-ce299715da28",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "27886585-bdcd-55ca-b983-ce299715da28",
+      "author_name": "O. P. D. F.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Lovely decor and relaxed music, a really pleasant place to sit. The caramelized clay-pot fish was outstanding, full of flavor and cooked just right. Great value for money, we left full without spending much.",
+      "published_at": "2026-08-06T14:13:00+07:00"
+    },
+    {
+      "source_id": "26a9ce71-d7af-5284-bd08-f0c0fe406fa0",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "26a9ce71-d7af-5284-bd08-f0c0fe406fa0",
+      "author_name": "T. L. H. N.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "The team went out of their way to make us feel welcome. The bill was higher than expected and the quality did not justify it. The beef ball pho was outstanding, full of flavor and cooked just right. Highly recommended.",
+      "published_at": "2026-08-03T06:37:00+07:00"
+    },
+    {
+      "source_id": "bbf83a3b-b676-500e-b63f-b0004202bf1e",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "bbf83a3b-b676-500e-b63f-b0004202bf1e",
+      "author_name": "B. D. M.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Quán ồn ào, nói chuyện gần như không nghe được. Gọi quẩy và rất hài lòng, ăn xong còn muốn gọi thêm. Quán hỗ trợ rất chu đáo khi nhóm mình đặt bàn đông người. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-08-02T19:32:00+07:00"
+    },
+    {
+      "source_id": "46145345-2f84-5e8e-9f88-635c0015aa34",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "46145345-2f84-5e8e-9f88-635c0015aa34",
+      "author_name": "K. Q. D. K.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Giá cả hợp lý so với chất lượng và khẩu phần. Chờ hơn 40 phút mới có món, không ai giải thích. Khá thất vọng.",
+      "published_at": "2026-08-02T07:33:00+07:00"
+    },
+    {
+      "source_id": "283dfa5c-1e35-52a6-8070-753b8a6ff429",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "283dfa5c-1e35-52a6-8070-753b8a6ff429",
+      "author_name": "B. Q.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Nhân viên thiếu nhiệt tình, gọi mấy lần mới có người đến. Món canh khổ qua quá mặn và nhiều dầu mỡ, ăn không hết. Hy vọng quán cải thiện.",
+      "published_at": "2026-07-28T18:20:00+07:00"
+    },
+    {
+      "source_id": "ecaad868-9848-5573-8350-5427c2583235",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "ecaad868-9848-5573-8350-5427c2583235",
+      "author_name": "F. D. R.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "sữa đậu nành nấu quá chín, ăn rất khô. Giá rẻ mà ăn no, rất đáng tiền. Phục vụ nhanh, phù hợp bữa trưa văn phòng. Sẽ quay lại.",
+      "published_at": "2026-07-27T08:55:00+07:00"
+    },
+    {
+      "source_id": "5d360527-7302-5658-a549-6b4f0dc7ac8f",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "5d360527-7302-5658-a549-6b4f0dc7ac8f",
+      "author_name": "U. C. T.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The set menu is excellent value. Quick service, perfect for a lunch break. Five stars from us.",
+      "published_at": "2026-07-25T18:16:00+07:00"
+    },
+    {
+      "source_id": "2df63b8a-a954-5b13-93e8-c56be04a7c15",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "2df63b8a-a954-5b13-93e8-c56be04a7c15",
+      "author_name": "O. P. B.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Service was warm and efficient from the moment we walked in. The bill was higher than expected and the quality did not justify it. No wait at all, we were seated and served within minutes.",
+      "published_at": "2026-07-25T00:25:00+07:00"
+    },
+    {
+      "source_id": "1057904e-4e1e-58ff-81db-258078d3a101",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "1057904e-4e1e-58ff-81db-258078d3a101",
+      "author_name": "T. S. E. G.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Great service, they even accommodated our food allergy without fuss. Best garlic morning glory I've had in a long time, the seasoning was spot on. Five stars from us.",
+      "published_at": "2026-07-24T04:28:00+07:00"
+    },
+    {
+      "source_id": "ae0e897b-a105-5864-96b7-dcfb8cc3df74",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "ae0e897b-a105-5864-96b7-dcfb8cc3df74",
+      "author_name": "T. P. D.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Gọi canh khổ qua và rất hài lòng, ăn xong còn muốn gọi thêm. Không phải chờ lâu, vừa ngồi xuống là có món. Nhân viên cau có, hỏi gì cũng trả lời cộc lốc. Nhạc quá to, không gian hơi lộn xộn. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-07-21T00:28:00+07:00"
+    },
+    {
+      "source_id": "f47c0354-33bb-5032-94cd-90cee9a05477",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "f47c0354-33bb-5032-94cd-90cee9a05477",
+      "author_name": "U. G.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Không phải chờ lâu, vừa ngồi xuống là có món. phở tái nạm rất ngon, đậm đà và nêm nếm vừa miệng.",
+      "published_at": "2026-07-20T17:58:00+07:00"
+    },
+    {
+      "source_id": "1eff6c48-8376-5db3-91c9-03f0fdec40e6",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "1eff6c48-8376-5db3-91c9-03f0fdec40e6",
+      "author_name": "G. H. V.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Loved the lamb chops; portions were generous and everything tasted fresh. Lovely decor and relaxed music, a really pleasant place to sit. Service was warm and efficient from the moment we walked in. Too expensive for an average meal, I felt a bit ripped off.",
+      "published_at": "2026-07-19T23:44:00+07:00"
+    },
+    {
+      "source_id": "3b112e16-56c6-5780-ac1c-04db2e48765f",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "3b112e16-56c6-5780-ac1c-04db2e48765f",
+      "author_name": "V. J.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Không gian ấm cúng, thoáng mát, hợp đi nhóm bạn hoặc gia đình. Giá cả hợp lý so với chất lượng và khẩu phần.",
+      "published_at": "2026-07-19T15:18:00+07:00"
+    },
+    {
+      "source_id": "90069a1c-7056-53f1-aa1f-75194e4094dc",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "90069a1c-7056-53f1-aa1f-75194e4094dc",
+      "author_name": "I. U. M. D.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "cá kho tộ rất ngon, đậm đà và nêm nếm vừa miệng. Giá rẻ mà ăn no, rất đáng tiền. Chỗ ngồi thoải mái và không gian yên tĩnh. Quán sạch sẽ, nhà vệ sinh cũng rất sạch. Rất đáng thử.",
+      "published_at": "2026-07-17T23:06:00+07:00"
+    },
+    {
+      "source_id": "e952b43b-4bdc-5d80-9886-848ae3938d31",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "e952b43b-4bdc-5d80-9886-848ae3938d31",
+      "author_name": "D. V.",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "Nobody checked on our table once the food arrived. Food was just average, the sweet dessert cup tasted like it had been sitting out. Music was blasting and the place felt chaotic. Too expensive for an average meal, I felt a bit ripped off. Hope they improve.",
+      "published_at": "2026-07-16T17:58:00+07:00"
+    },
+    {
+      "source_id": "97015c89-e809-5859-a693-0c9b30d90c5b",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "97015c89-e809-5859-a693-0c9b30d90c5b",
+      "author_name": "X. Y. F. R.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Food came out fast even though the place was full. The tables are packed so close together there is no privacy. The team went out of their way to make us feel welcome.",
+      "published_at": "2026-06-27T09:19:00+07:00"
+    },
+    {
+      "source_id": "5bc63c2f-c2de-5c5a-a921-4f37ae04691b",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "5bc63c2f-c2de-5c5a-a921-4f37ae04691b",
+      "author_name": "U. H.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Our server was knowledgeable and made great recommendations. Great value for money, we left full without spending much. Highly recommended.",
+      "published_at": "2026-06-27T01:47:00+07:00"
+    },
+    {
+      "source_id": "863524eb-0f33-56b3-9493-066fa40e24e7",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "863524eb-0f33-56b3-9493-066fa40e24e7",
+      "author_name": "M. C. S.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The atmosphere felt cold and impersonal. The grilled pork banh mi was outstanding, full of flavor and cooked just right. The table was sticky and the floor had not been cleaned. Decent overall, but there is room for improvement.",
+      "published_at": "2026-06-26T13:38:00+07:00"
+    },
+    {
+      "source_id": "80f8442b-fb6f-5c86-b06d-42d0c07cb37d",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "80f8442b-fb6f-5c86-b06d-42d0c07cb37d",
+      "author_name": "L. X. L.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Bếp mở nhìn rất vệ sinh nên ăn yên tâm. Không gian chật chội, bàn ghế đặt sát nhau.",
+      "published_at": "2026-06-25T09:18:00+07:00"
+    },
+    {
+      "source_id": "fc2aab66-ece5-5373-a500-3b9ea395f93e",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "fc2aab66-ece5-5373-a500-3b9ea395f93e",
+      "author_name": "K. H. R. F.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Prices are very reasonable for the quality and the portion size. Staff looked burnt out and not friendly at all. Clean cutlery, clean floors, clear attention to detail. Food was just average, the caesar salad tasted like it had been sitting out. Okay experience, might give it another try.",
+      "published_at": "2026-06-25T07:56:00+07:00"
+    },
+    {
+      "source_id": "b2b25710-bd6a-5e98-b11f-ecb672ce4f8f",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "b2b25710-bd6a-5e98-b11f-ecb672ce4f8f",
+      "author_name": "Y. F.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "A charming spot with a great view and a good mood. Loved the seafood platter; portions were generous and everything tasted fresh. Clean cutlery, clean floors, clear attention to detail. Highly recommended.",
+      "published_at": "2026-06-22T23:51:00+07:00"
+    },
+    {
+      "source_id": "9a1ce504-4917-558d-a37a-3765d6e3de3f",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "9a1ce504-4917-558d-a37a-3765d6e3de3f",
+      "author_name": "R. K. P.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Ordered the chicken pho and it came out cold in the middle. Not worth the money, there are better options nearby for less. Our server was knowledgeable and made great recommendations.",
+      "published_at": "2026-06-22T23:34:00+07:00"
+    },
+    {
+      "source_id": "be261f0e-12fa-50a8-8181-ae75f0c02465",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "be261f0e-12fa-50a8-8181-ae75f0c02465",
+      "author_name": "G. S.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Giá mềm, combo trưa rất hời. Quán ồn ào, nói chuyện gần như không nghe được. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-06-19T22:40:00+07:00"
+    },
+    {
+      "source_id": "f45a0acc-9291-54d7-a730-772b9571a467",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "f45a0acc-9291-54d7-a730-772b9571a467",
+      "author_name": "K. F. T.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Good portions for the price, nothing felt overpriced. Long wait just to be seated, even with a reservation.",
+      "published_at": "2026-06-18T13:26:00+07:00"
+    },
+    {
+      "source_id": "4246a018-bc2b-5222-9af6-70709b4e3988",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "4246a018-bc2b-5222-9af6-70709b4e3988",
+      "author_name": "R. U.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "",
+      "published_at": "2026-06-15T12:57:00+07:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "6c3a0a11-9493-5473-932d-2bdbf43e316c",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "6c3a0a11-9493-5473-932d-2bdbf43e316c",
+      "author_name": "M. J. A.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Đợi mãi mới có chỗ ngồi dù đã đặt trước. View buổi tối rất đẹp, đáng để quay lại. Nhân viên cau có, hỏi gì cũng trả lời cộc lốc. Đồ ăn ngon, trình bày đẹp mắt, đúng vị. Hy vọng quán cải thiện.",
+      "published_at": "2026-06-12T07:32:00+07:00"
+    },
+    {
+      "source_id": "d333dd57-1c0b-5905-bc7d-492ede84a452",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "d333dd57-1c0b-5905-bc7d-492ede84a452",
+      "author_name": "J. O.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The outdoor seating is beautiful in the evening. Fresh ingredients and a great seafood platter, we cleaned our plates. Clean cutlery, clean floors, clear attention to detail.",
+      "published_at": "2026-06-10T23:52:00+07:00"
+    },
+    {
+      "source_id": "a93a5b36-d6fc-5ab5-a805-2a8e1bbb14ad",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "a93a5b36-d6fc-5ab5-a805-2a8e1bbb14ad",
+      "author_name": "A. Q. D.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Bàn ghế được lau liên tục, dụng cụ ăn sạch sẽ. View buổi tối rất đẹp, đáng để quay lại. cá kho tộ nấu quá chín, ăn rất khô. Lên món rất nhanh dù quán đang đông. Giới thiệu cho mọi người.",
+      "published_at": "2026-06-10T14:54:00+07:00"
+    },
+    {
+      "source_id": "7ed52ed1-abe7-5522-a26b-bf7e7f5bd9a8",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "7ed52ed1-abe7-5522-a26b-bf7e7f5bd9a8",
+      "author_name": "L. P.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Không ai hỏi thăm bàn sau khi lên món. Giá rẻ mà ăn no, rất đáng tiền. Không phải chờ lâu, vừa ngồi xuống là có món. phở tái nạm rất ngon, đậm đà và nêm nếm vừa miệng. Chấm 5 sao.",
+      "published_at": "2026-06-09T09:55:00+07:00"
+    },
+    {
+      "source_id": "852227bb-0d2a-5fbe-8161-c8dc9cdb0ac1",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "852227bb-0d2a-5fbe-8161-c8dc9cdb0ac1",
+      "author_name": "V. S. I.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Đắt so với mặt bằng chung khu này. Không phải chờ lâu, vừa ngồi xuống là có món.",
+      "published_at": "2026-06-07T07:45:00+07:00"
+    },
+    {
+      "source_id": "1f2136dd-3e2c-5ab6-9661-c1b17da477b4",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "1f2136dd-3e2c-5ab6-9661-c1b17da477b4",
+      "author_name": "H. V.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "cơm tấm sườn bì chả làm rất khéo, ăn một lần là nhớ. Giá mềm, combo trưa rất hời. Rất đáng thử.",
+      "published_at": "2026-06-06T18:08:00+07:00"
+    },
+    {
+      "source_id": "697687d0-cdca-5d37-a73b-bcebaa0b1a19",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "697687d0-cdca-5d37-a73b-bcebaa0b1a19",
+      "author_name": "T. Q. C.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Giá tăng nhưng khẩu phần cứ giảm dần. Nhân viên thân thiện, nhiệt tình và tư vấn món rất tốt.",
+      "published_at": "2026-06-04T04:10:00+07:00"
+    },
+    {
+      "source_id": "2835d49f-fe0a-5680-9b0d-9f1dd3f91a2e",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "2835d49f-fe0a-5680-9b0d-9f1dd3f91a2e",
+      "author_name": "O. H. Y.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Quán sạch sẽ, nhà vệ sinh cũng rất sạch. Bạn phục vụ rất dễ thương, châm nước liên tục không cần nhắc. Rất đáng thử.",
+      "published_at": "2026-05-29T03:57:00+07:00"
+    },
+    {
+      "source_id": "fb46812e-2d12-5c00-a9ea-37a890dcf897",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "fb46812e-2d12-5c00-a9ea-37a890dcf897",
+      "author_name": "Q. N. T.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Phục vụ nhanh nhẹn, lịch sự, luôn hỏi thăm bàn mình. Bếp ra món rất chậm, ngồi đợi muốn bỏ về. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-05-21T22:23:00+07:00"
+    },
+    {
+      "source_id": "44878239-d82a-57e7-80ee-6a1dea4b4df8",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "44878239-d82a-57e7-80ee-6a1dea4b4df8",
+      "author_name": "C. I.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Ordered the pork roll banh mi and it came out cold in the middle. Service was warm and efficient from the moment we walked in. Quick service, perfect for a lunch break. Decent overall, but there is room for improvement.",
+      "published_at": "2026-05-21T01:04:00+07:00"
+    },
+    {
+      "source_id": "5207af60-f17f-5509-a586-3f1a12be71f2",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "5207af60-f17f-5509-a586-3f1a12be71f2",
+      "author_name": "U. E. B.",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "Nguyên liệu không tươi, caesar salad có mùi khó chịu. Phục vụ lên nhầm món và thái độ không vui vẻ.",
+      "published_at": "2026-05-16T20:34:00+07:00"
+    },
+    {
+      "source_id": "1f9dd9b9-72c6-59bf-9077-afe6c42b8913",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "1f9dd9b9-72c6-59bf-9077-afe6c42b8913",
+      "author_name": "Y. F.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Quán ồn ào, nói chuyện gần như không nghe được. Gọi chè khúc bạch và rất hài lòng, ăn xong còn muốn gọi thêm. Quán hỗ trợ rất chu đáo khi nhóm mình đặt bàn đông người. Thấy ruồi bay quanh quầy, chén đũa không sạch. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-05-16T05:41:00+07:00"
+    },
+    {
+      "source_id": "541c0763-6f7a-501f-b521-0f2115b27b6a",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "541c0763-6f7a-501f-b521-0f2115b27b6a",
+      "author_name": "D. E.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Overpriced for what you get, the portions are small. Best braised pork with eggs I've had in a long time, the seasoning was spot on. The team went out of their way to make us feel welcome. The outdoor seating is beautiful in the evening. Can't wait to return.",
+      "published_at": "2026-05-15T18:40:00+07:00"
+    },
+    {
+      "source_id": "48f6353f-019a-5188-a14e-51c69c5fdc22",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "48f6353f-019a-5188-a14e-51c69c5fdc22",
+      "author_name": "H. J. B.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Phục vụ nhanh nhẹn, lịch sự, luôn hỏi thăm bàn mình. rau muống xào tỏi rất ngon, đậm đà và nêm nếm vừa miệng. Giá hơi cao so với chất lượng, phần ăn nhỏ. Chấm 5 sao.",
+      "published_at": "2026-05-13T13:25:00+07:00"
+    },
+    {
+      "source_id": "2a424d54-55fa-5e59-99ca-6ad2ceeeae3a",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "2a424d54-55fa-5e59-99ca-6ad2ceeeae3a",
+      "author_name": "L. L.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Fair prices and the lunch special is a bargain. Music was blasting and the place felt chaotic. Decent overall, but there is room for improvement.",
+      "published_at": "2026-05-12T20:52:00+07:00"
+    },
+    {
+      "source_id": "b49589bc-0377-5490-b156-84fc3894abc1",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "b49589bc-0377-5490-b156-84fc3894abc1",
+      "author_name": "N. T. Y.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Staff were friendly, attentive and checked on us often. Ingredients did not taste fresh, and the grilled ribeye was disappointing. Decent overall, but there is room for improvement.",
+      "published_at": "2026-05-11T22:33:00+07:00"
+    },
+    {
+      "source_id": "825db87f-6e3c-5065-9fe1-82c6501edc81",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "825db87f-6e3c-5065-9fe1-82c6501edc81",
+      "author_name": "J. I. G.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Không gian ấm cúng, thoáng mát, hợp đi nhóm bạn hoặc gia đình. Gọi lamb chops và rất hài lòng, ăn xong còn muốn gọi thêm. Phục vụ nhanh nhẹn, lịch sự, luôn hỏi thăm bàn mình.",
+      "published_at": "2026-05-08T17:15:00+07:00"
+    },
+    {
+      "source_id": "0b23d23e-bd4f-5eff-922d-228ec8aecb53",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "0b23d23e-bd4f-5eff-922d-228ec8aecb53",
+      "author_name": "Q. L.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Không phải chờ lâu, vừa ngồi xuống là có món. Trong quán nóng, máy lạnh yếu.",
+      "published_at": "2026-05-08T04:46:00+07:00"
+    },
+    {
+      "source_id": "e5e5e577-359d-50d2-b45f-458e31a45a18",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "e5e5e577-359d-50d2-b45f-458e31a45a18",
+      "author_name": "A. X. Q.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Quán hỗ trợ rất chu đáo khi nhóm mình đặt bàn đông người. Quán sạch sẽ, nhà vệ sinh cũng rất sạch. Món đậu hũ sốt cà nóng hổi, nguyên liệu tươi, phần ăn đầy đặn. Không gian ấm cúng, thoáng mát, hợp đi nhóm bạn hoặc gia đình. Chấm 5 sao.",
+      "published_at": "2026-05-04T15:34:00+07:00"
+    },
+    {
+      "source_id": "aac263b9-1b7e-5b5e-8214-68a727ea5a32",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "aac263b9-1b7e-5b5e-8214-68a727ea5a32",
+      "author_name": "D. O. D. H.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Everything we ordered was delicious, especially the fried dough sticks. The atmosphere felt cold and impersonal. Long wait just to be seated, even with a reservation. Great service, they even accommodated our food allergy without fuss.",
+      "published_at": "2026-05-04T13:59:00+07:00"
+    },
+    {
+      "source_id": "ecd69a35-3624-53f8-8eef-b15ef459b025",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "ecd69a35-3624-53f8-8eef-b15ef459b025",
+      "author_name": "S. V. M. G.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Không ai hỏi thăm bàn sau khi lên món. Quán ồn ào, nói chuyện gần như không nghe được. Với mức giá này thì quá tuyệt. Món gỏi cuốn nóng hổi, nguyên liệu tươi, phần ăn đầy đặn. Giới thiệu cho mọi người.",
+      "published_at": "2026-05-04T05:35:00+07:00"
+    },
+    {
+      "source_id": "18ef5da2-5991-5398-bf9e-af02898e75c4",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "18ef5da2-5991-5398-bf9e-af02898e75c4",
+      "author_name": "C. M. L.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Giá cả hợp lý so với chất lượng và khẩu phần. Quán ồn ào, nói chuyện gần như không nghe được. Nhân viên thân thiện, nhiệt tình và tư vấn món rất tốt.",
+      "published_at": "2026-05-02T13:18:00+07:00"
+    },
+    {
+      "source_id": "101fae60-e762-58cd-85f3-ed27a49d0e33",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "101fae60-e762-58cd-85f3-ed27a49d0e33",
+      "author_name": "Y. L. T. T.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "trứng ốp la nấu quá chín, ăn rất khô. Nhà vệ sinh bẩn, hết xà phòng. Chờ hơn 40 phút mới có món, không ai giải thích. Khá thất vọng.",
+      "published_at": "2026-04-26T01:28:00+07:00"
+    },
+    {
+      "source_id": "98c3325d-28b1-575f-a665-d89b14f58ce9",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "98c3325d-28b1-575f-a665-d89b14f58ce9",
+      "author_name": "J. R. Q.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Good portions for the price, nothing felt overpriced. Best bitter melon soup I've had in a long time, the seasoning was spot on. Nobody checked on our table once the food arrived. The tables are packed so close together there is no privacy.",
+      "published_at": "2026-04-24T08:32:00+07:00"
+    },
+    {
+      "source_id": "254eb52f-7f85-595f-95e9-7e9a958880de",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "254eb52f-7f85-595f-95e9-7e9a958880de",
+      "author_name": "F. L. A. D.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Long wait just to be seated, even with a reservation. Staff were friendly, attentive and checked on us often. Everything we ordered was delicious, especially the chicken pho.",
+      "published_at": "2026-04-20T17:30:00+07:00"
+    },
+    {
+      "source_id": "8c311a2b-1047-5db5-86ad-7d7b13804596",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "8c311a2b-1047-5db5-86ad-7d7b13804596",
+      "author_name": "R. I. X.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "",
+      "published_at": "2026-04-17T18:24:00+07:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "a81393e7-9ae5-5de3-861a-d7b081326485",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "a81393e7-9ae5-5de3-861a-d7b081326485",
+      "author_name": "Y. D. E.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Bếp ra món rất chậm, ngồi đợi muốn bỏ về. Bạn phục vụ rất dễ thương, châm nước liên tục không cần nhắc.",
+      "published_at": "2026-04-17T04:01:00+07:00"
+    },
+    {
+      "source_id": "0a2d5189-2f94-55b3-8fd4-a5de167d2335",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "0a2d5189-2f94-55b3-8fd4-a5de167d2335",
+      "author_name": "O. H. Y. N.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "cá kho tộ làm rất khéo, ăn một lần là nhớ. Quán sạch sẽ, nhà vệ sinh cũng rất sạch. Sẽ quay lại.",
+      "published_at": "2026-04-17T00:34:00+07:00"
+    },
+    {
+      "source_id": "a4e8a19c-0ec8-527c-b2c2-4465c4bbccf9",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "a4e8a19c-0ec8-527c-b2c2-4465c4bbccf9",
+      "author_name": "P. H. P. N.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "phở bò viên rất ngon, đậm đà và nêm nếm vừa miệng. Đắt so với mặt bằng chung khu này. Không phải chờ lâu, vừa ngồi xuống là có món.",
+      "published_at": "2026-04-16T01:39:00+07:00"
+    },
+    {
+      "source_id": "983e3da5-15ff-5ddb-860c-25da14b138b6",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "983e3da5-15ff-5ddb-860c-25da14b138b6",
+      "author_name": "P. L. V. C.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Our reservation was honored right away and the food arrived promptly. Nobody checked on our table once the food arrived.",
+      "published_at": "2026-04-15T07:11:00+07:00"
+    },
+    {
+      "source_id": "9764f463-2c1b-5ab5-bb5b-bcb1713ba3da",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "9764f463-2c1b-5ab5-bb5b-bcb1713ba3da",
+      "author_name": "L. N. Q. C.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Our reservation was honored right away and the food arrived promptly. Best fried dough sticks I've had in a long time, the seasoning was spot on. Fair prices and the lunch special is a bargain.",
+      "published_at": "2026-04-13T03:19:00+07:00"
+    },
+    {
+      "source_id": "6ab0ca92-76b3-524c-8541-33fd577f9d12",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "6ab0ca92-76b3-524c-8541-33fd577f9d12",
+      "author_name": "I. T. X.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Giá hơi cao so với chất lượng, phần ăn nhỏ. Không ai hỏi thăm bàn sau khi lên món. Không phải chờ lâu, vừa ngồi xuống là có món. Chắc sẽ không quay lại.",
+      "published_at": "2026-04-13T00:40:00+07:00"
+    },
+    {
+      "source_id": "6e0db198-1415-569a-8403-53119470e7f5",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "6e0db198-1415-569a-8403-53119470e7f5",
+      "author_name": "C. C. C.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Great service, they even accommodated our food allergy without fuss. The kitchen was painfully slow, dishes came out one by one. Decent overall, but there is room for improvement.",
+      "published_at": "2026-04-07T23:55:00+07:00"
+    },
+    {
+      "source_id": "ce92f566-ad84-5b2d-8191-baf665d3bfd8",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "ce92f566-ad84-5b2d-8191-baf665d3bfd8",
+      "author_name": "V. A. H. D.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Quán trang trí đẹp, nhạc nhẹ nhàng, ngồi rất thoải mái. quẩy làm rất khéo, ăn một lần là nhớ.",
+      "published_at": "2026-04-06T08:15:00+07:00"
+    },
+    {
+      "source_id": "30e1a0d5-36cf-54c3-942f-31a1c50cd1c5",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "30e1a0d5-36cf-54c3-942f-31a1c50cd1c5",
+      "author_name": "H. D. N.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "The set menu is excellent value. Our reservation was honored right away and the food arrived promptly. Fresh ingredients and a great fried dough sticks, we cleaned our plates.",
+      "published_at": "2026-04-05T09:07:00+07:00"
+    },
+    {
+      "source_id": "1474f767-0a63-560e-965a-f42a631d6472",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "1474f767-0a63-560e-965a-f42a631d6472",
+      "author_name": "I. D.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Bàn ghế được lau liên tục, dụng cụ ăn sạch sẽ. Chờ hơn 40 phút mới có món, không ai giải thích. phở tái nạm rất ngon, đậm đà và nêm nếm vừa miệng. Rất đáng thử.",
+      "published_at": "2026-04-02T00:56:00+07:00"
+    },
+    {
+      "source_id": "35587dde-aba8-5aea-8da6-181bd5339613",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "35587dde-aba8-5aea-8da6-181bd5339613",
+      "author_name": "V. E. K.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Bạn phục vụ rất dễ thương, châm nước liên tục không cần nhắc. Giá rẻ mà ăn no, rất đáng tiền. Bàn dính dầu mỡ và sàn nhà chưa được dọn. Sẽ quay lại.",
+      "published_at": "2026-04-01T16:27:00+07:00"
+    },
+    {
+      "source_id": "8a275386-9aff-5b5c-979a-e26305d333b4",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "8a275386-9aff-5b5c-979a-e26305d333b4",
+      "author_name": "O. A. V. R.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Chỗ ngồi thoải mái và không gian yên tĩnh. Gọi chè khúc bạch và rất hài lòng, ăn xong còn muốn gọi thêm.",
+      "published_at": "2026-04-01T00:14:00+07:00"
+    },
+    {
+      "source_id": "baa1b22a-f756-5b6a-a1cd-85e7c4134bab",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "baa1b22a-f756-5b6a-a1cd-85e7c4134bab",
+      "author_name": "X. D. J.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "cơm tấm sườn nướng rất ngon, đậm đà và nêm nếm vừa miệng. View buổi tối rất đẹp, đáng để quay lại. Giá mềm, combo trưa rất hời.",
+      "published_at": "2026-03-31T09:46:00+07:00"
+    },
+    {
+      "source_id": "a90826a4-34a6-5765-892a-f960325f2cfe",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "a90826a4-34a6-5765-892a-f960325f2cfe",
+      "author_name": "X. Q.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Bạn phục vụ rất dễ thương, châm nước liên tục không cần nhắc. Giá hơi cao so với chất lượng, phần ăn nhỏ. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-03-30T11:43:00+07:00"
+    },
+    {
+      "source_id": "5b83d973-cbee-532d-a4d4-b5dc978cd12b",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "5b83d973-cbee-532d-a4d4-b5dc978cd12b",
+      "author_name": "H. Y.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "",
+      "published_at": "2026-03-28T05:33:00+07:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "5b493bac-b02a-50c2-92d7-aed2a2ad51a5",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "5b493bac-b02a-50c2-92d7-aed2a2ad51a5",
+      "author_name": "N. S. H.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "The garlic morning glory was too salty and greasy, I couldn't finish it. Service was disorganized, we had to flag someone down three times. Prices are very reasonable for the quality and the portion size.",
+      "published_at": "2026-03-28T01:44:00+07:00"
+    },
+    {
+      "source_id": "adb8e526-c6bd-5974-ae82-93465e905a14",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "adb8e526-c6bd-5974-ae82-93465e905a14",
+      "author_name": "F. J. A. U.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The caesar salad arrived hot and the flavors were well balanced. Staff were rude and barely acknowledged us. Very hygienic kitchen and clean dining area, which I really appreciate. Okay experience, might give it another try.",
+      "published_at": "2026-03-20T16:21:00+07:00"
+    },
+    {
+      "source_id": "4c51d068-d7b1-515e-ad7d-5f8cf01a2055",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "4c51d068-d7b1-515e-ad7d-5f8cf01a2055",
+      "author_name": "S. U.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Gọi grilled ribeye và rất hài lòng, ăn xong còn muốn gọi thêm. Đắt so với mặt bằng chung khu này.",
+      "published_at": "2026-03-13T23:54:00+07:00"
+    },
+    {
+      "source_id": "bb19fa84-b16e-519e-948e-ac53b7993345",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "bb19fa84-b16e-519e-948e-ac53b7993345",
+      "author_name": "N. M. M.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Nhạc quá to, không gian hơi lộn xộn. Quán hỗ trợ rất chu đáo khi nhóm mình đặt bàn đông người. Đồ ăn ngon, trình bày đẹp mắt, đúng vị.",
+      "published_at": "2026-03-13T05:21:00+07:00"
+    },
+    {
+      "source_id": "c395b9b0-797d-5ecb-ad53-e6a278187a4f",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "c395b9b0-797d-5ecb-ad53-e6a278187a4f",
+      "author_name": "I. I. P.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Không phải chờ lâu, vừa ngồi xuống là có món. Bàn dính dầu mỡ và sàn nhà chưa được dọn. Nhân viên thiếu nhiệt tình, gọi mấy lần mới có người đến. Chắc sẽ không quay lại.",
+      "published_at": "2026-03-09T01:47:00+07:00"
+    },
+    {
+      "source_id": "0a9a4f7b-f1c0-58b3-9e43-0f517b935f04",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "0a9a4f7b-f1c0-58b3-9e43-0f517b935f04",
+      "author_name": "J. N. P.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "canh chua rất ngon, đậm đà và nêm nếm vừa miệng. Nhân viên thân thiện, nhiệt tình và tư vấn món rất tốt. Chỗ ngồi thoải mái và không gian yên tĩnh. Giới thiệu cho mọi người.",
+      "published_at": "2026-03-07T13:33:00+07:00"
+    },
+    {
+      "source_id": "a98195ea-8bca-5749-9bd9-a7faf8e35e65",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "a98195ea-8bca-5749-9bd9-a7faf8e35e65",
+      "author_name": "V. Y.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Great service, they even accommodated our food allergy without fuss. Ordered the caramelized clay-pot fish and it came out cold in the middle. Tables were wiped down right away and everything looked very clean.",
+      "published_at": "2026-03-06T16:04:00+07:00"
+    },
+    {
+      "source_id": "2423c49c-4ae8-5dab-b88b-911280bfa4b5",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "2423c49c-4ae8-5dab-b88b-911280bfa4b5",
+      "author_name": "I. F. M. I.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Nhân viên thiếu nhiệt tình, gọi mấy lần mới có người đến. Quán ồn ào, nói chuyện gần như không nghe được. cơm tấm sườn bì chả rất ngon, đậm đà và nêm nếm vừa miệng. Chắc sẽ không quay lại.",
+      "published_at": "2026-03-04T07:18:00+07:00"
+    },
+    {
+      "source_id": "845edf0b-7b0d-548e-83e1-07672a64aecc",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "845edf0b-7b0d-548e-83e1-07672a64aecc",
+      "author_name": "D. G.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Chỗ ngồi thoải mái và không gian yên tĩnh. Nhà vệ sinh bẩn, hết xà phòng. Với mức giá này thì quá tuyệt. Giới thiệu cho mọi người.",
+      "published_at": "2026-03-02T16:23:00+07:00"
+    },
+    {
+      "source_id": "f18fbb74-198c-57eb-91db-69de4d96323f",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "f18fbb74-198c-57eb-91db-69de4d96323f",
+      "author_name": "I. C. J.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Bếp ra món rất chậm, ngồi đợi muốn bỏ về. Quán hỗ trợ rất chu đáo khi nhóm mình đặt bàn đông người.",
+      "published_at": "2026-02-27T23:51:00+07:00"
+    },
+    {
+      "source_id": "95c62b2e-0948-502c-8f2c-8af032509ca5",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "95c62b2e-0948-502c-8f2c-8af032509ca5",
+      "author_name": "P. D. N.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Không gian chật chội, bàn ghế đặt sát nhau. Đắt so với mặt bằng chung khu này. Khá thất vọng.",
+      "published_at": "2026-02-20T12:42:00+07:00"
+    },
+    {
+      "source_id": "17f7540c-b99e-5070-b149-b944b920a4ab",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "17f7540c-b99e-5070-b149-b944b920a4ab",
+      "author_name": "V. G.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Giá mềm, combo trưa rất hời. Lên món rất nhanh dù quán đang đông. Rất đáng thử.",
+      "published_at": "2026-02-18T01:07:00+07:00"
+    },
+    {
+      "source_id": "dba13302-97db-5f8f-b4f6-8513a7cca347",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "dba13302-97db-5f8f-b4f6-8513a7cca347",
+      "author_name": "N. I. X. U.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Phục vụ nhanh, phù hợp bữa trưa văn phòng. Với mức giá này thì quá tuyệt. gỏi cuốn làm rất khéo, ăn một lần là nhớ. Chỗ ngồi thoải mái và không gian yên tĩnh.",
+      "published_at": "2026-02-17T21:30:00+07:00"
+    },
+    {
+      "source_id": "15f6c129-d5d9-5cdc-929b-e471f062a187",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "15f6c129-d5d9-5cdc-929b-e471f062a187",
+      "author_name": "B. F. L.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Food came out fast even though the place was full. The team went out of their way to make us feel welcome. My grilled pork chop rice was overcooked and the portion was smaller than expected. Highly recommended.",
+      "published_at": "2026-02-13T16:14:00+07:00"
+    },
+    {
+      "source_id": "912c0940-0391-54c9-a513-33eaa54b2d97",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "912c0940-0391-54c9-a513-33eaa54b2d97",
+      "author_name": "V. D. B.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Bàn dính dầu mỡ và sàn nhà chưa được dọn. Bạn phục vụ rất dễ thương, châm nước liên tục không cần nhắc.",
+      "published_at": "2026-02-11T10:41:00+07:00"
+    },
+    {
+      "source_id": "95f2ebe4-613f-5c75-9b42-28d8efc28771",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "95f2ebe4-613f-5c75-9b42-28d8efc28771",
+      "author_name": "Q. C. L.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Giá mềm, combo trưa rất hời. Phục vụ nhanh nhẹn, lịch sự, luôn hỏi thăm bàn mình. Món bánh mì xíu mại quá mặn và nhiều dầu mỡ, ăn không hết. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-02-08T00:25:00+07:00"
+    },
+    {
+      "source_id": "c6acda1b-8115-5449-872d-c1ce42339d7d",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "c6acda1b-8115-5449-872d-c1ce42339d7d",
+      "author_name": "J. H.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Nhân viên thân thiện, nhiệt tình và tư vấn món rất tốt. Giá rẻ mà ăn no, rất đáng tiền. Nhà vệ sinh bẩn, hết xà phòng. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2026-02-05T07:33:00+07:00"
+    },
+    {
+      "source_id": "b556574b-5fef-58a9-ae3f-1e4678800be3",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "b556574b-5fef-58a9-ae3f-1e4678800be3",
+      "author_name": "T. C.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Everything we ordered was delicious, especially the grilled pork banh mi. The atmosphere is cozy and lively, perfect for a group dinner. Highly recommended.",
+      "published_at": "2026-02-04T08:38:00+07:00"
+    },
+    {
+      "source_id": "1c157598-1d52-5d85-98c0-ec16813f650c",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "1c157598-1d52-5d85-98c0-ec16813f650c",
+      "author_name": "C. D. H.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Nhân viên thân thiện, nhiệt tình và tư vấn món rất tốt. cơm tấm sườn bì chả làm rất khéo, ăn một lần là nhớ. Quán trang trí đẹp, nhạc nhẹ nhàng, ngồi rất thoải mái.",
+      "published_at": "2026-01-30T02:06:00+07:00"
+    },
+    {
+      "source_id": "8bf52b8f-926b-5a38-b79d-d121da97123b",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "8bf52b8f-926b-5a38-b79d-d121da97123b",
+      "author_name": "Y. N. Y. V.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Best caramelized clay-pot fish I've had in a long time, the seasoning was spot on. Service was warm and efficient from the moment we walked in. The outdoor seating is beautiful in the evening. Will definitely come back.",
+      "published_at": "2026-01-29T04:28:00+07:00"
+    },
+    {
+      "source_id": "47b5076a-eda3-538f-b9b6-a5d9333cc14a",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "47b5076a-eda3-538f-b9b6-a5d9333cc14a",
+      "author_name": "I. R. B.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The waiter got our order wrong and was dismissive when we pointed it out. Fresh ingredients and a great soy milk, we cleaned our plates. The kitchen was painfully slow, dishes came out one by one. The outdoor seating is beautiful in the evening. Okay experience, might give it another try.",
+      "published_at": "2026-01-26T20:21:00+07:00"
+    },
+    {
+      "source_id": "c2b2027b-83a9-5b60-9adc-6278b246665a",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "c2b2027b-83a9-5b60-9adc-6278b246665a",
+      "author_name": "M. V. X. C.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Món cá kho tộ quá mặn và nhiều dầu mỡ, ăn không hết. Bàn ghế được lau liên tục, dụng cụ ăn sạch sẽ. Chỗ ngồi thoải mái và không gian yên tĩnh. Rất đáng thử.",
+      "published_at": "2026-01-25T23:24:00+07:00"
+    },
+    {
+      "source_id": "b3199e16-8db6-5f7e-9b0b-9feac3a5252c",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "b3199e16-8db6-5f7e-9b0b-9feac3a5252c",
+      "author_name": "R. V.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Giá rẻ mà ăn no, rất đáng tiền. Đồ ăn ngon, trình bày đẹp mắt, đúng vị. Không gian chật chội, bàn ghế đặt sát nhau. Giới thiệu cho mọi người.",
+      "published_at": "2026-01-16T08:48:00+07:00"
+    },
+    {
+      "source_id": "c048630d-ec49-52b4-9fdf-9edfc3bf8242",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "c048630d-ec49-52b4-9fdf-9edfc3bf8242",
+      "author_name": "X. K. K.",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "Với mức giá này thì quá tuyệt. Nhân viên thiếu nhiệt tình, gọi mấy lần mới có người đến. Nguyên liệu không tươi, canh khổ qua có mùi khó chịu. Nhạc quá to, không gian hơi lộn xộn. Hy vọng quán cải thiện.",
+      "published_at": "2026-01-14T15:53:00+07:00"
+    },
+    {
+      "source_id": "e08dcff2-bf71-529b-b0a1-738af4f50beb",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "e08dcff2-bf71-529b-b0a1-738af4f50beb",
+      "author_name": "G. Y. G.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Great value for money, we left full without spending much. Clean cutlery, clean floors, clear attention to detail.",
+      "published_at": "2026-01-10T21:58:00+07:00"
+    },
+    {
+      "source_id": "b8e2148c-691f-580b-b715-45e3a3d42ad2",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "b8e2148c-691f-580b-b715-45e3a3d42ad2",
+      "author_name": "V. I.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "View buổi tối rất đẹp, đáng để quay lại. Quán hỗ trợ rất chu đáo khi nhóm mình đặt bàn đông người. Món cá kho tộ nóng hổi, nguyên liệu tươi, phần ăn đầy đặn. Giá rẻ mà ăn no, rất đáng tiền. Rất đáng thử.",
+      "published_at": "2026-01-10T12:48:00+07:00"
+    },
+    {
+      "source_id": "ce933ee8-1057-5911-9cfa-b56dcd3a9426",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "ce933ee8-1057-5911-9cfa-b56dcd3a9426",
+      "author_name": "N. N. R. L.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Phục vụ nhanh, phù hợp bữa trưa văn phòng. Bạn phục vụ rất dễ thương, châm nước liên tục không cần nhắc.",
+      "published_at": "2026-01-07T14:30:00+07:00"
+    },
+    {
+      "source_id": "7309fdcb-eead-53a6-955c-b2f23230a2a9",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "7309fdcb-eead-53a6-955c-b2f23230a2a9",
+      "author_name": "S. H. H.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Nhân viên thân thiện, nhiệt tình và tư vấn món rất tốt. Gọi grilled ribeye và rất hài lòng, ăn xong còn muốn gọi thêm. View buổi tối rất đẹp, đáng để quay lại. Chấm 5 sao.",
+      "published_at": "2025-12-29T23:24:00+07:00"
+    },
+    {
+      "source_id": "5d7d25cd-ecd7-5c99-b911-e182f64b0e4f",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "5d7d25cd-ecd7-5c99-b911-e182f64b0e4f",
+      "author_name": "U. K.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Quán trang trí đẹp, nhạc nhẹ nhàng, ngồi rất thoải mái. Nhân viên cau có, hỏi gì cũng trả lời cộc lốc. Gọi tiramisu và rất hài lòng, ăn xong còn muốn gọi thêm.",
+      "published_at": "2025-12-22T23:54:00+07:00"
+    },
+    {
+      "source_id": "375f751f-acf2-5c63-866a-fb27f32a44f0",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "375f751f-acf2-5c63-866a-fb27f32a44f0",
+      "author_name": "H. A. R. X.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Quán ồn ào, nói chuyện gần như không nghe được. Đồ ăn ngon, trình bày đẹp mắt, đúng vị. Chờ hơn 40 phút mới có món, không ai giải thích. Hy vọng quán cải thiện.",
+      "published_at": "2025-12-17T23:57:00+07:00"
+    },
+    {
+      "source_id": "353e51ff-6ea5-5439-8fc9-9c42940c5b58",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "353e51ff-6ea5-5439-8fc9-9c42940c5b58",
+      "author_name": "E. X.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Trong quán nóng, máy lạnh yếu. Giá mềm, combo trưa rất hời. Món cơm tấm sườn bì chả nóng hổi, nguyên liệu tươi, phần ăn đầy đặn.",
+      "published_at": "2025-12-12T02:35:00+07:00"
+    },
+    {
+      "source_id": "e3c4e922-e06d-585f-aded-8e93e1cde6c6",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "e3c4e922-e06d-585f-aded-8e93e1cde6c6",
+      "author_name": "U. H. X. J.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Không phải chờ lâu, vừa ngồi xuống là có món. lamb chops rất ngon, đậm đà và nêm nếm vừa miệng. Chấm 5 sao.",
+      "published_at": "2025-12-11T01:03:00+07:00"
+    },
+    {
+      "source_id": "819d1f0c-21b4-5658-a807-2d570a964b52",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "819d1f0c-21b4-5658-a807-2d570a964b52",
+      "author_name": "J. T.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Phục vụ lên nhầm món và thái độ không vui vẻ. Giá cả hợp lý so với chất lượng và khẩu phần. Gọi bánh mì ốp la và rất hài lòng, ăn xong còn muốn gọi thêm. Lên món rất nhanh dù quán đang đông.",
+      "published_at": "2025-12-09T03:08:00+07:00"
+    },
+    {
+      "source_id": "66f553c5-a363-5a11-8442-3203186a58ea",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "66f553c5-a363-5a11-8442-3203186a58ea",
+      "author_name": "U. B. U.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Prices are very reasonable for the quality and the portion size. Staff were friendly, attentive and checked on us often. Can't wait to return.",
+      "published_at": "2025-12-05T15:33:00+07:00"
+    },
+    {
+      "source_id": "c986d1ba-0ea1-5fb1-a4e1-a7faf35c0baf",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "c986d1ba-0ea1-5fb1-a4e1-a7faf35c0baf",
+      "author_name": "Q. U. P.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "",
+      "published_at": "2025-12-03T18:53:00+07:00",
+      "text_missing": true
+    },
+    {
+      "source_id": "0fb67474-c6a9-53e4-a460-bae0ccd39487",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "0fb67474-c6a9-53e4-a460-bae0ccd39487",
+      "author_name": "E. K. K.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Nhân viên thân thiện, nhiệt tình và tư vấn món rất tốt. Giá cả hợp lý so với chất lượng và khẩu phần. Chấm 5 sao.",
+      "published_at": "2025-12-03T09:54:00+07:00"
+    },
+    {
+      "source_id": "d450ae4b-e513-5630-9426-feeef00d5f7e",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "d450ae4b-e513-5630-9426-feeef00d5f7e",
+      "author_name": "K. L. A.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Overpriced for what you get, the portions are small. Great vibe, we stayed longer than planned just enjoying the setting. Great service, they even accommodated our food allergy without fuss.",
+      "published_at": "2025-12-02T19:47:00+07:00"
+    },
+    {
+      "source_id": "69e6609a-4f16-504c-bcf8-1fb2e01a08f1",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "69e6609a-4f16-504c-bcf8-1fb2e01a08f1",
+      "author_name": "L. B. R. S.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Nguyên liệu không tươi, sữa đậu nành có mùi khó chịu. Giá rẻ mà ăn no, rất đáng tiền. Phục vụ lên nhầm món và thái độ không vui vẻ.",
+      "published_at": "2025-11-29T04:58:00+07:00"
+    },
+    {
+      "source_id": "7f381987-8b29-5574-80d7-60e29b9e57fa",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "7f381987-8b29-5574-80d7-60e29b9e57fa",
+      "author_name": "Y. M.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Đợi mãi mới có chỗ ngồi dù đã đặt trước. Đồ ăn ngon, trình bày đẹp mắt, đúng vị.",
+      "published_at": "2025-11-29T02:42:00+07:00"
+    },
+    {
+      "source_id": "03267331-0de8-5108-80d0-edc320e88aa5",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "03267331-0de8-5108-80d0-edc320e88aa5",
+      "author_name": "Q. L. T. A.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Great service, they even accommodated our food allergy without fuss. Food came out fast even though the place was full. The rare beef pho was outstanding, full of flavor and cooked just right.",
+      "published_at": "2025-11-28T19:47:00+07:00"
+    },
+    {
+      "source_id": "a7b09ffa-fc63-5a8d-8698-e9836766b760",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "a7b09ffa-fc63-5a8d-8698-e9836766b760",
+      "author_name": "R. G.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Too hot inside and the air conditioning barely worked. Good portions for the price, nothing felt overpriced. The fried dough sticks was outstanding, full of flavor and cooked just right. Okay experience, might give it another try.",
+      "published_at": "2025-11-27T22:11:00+07:00"
+    },
+    {
+      "source_id": "4269d674-405c-56b0-8bb1-16a6163c40e1",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "4269d674-405c-56b0-8bb1-16a6163c40e1",
+      "author_name": "D. X. C.",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "Trong quán nóng, máy lạnh yếu. Phần ăn ít hơn mong đợi, chất lượng món chỉ ở mức trung bình. Khá thất vọng.",
+      "published_at": "2025-11-26T03:42:00+07:00"
+    },
+    {
+      "source_id": "0a55335c-be3c-5588-b0c9-e39d6f4a9565",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "0a55335c-be3c-5588-b0c9-e39d6f4a9565",
+      "author_name": "O. Y. O. L.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Our server was knowledgeable and made great recommendations. Everything we ordered was delicious, especially the garlic morning glory. The set menu is excellent value. Can't wait to return.",
+      "published_at": "2025-11-21T08:43:00+07:00"
+    },
+    {
+      "source_id": "23b04428-651c-5c76-ab00-2c181472f353",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "23b04428-651c-5c76-ab00-2c181472f353",
+      "author_name": "X. N. V. A.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Quán trang trí đẹp, nhạc nhẹ nhàng, ngồi rất thoải mái. Phục vụ lên nhầm món và thái độ không vui vẻ. Giá tăng nhưng khẩu phần cứ giảm dần. Bàn ghế được lau liên tục, dụng cụ ăn sạch sẽ.",
+      "published_at": "2025-11-07T10:28:00+07:00"
+    },
+    {
+      "source_id": "42bef040-2521-57c7-90d7-8573ce01a8c7",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "42bef040-2521-57c7-90d7-8573ce01a8c7",
+      "author_name": "S. S.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Quán sạch sẽ, nhà vệ sinh cũng rất sạch. Phần ăn ít hơn mong đợi, chất lượng món chỉ ở mức trung bình. Giá cả hợp lý so với chất lượng và khẩu phần. View buổi tối rất đẹp, đáng để quay lại.",
+      "published_at": "2025-11-06T18:12:00+07:00"
+    },
+    {
+      "source_id": "413d3402-1635-558a-8096-60a29d02539c",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "413d3402-1635-558a-8096-60a29d02539c",
+      "author_name": "O. X. Y.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Too hot inside and the air conditioning barely worked. Everything we ordered was delicious, especially the pork roll banh mi. The set menu is excellent value. We waited over 45 minutes for our food and nobody explained why. Decent overall, but there is room for improvement.",
+      "published_at": "2025-11-04T19:23:00+07:00"
+    },
+    {
+      "source_id": "7cb514f7-0be6-521e-91eb-4ee89975e470",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "7cb514f7-0be6-521e-91eb-4ee89975e470",
+      "author_name": "G. A.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Gọi tiramisu và rất hài lòng, ăn xong còn muốn gọi thêm. Giá mềm, combo trưa rất hời. Sẽ quay lại.",
+      "published_at": "2025-10-30T04:11:00+07:00"
+    },
+    {
+      "source_id": "1875e3a6-8e28-5d7e-bc18-037ec8454abf",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "1875e3a6-8e28-5d7e-bc18-037ec8454abf",
+      "author_name": "F. D.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "seafood platter làm rất khéo, ăn một lần là nhớ. Phục vụ lên nhầm món và thái độ không vui vẻ. Không gian ấm cúng, thoáng mát, hợp đi nhóm bạn hoặc gia đình. Không phải chờ lâu, vừa ngồi xuống là có món.",
+      "published_at": "2025-10-25T11:30:00+07:00"
+    },
+    {
+      "source_id": "8db6c5ed-a102-5061-891f-69f39daefcf7",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "8db6c5ed-a102-5061-891f-69f39daefcf7",
+      "author_name": "Y. E. N.",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "Cleanliness needs work, the table still had leftovers from the last guests. Long wait just to be seated, even with a reservation.",
+      "published_at": "2025-10-24T01:38:00+07:00"
+    },
+    {
+      "source_id": "cf72e7ec-ae10-5a81-bc69-9c0d43459bfb",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "cf72e7ec-ae10-5a81-bc69-9c0d43459bfb",
+      "author_name": "N. N. A.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Nhân viên thân thiện, nhiệt tình và tư vấn món rất tốt. cá kho tộ làm rất khéo, ăn một lần là nhớ.",
+      "published_at": "2025-10-22T01:16:00+07:00"
+    },
+    {
+      "source_id": "59704a1e-4ecb-53ca-bacb-ab62cdfc31eb",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "59704a1e-4ecb-53ca-bacb-ab62cdfc31eb",
+      "author_name": "S. Q. T. G.",
+      "author_uri": null,
+      "rating": 1.0,
+      "text": "Nobody checked on our table once the food arrived. Too expensive for an average meal, I felt a bit ripped off. Hope they improve.",
+      "published_at": "2025-10-20T15:44:00+07:00"
+    },
+    {
+      "source_id": "0f563b0a-1dc9-5109-97bf-a4f341b5041b",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "0f563b0a-1dc9-5109-97bf-a4f341b5041b",
+      "author_name": "J. I.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "The pork roll banh mi was bland and arrived lukewarm. Our server seemed distracted and forgot part of our order. Fair prices and the lunch special is a bargain. Our reservation was honored right away and the food arrived promptly. Will definitely come back.",
+      "published_at": "2025-10-18T13:20:00+07:00"
+    },
+    {
+      "source_id": "d27e55e1-ae6f-5c8c-a8e6-d37cd270a07a",
+      "restaurant_source_id": "8533d0d8-417c-590e-a7de-2ab330e29fb1",
+      "external_review_id": "d27e55e1-ae6f-5c8c-a8e6-d37cd270a07a",
+      "author_name": "Q. Q. P.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Quán sạch sẽ, nhà vệ sinh cũng rất sạch. Gọi quẩy và rất hài lòng, ăn xong còn muốn gọi thêm. Chấm 5 sao.",
+      "published_at": "2025-10-16T22:16:00+07:00"
+    },
+    {
+      "source_id": "a662e385-5828-5f92-a404-c641616469da",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "a662e385-5828-5f92-a404-c641616469da",
+      "author_name": "O. D.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Đồ ăn ngon, trình bày đẹp mắt, đúng vị. View buổi tối rất đẹp, đáng để quay lại.",
+      "published_at": "2025-09-29T15:14:00+07:00"
+    },
+    {
+      "source_id": "6e96b772-442f-5cfc-b2c5-d9225aae856b",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "6e96b772-442f-5cfc-b2c5-d9225aae856b",
+      "author_name": "B. H. V.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Good portions for the price, nothing felt overpriced. Comfortable seating and a warm, welcoming interior. Five stars from us.",
+      "published_at": "2025-09-23T09:45:00+07:00"
+    },
+    {
+      "source_id": "a12a153e-8977-5a98-9ae5-64d0bdd97f6d",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "a12a153e-8977-5a98-9ae5-64d0bdd97f6d",
+      "author_name": "Q. I.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Gọi đậu hũ sốt cà và rất hài lòng, ăn xong còn muốn gọi thêm. Giá hơi cao so với chất lượng, phần ăn nhỏ. Lên món rất nhanh dù quán đang đông.",
+      "published_at": "2025-09-17T15:35:00+07:00"
+    },
+    {
+      "source_id": "d3b7e430-d624-5123-b925-cce60d9eb911",
+      "restaurant_source_id": "28b26f0f-ad0e-5008-b1a2-eab9263d8b22",
+      "external_review_id": "d3b7e430-d624-5123-b925-cce60d9eb911",
+      "author_name": "P. B. U. N.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "The sweet dessert cup was outstanding, full of flavor and cooked just right. We waited over 45 minutes for our food and nobody explained why. Okay experience, might give it another try.",
+      "published_at": "2025-09-02T08:49:00+07:00"
+    },
+    {
+      "source_id": "7d405cec-bedf-5d65-822b-fe8cd66e61e4",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "7d405cec-bedf-5d65-822b-fe8cd66e61e4",
+      "author_name": "K. L.",
+      "author_uri": null,
+      "rating": 2.0,
+      "text": "Too expensive for an average meal, I felt a bit ripped off. Best braised pork with eggs I've had in a long time, the seasoning was spot on.",
+      "published_at": "2025-09-01T22:44:00+07:00"
+    },
+    {
+      "source_id": "18f35109-589e-5ce2-a3fa-0ec911056d8e",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "18f35109-589e-5ce2-a3fa-0ec911056d8e",
+      "author_name": "C. C. Y.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "View buổi tối rất đẹp, đáng để quay lại. Giá tăng nhưng khẩu phần cứ giảm dần.",
+      "published_at": "2025-08-30T01:33:00+07:00"
+    },
+    {
+      "source_id": "c98f52d8-41a0-5bce-843c-d2013a889f9a",
+      "restaurant_source_id": "fda8d009-3f63-5c0c-a044-1cb75c5cf084",
+      "external_review_id": "c98f52d8-41a0-5bce-843c-d2013a889f9a",
+      "author_name": "E. D. P. D.",
+      "author_uri": null,
+      "rating": 3.0,
+      "text": "Giá cả hợp lý so với chất lượng và khẩu phần. sữa đậu nành nấu quá chín, ăn rất khô. Tạm ổn, cần cải thiện thêm.",
+      "published_at": "2025-08-17T02:46:00+07:00"
+    },
+    {
+      "source_id": "17979178-eb5f-5f2a-9d5b-90924ddda8f9",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "17979178-eb5f-5f2a-9d5b-90924ddda8f9",
+      "author_name": "G. B. S.",
+      "author_uri": null,
+      "rating": 4.0,
+      "text": "Staff were rude and barely acknowledged us. A charming spot with a great view and a good mood. Best tiramisu I've had in a long time, the seasoning was spot on. Will definitely come back.",
+      "published_at": "2025-07-22T20:13:00+07:00"
+    },
+    {
+      "source_id": "35357fcb-fc98-5b1e-a7d5-35940405124a",
+      "restaurant_source_id": "a204fd30-dec6-5cd3-9e8f-402d1a9eccd5",
+      "external_review_id": "35357fcb-fc98-5b1e-a7d5-35940405124a",
+      "author_name": "Q. N. D. L.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Với mức giá này thì quá tuyệt. Không gian ấm cúng, thoáng mát, hợp đi nhóm bạn hoặc gia đình. tiramisu rất ngon, đậm đà và nêm nếm vừa miệng. Sẽ quay lại.",
+      "published_at": "2025-07-06T03:05:00+07:00"
+    },
+    {
+      "source_id": "bac90401-6531-56e8-a72c-1f328763586f",
+      "restaurant_source_id": "19a03319-0415-5142-8de2-b9d1588838db",
+      "external_review_id": "bac90401-6531-56e8-a72c-1f328763586f",
+      "author_name": "B. Q. G. Y.",
+      "author_uri": null,
+      "rating": 5.0,
+      "text": "Quick service, perfect for a lunch break. Waiters were polite and refilled our drinks without being asked. Loved the garlic morning glory; portions were generous and everything tasted fresh.",
+      "published_at": "2025-06-27T18:06:00+07:00"
+    }
+  ]
+}

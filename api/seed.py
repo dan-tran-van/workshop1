@@ -17,6 +17,8 @@ from app.services.analysis import get_or_run_restaurant_analysis
 DATASETS: List[str] = [
     "district2_restaurants_reviews",
     "alaska_moose_tooth_reviews",
+    "district1_restaurants_reviews",
+    "austin_bbq_reviews",
 ]
 
 
