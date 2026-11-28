@@ -282,4 +282,64 @@ test.describe("FE-03 AI analysis", () => {
     await expect(page.getByRole("region", { name: "Criteria comparison summary" })).toHaveCount(0);
     await expect(page.getByRole("combobox", { name: "Compare with past analysis" })).toHaveCount(0);
   });
+
+  test("FE-26 reads analysis summary aloud via TTS with loading, pause, resume, stop, and client cache", async ({ page }) => {
+    await page.unroute("http://localhost:8000/**");
+    await installApiMocks(page, { initialAnalysis: analysis, ttsDelayMs: 250 });
+    await page.goto("/");
+    await authenticateTestUser(page);
+
+    let ttsRequestCount = 0;
+    page.on("request", (request) => {
+      if (request.method() === "POST" && new URL(request.url()).pathname === `/restaurants/1/analyses/${analysis.id}/tts`) {
+        ttsRequestCount += 1;
+      }
+    });
+
+    const readButton = page.getByRole("button", { name: "Read analysis summary aloud" });
+    await expect(readButton).toBeVisible();
+    await readButton.click();
+
+    const loadingButton = page.getByRole("button", { name: "Loading audio..." });
+    await expect(loadingButton).toBeDisabled();
+    await loadingButton.click({ force: true });
+
+    const pauseButton = page.getByRole("button", { name: "Pause" });
+    await expect(pauseButton).toBeVisible();
+    expect(ttsRequestCount).toBe(1);
+
+    await pauseButton.click();
+    const resumeButton = page.getByRole("button", { name: "Resume" });
+    await expect(resumeButton).toBeVisible();
+
+    await resumeButton.click();
+    await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Stop reading aloud" }).click();
+    await expect(page.getByRole("button", { name: "Read analysis summary aloud" })).toBeVisible();
+
+    // Replaying uses the cached Blob URL without firing a duplicate backend TTS call
+    await page.getByRole("button", { name: "Read analysis summary aloud" }).click();
+    await expect(page.getByRole("button", { name: "Pause" })).toBeVisible();
+    expect(ttsRequestCount).toBe(1);
+  });
+
+  test("FE-27 shows inline error when TTS fails and renders Read aloud in Review insights", async ({ page }) => {
+    await page.unroute("http://localhost:8000/**");
+    await installApiMocks(page, {
+      initialAnalysis: analysis,
+      ttsErrorStatus: 503,
+      ttsErrorDetail: "Text-to-speech is not configured on the server.",
+    });
+    await page.goto("/");
+    await authenticateTestUser(page);
+
+    await page.getByRole("button", { name: "Read analysis summary aloud" }).click();
+    await expect(page.getByRole("alert")).toContainText("Text-to-speech is not configured on the server.");
+    await expect(page.getByText(analysisResult.summary)).toBeVisible();
+
+    await page.getByRole("button", { name: "Review insights" }).click();
+    const insightsCard = page.locator(".insight-result");
+    await expect(insightsCard.getByRole("button", { name: "Read analysis summary aloud" })).toBeVisible();
+  });
 });
