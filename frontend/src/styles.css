@@ -556,3 +556,57 @@ tbody tr:last-child td { border-bottom: 0; }
   .market-controls .comparison-picker { min-width: 0; }
   .market-sort { flex: 1 1 auto; }
 }
+
+/* Semantic review search & competitor similarity badges */
+.market-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 4px; }
+.market-similarity-badge {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 10px;
+  font-size: 8.5px; font-weight: 700; color: #315d4d; background: #e9f5ed;
+}
+.review-search-page { display: grid; gap: 20px; min-width: 0; }
+.review-search-page .panel { padding: 20px 22px; }
+.review-search-page .panel-heading { padding: 0 0 14px; }
+.review-search-form { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 6px; }
+.review-search-input { flex: 1 1 260px; min-width: 0; display: flex; align-items: center; height: 40px; padding: 0 12px; }
+.review-search-input input { min-width: 0; width: 100%; height: auto; padding: 0; background: transparent; border: 0; }
+.review-search-form .comparison-picker { flex: 0 1 auto; }
+.review-search-form .button { flex: 0 0 auto; height: 40px; padding: 0 16px; }
+.review-search-examples { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; font-size: 9.5px; }
+.review-example-chip { cursor: pointer; border: 1px solid #e1e6e2; background: #f8faf8; color: #36413b; }
+.review-example-chip:hover { border-color: #315d4d; color: #315d4d; }
+.search-mode-badge {
+  display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 12px;
+  font-size: 9px; font-weight: 700; white-space: nowrap; max-width: 100%;
+}
+.search-mode-badge.mode-semantic { color: #315d4d; background: #e9f5ed; }
+.search-mode-badge.mode-keyword { color: #6c6244; background: #faf5e6; }
+.review-search-page .review-list { margin-top: 4px; }
+.search-review-row { padding: 14px 4px; gap: 12px; }
+.search-review-row .review-author-line { justify-content: flex-start; flex-wrap: wrap; gap: 6px 8px; }
+.search-review-row .review-date { margin-left: auto; white-space: nowrap; }
+.search-restaurant-pill {
+  padding: 2px 7px; border-radius: 10px; font-size: 8.5px; font-weight: 600;
+  color: #49534c; background: #f1f3f1;
+}
+.search-match-pill {
+  padding: 2px 7px; border-radius: 10px; font-size: 8.5px; font-weight: 700;
+}
+.search-match-pill.match-semantic { color: #315d4d; background: #e9f5ed; }
+.search-match-pill.match-keyword { color: #6c6244; background: #faf5e6; }
+
+@media (max-width: 900px) {
+  .review-search-input { flex: 1 1 100%; }
+  .review-search-form .comparison-picker { flex: 1 1 180px; }
+}
+
+@media (max-width: 700px) {
+  .review-search-page .panel { padding: 16px; }
+  .review-search-page .panel-heading { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .review-search-form { flex-direction: column; align-items: stretch; }
+  .review-search-input,
+  .review-search-form .comparison-picker,
+  .review-search-form .comparison-select,
+  .review-search-form .button { flex: 0 0 auto; width: 100%; }
+  .review-search-form .button { justify-content: center; }
+  .search-review-row .review-date { margin-left: 0; width: 100%; }
+}
